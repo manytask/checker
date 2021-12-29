@@ -3,9 +3,9 @@ import json
 import time
 from pathlib import Path
 
-from .course import Course
-from .utils import print_info
-from .repos import get_private_project, get_students_projects
+from ..course import Course
+from ..utils.print import print_info
+from ..utils.repos import get_private_project, get_students_projects
 
 
 def check_plagiarism_solutions(course: Course, dry_run: bool = False,

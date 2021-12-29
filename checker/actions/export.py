@@ -3,8 +3,9 @@ import subprocess
 import uuid
 from pathlib import Path
 
-from .course import Course, PUBLIC_DIR
-from .utils import print_info, file_match_patterns
+from ..course import Course, PUBLIC_DIR
+from ..utils.print import print_info
+from ..utils.files import file_match_patterns
 
 
 EXPORT_IGNORE_FILE_PATTERNS = ['*.docker', '.releaser-ci.yml']

@@ -1,9 +1,9 @@
+from __future__ import annotations
+
 import sys
-from typing import Optional
-from pathlib import Path
 
 
-def print_info(*args, file=None, color: Optional[str] = None, **kwargs):
+def print_info(*args, file=None, color: str | None = None, **kwargs):
     colors = {
         'white': '\033[97m',
         'cyan': '\033[96m',
@@ -39,10 +39,3 @@ def print_header_info(info_string: str) -> None:
 
 def print_task_info(task_name: str) -> None:
     print_header_info(f'Testing tasks: <{task_name}>')
-
-
-def file_match_patterns(file: Path, patterns: list[str]) -> bool:
-    for pattern in patterns:
-        if file.match(pattern) or str(file).startswith(pattern):
-            return True
-    return False

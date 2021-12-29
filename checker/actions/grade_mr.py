@@ -2,14 +2,13 @@ import re
 from datetime import datetime
 from typing import Any
 
-from .repos import GITLAB, MASTER_BRANCH, get_students_projects, get_all_tutors
-from .utils import print_info, print_header_info
-from .course import Course
+from ..utils.repos import GITLAB, MASTER_BRANCH, get_students_projects
+from ..utils.print import print_info
+from ..course import Course
 from .grade import _push_report
 
 
 BANNED_FILE_EXTENSIONS = {'csv', 'txt'}
-ALLOWED_FILES = ['requirements.txt', 'runtime.txt']
 REVIEWED_TAG = 'reviewed'
 BASIC_CHECKLIST_BANNED_TAGS = {'checklist', REVIEWED_TAG}
 
@@ -129,10 +128,7 @@ def check_basic_checklist_single_mr(mr, tag_to_folder: dict[str, str]) -> None:
     have_no_conflicts = not is_conflict
 
     # Check pipelines
-    if not changes or not changes['head_pipeline']:
-        head_pipeline_status = 'failed'
-    else:
-        head_pipeline_status = changes['head_pipeline']['status']
+    head_pipeline_status = changes['head_pipeline']['status']
     pipeline_passed = head_pipeline_status == 'success'
 
     # changes files
@@ -158,9 +154,6 @@ def check_basic_checklist_single_mr(mr, tag_to_folder: dict[str, str]) -> None:
     wrong_file = None
     for file in file_changed:
         if file.split('.')[-1] in BANNED_FILE_EXTENSIONS:
-            for allowed_file in ALLOWED_FILES:
-                if file.endswith(allowed_file):
-                    continue
             have_no_additional_files = False
             wrong_file = file
             break
@@ -210,7 +203,6 @@ def check_basic_checklist_single_mr(mr, tag_to_folder: dict[str, str]) -> None:
 
     # TODO: fix it
     if tag == 'cinemabot':
-        checks_ok = False
         have_bot_tag = '@' in mr.description
         checklist_note_msg.insert(-1, f'- [{"x" if have_bot_tag else " "}] placed @bot_tag in description')
 
@@ -255,9 +247,6 @@ def grade_students_mrs_to_master(course: Course, dry_run: bool = False) -> None:
 
         # Check basic checklist
         for mr in opened_master_mrs:
-            if mr.title.lower().startswith('wip:') or mr.title.lower().startswith('draft:'):
-                print_info('Draft MR - skip it', color='grey')
-                continue
             check_basic_checklist_single_mr(mr, tag_to_folder)
 
         # Check score
@@ -273,7 +262,4 @@ def grade_students_mrs_to_master(course: Course, dry_run: bool = False) -> None:
         user_id = project_users_filtered_by_name[0]
 
         for mr in [*opened_master_mrs, *merged_master_mrs]:
-            if mr.title.lower().startswith('wip:') or mr.title.lower().startswith('draft:'):
-                print_info('Draft MR - skip it', color='grey')
-                continue
             grade_score_singe_mr(course, mr, tag_to_folder, tutors_dict, user_id)

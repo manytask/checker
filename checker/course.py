@@ -1,11 +1,13 @@
 """All classes and functions interacting with course groups and tasks"""
+from __future__ import annotations
+
 import json
 import re
 from collections import OrderedDict
 from dataclasses import dataclass, field, InitVar
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union, Any
+from typing import Any
 
 import yaml
 
@@ -40,7 +42,7 @@ class Task:
     @dataclass
     class TaskTestConfig:
         review: bool = False
-        checklist: Optional[str] = None
+        checklist: str | None = None
         partially_scored: bool = False
         verbose_tests_output: bool = False
         module_test: bool = False
@@ -53,15 +55,15 @@ class Task:
         private_test_files: list[str] = field(default_factory=list)
         test_files: list[str] = field(default_factory=list)
 
-        test_timeout: Optional[int] = None  # seconds
-        coverage: Union[bool, int] = False
+        test_timeout: int | None = None  # seconds
+        coverage: bool | int = False
 
         # Init only
         explicit_public_tests: InitVar[list[str]] = None
         explicit_private_tests: InitVar[list[str]] = None
 
         def __post_init__(
-                self, explicit_public_tests: Optional[list[str]], explicit_private_tests: Optional[list[str]]
+                self, explicit_public_tests: list[str] | None, explicit_private_tests: list[str] | None
         ):
             self.forbidden_regexp += [r'exit\(0\)']
             for regexp in self.forbidden_regexp:
@@ -76,12 +78,14 @@ class Task:
             group: 'Group',
             name: str,
             max_score: int,
+            enabled: bool,
             scoring_func: str,
     ):
         self.group = group
         self.name = name
         self.full_name = self.group.name + '/' + self.name
         self.max_score = max_score
+        self.enabled = enabled
         self.scoring_func = scoring_func
 
         self.source_dir: Path = group.source_dir / self.name
@@ -226,6 +230,7 @@ class Course:
                 try:
                     task_name = task_config['task']
                     task_score = int(task_config['score'])
+                    task_enabled = task_config.get('task_enabled', True)
                     task_scoring_func = task_config.get('scoring_func', 'max')
                 except (KeyError, TypeError, ValueError) as err:
                     raise BadTaskConfig(task_name, msg=f'Task {task_name} has bad config') from err
@@ -237,6 +242,7 @@ class Course:
                     group=group,
                     name=task_name,
                     max_score=task_score,
+                    enabled=task_enabled,
                     scoring_func=task_scoring_func,
                 )
                 # TODO: add task enabled param. skip disabled tasks
@@ -252,12 +258,12 @@ class Course:
 
             self.groups[group_name] = group
 
-    def get_tasks(self, enabled: Optional[bool] = None, started: Optional[bool] = None,
-                  ended: Optional[bool] = None) -> list[Task]:
+    def get_tasks(self, enabled: bool | None = None, started: bool | None = None,
+                  ended: bool | None = None) -> list[Task]:
         tasks: list[Task] = [task for task_name, task in self.tasks.items()]
 
         if enabled is not None:
-            tasks = [task for task in tasks if task.group.is_enabled == enabled]
+            tasks = [task for task in tasks if (task.enabled and task.group.is_enabled) == enabled]
         if started is not None:
             tasks = [task for task in tasks if task.group.is_started == started]
         if ended is not None:
@@ -265,8 +271,8 @@ class Course:
 
         return tasks
 
-    def get_groups(self, valid: Optional[bool] = None, enabled: Optional[bool] = None,
-                   started: Optional[bool] = None, ended: Optional[bool] = None) -> list[Group]:
+    def get_groups(self, valid: bool | None = None, enabled: bool | None = None,
+                   started: bool | None = None, ended: bool | None = None) -> list[Group]:
         groups: list[Group] = [group for group_name, group in self.groups.items()]
 
         if valid is not None:

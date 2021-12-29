@@ -3,30 +3,24 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Pattern
-from dataclasses import dataclass
 
-from .course import Task
+from ..course import Task
 from .executor import Executor, ExecutionFailedError
-from .utils import print_info
+from ..utils.print import print_info
+
 
 IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache']
+IGNORE_COVER_FILES = ['setup.py']
 TIMEOUT_SECS = 60
 
 
-@dataclass
 class ChecksFailedError(Exception):
     msg: str = ''
-    output: str = ''
+    output: str
 
-    def __repr__(self):
-        return f'ChecksFailedError: {self.msg}'
-
-
-@dataclass
-class BuildFailedError(Exception):
-    msg: str = ''
-    output: str = ''
+    def __init__(self, msg: str, output: str = ''):
+        self.msg = msg
+        self.output = output
 
     def __repr__(self):
         return f'ChecksFailedError: {self.msg}'
@@ -57,7 +51,7 @@ class Tester:
             source: Path, target: Path,
             patterns: list[str] = None, ignore_patterns: list[str] = None,
             regex_check: bool = True,
-            forbidden_regexp: list[Pattern] = None,
+            forbidden_regexp: list[re.Pattern] = None,
     ):
         forbidden_regexp = forbidden_regexp or []
         target.mkdir(parents=True, exist_ok=True)
@@ -99,13 +93,6 @@ class Tester:
 
         # Install submitted code as module if needed
         if task.config.module_test:
-            # assert setup files exists
-            setup_files = [i.name for i in task_build_dir.glob(r'setup.*')]
-            if 'setup.py' not in setup_files and 'setup.cfg' not in setup_files:
-                raise BuildFailedError('This task is in editable `module` mode. You have to provide setup.cfg/setup.py file')
-            if 'setup.py' not in setup_files:
-                raise BuildFailedError('This task is in editable `module` mode. You have to provide setup.py file')
-
             if task.config.build_wheel:
                 task_build_dir_dist = task_build_dir / 'dist'
                 output = self._executor(
@@ -219,7 +206,7 @@ class Tester:
             # exclude test files
             dirs_to_cover = {
                 i.relative_to(build_dir) for i in build_dir.iterdir()
-                if i.suffix in ['', '.py'] and i.name not in task.config.test_files and i.name != 'setup.py'
+                if i.suffix in ['', '.py'] and i.name not in task.config.test_files and i.name not in IGNORE_COVER_FILES
             }
             if dirs_to_cover:
                 for _dir in dirs_to_cover:
@@ -354,11 +341,7 @@ class Tester:
             return task.max_score
 
     def run_tests(self, task: Task, source_path: Path, verbose: bool = False, normalize_output: bool = False) -> int:
-        try:
-            build_dir = self._gen_build(task, source_path, sandbox=True, verbose=verbose, normalize_output=normalize_output)
-        except BuildFailedError as e:
-            print_info('\nOoops... Something went wrong: ' + e.msg, color='red')
-            raise e
+        build_dir = self._gen_build(task, source_path, sandbox=True, verbose=verbose, normalize_output=normalize_output)
         try:
             # Do not disable sandbox (otherwise it will not clear environ,
             # so environ-related issues may be missed, such as empty locale)

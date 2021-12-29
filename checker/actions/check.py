@@ -1,16 +1,17 @@
+from __future__ import annotations
+
 import io
 import multiprocessing
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import redirect_stdout, redirect_stderr
-from typing import Optional
 
-from .course import Course, Task
-from .tester import Tester, ChecksFailedError, BuildFailedError
-from .utils import print_info, print_task_info
+from ..course import Course, Task
+from ..system.tester import Tester, ChecksFailedError
+from ..utils.print import print_info, print_task_info
 
 
-def check_single_task(tester: Tester, task: Task, verbose: bool = False, catch_output: bool = False) -> Optional[str]:
+def check_single_task(tester: Tester, task: Task, verbose: bool = False, catch_output: bool = False) -> str | None:
     if catch_output:
         f = io.StringIO()
         with redirect_stderr(f), redirect_stdout(f):
@@ -20,9 +21,6 @@ def check_single_task(tester: Tester, task: Task, verbose: bool = False, catch_o
             except ChecksFailedError as e:
                 out = f.getvalue()
                 raise ChecksFailedError(e.msg, out + e.output) from e
-            except BuildFailedError as e:
-                out = f.getvalue()
-                raise BuildFailedError(e.msg, out + e.output) from e
             else:
                 out = f.getvalue()
                 return out
@@ -66,7 +64,7 @@ def check_tasks(tester: Tester, tasks: list[Task], parallelize: bool = False, ve
 
 def pre_release_check_tasks(
         course: Course,
-        tasks: Optional[list[Task]] = None,
+        tasks: list[Task] | None = None,
         cleanup: bool = True, dry_run: bool = False,
         parallelize: bool = False, contributing: bool = False,
 ) -> None:

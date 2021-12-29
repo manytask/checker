@@ -14,9 +14,10 @@ from pathlib import Path
 import requests
 import gitlab
 
-from .course import Course, Task
-from .utils import print_info, file_match_patterns
-from .repos import GITLAB, MASTER_BRANCH, get_private_project, get_students_projects, get_student_file_link
+from ..course import Course, Task
+from ..utils.print import print_info
+from ..utils.files import file_match_patterns
+from ..utils.repos import GITLAB, MASTER_BRANCH, get_private_project, get_students_projects, get_student_file_link
 
 
 SCORE_API_URL = 'https://py.manytask.org/api/score'
@@ -31,6 +32,7 @@ PARALLEL_WORKERS = 8
 
 
 def _get_ended_solutions(course: Course) -> Generator[tuple[Task, list[str]], None, None]:
+    now_ = datetime.now()  # TODO: check timezone
     # TODO: read env for group names
     group_names = os.environ.get('GROUP_NAMES', None)
     if group_names:

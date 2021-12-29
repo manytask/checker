@@ -2,8 +2,8 @@ import subprocess
 from pathlib import Path
 from typing import Union
 
-from .course import Course, PUBLIC_DIR
-from .utils import print_info
+from ..course import Course, PUBLIC_DIR
+from ..utils import print_info
 
 
 def render_lectures(course: Course, dry_run: bool = False, build_dir: Union[str, Path] = 'lectures_build') -> None:

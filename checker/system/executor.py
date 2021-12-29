@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 import grp
 import os
 import pwd
 import subprocess
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 try:
     import unshare
 except ImportError:
     unshare = None
 
-from .utils import print_info
+from ..utils.print import print_info
 
 
 EXECUTOR_ENV_WHITELIST = ['PATH']
@@ -90,7 +91,7 @@ class Executor:
 
     def __call__(
             self, command,
-            timeout: Optional[int] = None,
+            timeout: int | None = None,
             sandbox: bool = False,
             env_sandbox: bool = False,
             verbose: bool = False,

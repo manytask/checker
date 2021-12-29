@@ -1,5 +1,6 @@
 """Main executable file. Refer to cli module"""
-from typing import Optional
+from __future__ import annotations
+
 from pathlib import Path
 import sys
 import json
@@ -9,15 +10,16 @@ from contextlib import redirect_stdout, redirect_stderr
 
 import click
 
-from .check import pre_release_check_tasks
+from .utils.print import print_info
+from .utils.repos import MASTER_BRANCH
 from .course import Course, Task, PUBLIC_DIR
-from .export import export_enabled
-from .grade import grade_on_ci
-from .grade_mr import grade_students_mrs_to_master
-from .lectures import render_lectures
-from .solutions import download_solutions
-from .contributing import create_public_mr
-from .utils import print_info
+from .actions.check import pre_release_check_tasks
+from .actions.export import export_enabled
+from .actions.grade import grade_on_ci
+from .actions.grade_mr import grade_students_mrs_to_master
+from .actions.lectures import render_lectures
+from .actions.solutions import download_solutions
+from .actions.contributing import create_public_mr
 
 
 @click.group()
@@ -35,8 +37,8 @@ def cli() -> None:
 @click.option('--parallelize', is_flag=True, help='Execute parallel checking of tasks')
 @click.option('--contributing', is_flag=True, help='Run task check for students` contribution (decrease verbosity)')
 def check(
-        task: Optional[list[str]] = None,
-        group: Optional[list[str]] = None,
+        task: list[str] | None = None,
+        group: list[str] | None = None,
         no_clean: bool = False,
         dry_run: bool = False,
         parallelize: bool = False,
@@ -45,7 +47,7 @@ def check(
     """Run task pre-release checking"""
     course = Course(skip_missed_sources=contributing)
 
-    tasks: Optional[list[Task]] = None
+    tasks: list[Task] | None = None
     if group:
         tasks = []
         for group_name in group:
@@ -76,7 +78,7 @@ def check(
 @click.option('--test-full-groups', is_flag=True, help='Test all tasks in changed groups')
 def grade(
         # dry_run: bool = False,
-        inspect: Optional[Path] = None,
+        inspect: Path | None = None,
         test_full_groups: bool = False,
 ) -> None:
     """Run task grading"""
@@ -217,7 +219,7 @@ def create_contributing_mr(
         print_info(f'mr_state = {mr_state}. Skip it.', color='orange')
         return
 
-    if target_branch != 'master':  # TODO: default branch
+    if target_branch != MASTER_BRANCH:
         print_info(f'target_branch = {target_branch}. Skip it.', color='orange')
         return
 

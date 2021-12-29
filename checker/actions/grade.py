@@ -7,9 +7,9 @@ from datetime import datetime
 
 import requests
 
-from .utils import print_info, print_task_info
-from .course import Course, Group, Task
-from .tester import Tester, ChecksFailedError, BuildFailedError
+from ..utils.print import print_info, print_task_info
+from ..course import Course, Group, Task
+from ..system.tester import Tester, ChecksFailedError
 
 
 REPORT_API_URL = 'https://py.manytask.org/api/report'
@@ -180,7 +180,7 @@ def grade_single_task(tester: Tester, task: Task, user_id: int, commit_time: dat
         elif not inspect:
             _push_report(task.name, user_id, score, commit_time)
         return True
-    except (BuildFailedError, ChecksFailedError):
+    except ChecksFailedError:
         # print_info(e)
         return False
 

@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import os
-from typing import Any, Union
+from typing import Any
 from pathlib import Path
 
 import gitlab
 
-from .utils import print_info
+from .print import print_info
 
 
 GITLAB_HOST_URL = 'https://gitlab.manytask.org'
@@ -89,5 +91,5 @@ def get_students_projects() -> list[Any]:
     return get_projects_in_group(STUDENTS_GROUP_NAME)
 
 
-def get_student_file_link(username: str, path: Union[str, Path]) -> str:
+def get_student_file_link(username: str, path: str | Path) -> str:
     return f'{GITLAB_HOST_URL}/{STUDENTS_GROUP_NAME}/{username}/-/blob/{MASTER_BRANCH}/{path}'

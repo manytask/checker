@@ -1,16 +1,16 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import re
-from datetime import datetime
 import time
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from typing import Optional
 
 import gitlab
 
-from .repos import GITLAB, GITLAB_HOST_URL, get_private_project, get_public_project, MASTER_BRANCH
-from .utils import print_info
+from ..utils.repos import GITLAB, GITLAB_HOST_URL, get_private_project, get_public_project, MASTER_BRANCH
+from ..utils.print import print_info
 
 
 MR_COPY_TOKEN = os.environ.get('MR_COPY_TOKEN', None)
@@ -248,7 +248,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         mr.delete()
 
 
-def create_public_mr(object_attributes: Optional[dict] = None, dry_run: bool = False) -> None:
+def create_public_mr(object_attributes: dict | None = None, dry_run: bool = False) -> None:
     """Copy changes from public repo"""
     object_attributes = object_attributes or {}
     merge_commit_sha = object_attributes['merge_commit_sha']
