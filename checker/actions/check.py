@@ -6,30 +6,55 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import redirect_stdout, redirect_stderr
 
-from ..course import Course, Task
-from ..system.tester import Tester, ChecksFailedError
+from ..course import CourseDriver, CourseSchedule, Task
+from ..testers import Tester
+from ..exceptions import TesterException, RunFailedError
 from ..utils.print import print_info, print_task_info
 
 
-def check_single_task(tester: Tester, task: Task, verbose: bool = False, catch_output: bool = False) -> str | None:
+def _check_single_task(
+        task: Task,
+        tester: Tester,
+        course_driver: CourseDriver,
+        verbose: bool = False,
+        catch_output: bool = False,
+) -> str | None:
+    source_dir = course_driver.get_task_source_dir(task)
+    public_tests_dir, private_tests_dir = course_driver.get_task_test_dirs(task)
+    assert public_tests_dir, f'{public_tests_dir=} have to exists'
+    assert private_tests_dir, f'{private_tests_dir=} have to exists'
+
     if catch_output:
         f = io.StringIO()
         with redirect_stderr(f), redirect_stdout(f):
             print_task_info(task.full_name)
             try:
-                tester.run_tests(task, task.private_dir, verbose=verbose, normalize_output=True)
-            except ChecksFailedError as e:
+                tester.test_task(
+                    source_dir, public_tests_dir, private_tests_dir,
+                    verbose=verbose, normalize_output=True
+                )
+            except RunFailedError as e:
                 out = f.getvalue()
-                raise ChecksFailedError(e.msg, out + e.output) from e
+                raise RunFailedError(e.msg, out + (e.output or '')) from e
             else:
                 out = f.getvalue()
                 return out
     else:
         print_task_info(task.full_name)
-        tester.run_tests(task, task.private_dir, verbose=verbose)
+        tester.test_task(
+            source_dir, public_tests_dir, private_tests_dir,
+            verbose=verbose, normalize_output=True
+        )
+        return None
 
 
-def check_tasks(tester: Tester, tasks: list[Task], parallelize: bool = False, verbose: bool = True) -> bool:
+def _check_tasks(
+        tasks: list[Task],
+        tester: Tester,
+        course_driver: CourseDriver,
+        parallelize: bool = False,
+        verbose: bool = True,
+) -> bool:
     # Check itself
     if parallelize:
         num_cores = multiprocessing.cpu_count()
@@ -39,14 +64,14 @@ def check_tasks(tester: Tester, tasks: list[Task], parallelize: bool = False, ve
         # with ThreadPoolExecutor(max_workers=num_cores) as e:
         with ProcessPoolExecutor(max_workers=num_cores) as e:
             check_futures = {
-                e.submit(check_single_task, tester, task, verbose=verbose, catch_output=True)
+                e.submit(_check_single_task, task, tester, course_driver, verbose=verbose, catch_output=True)
                 for task in tasks
             }
 
             for future in as_completed(check_futures):
                 try:
                     captured_out = future.result()
-                except ChecksFailedError as e:
+                except RunFailedError as e:
                     print_info(e.output)
                     success &= False
                 except Exception as e:
@@ -57,38 +82,48 @@ def check_tasks(tester: Tester, tasks: list[Task], parallelize: bool = False, ve
         return success
     else:
         for task in tasks:
-            check_single_task(tester, task, verbose=verbose, catch_output=False)
+            try:
+                _check_single_task(task, tester, course_driver, verbose=verbose, catch_output=False)
+            except RunFailedError:
+                return False
+            except Exception as e:
+                print_info('Unknown exception:', e, color='red')
+                raise e
 
         return True
 
 
 def pre_release_check_tasks(
-        course: Course,
+        course_schedule: CourseSchedule,
+        course_driver: CourseDriver,
+        tester: Tester,
         tasks: list[Task] | None = None,
-        cleanup: bool = True, dry_run: bool = False,
-        parallelize: bool = False, contributing: bool = False,
+        *,
+        parallelize: bool = False,
+        contributing: bool = False,
 ) -> None:
-    # Filter tasks
-    if not tasks:
-        if contributing:
-            tasks = course.get_tasks(started=True)
-            print_info('Testing started groups...', color='yellow')
-            print_info([i.name for i in course.get_groups(started=True)])
-        else:
-            tasks = course.get_tasks(enabled=True)
-            print_info('Testing enabled groups...', color='yellow')
-            print_info([i.name for i in course.get_groups(enabled=True)])
-    else:
+    # select tasks or use `tasks` param
+    if tasks:
         print_info('Testing specifying tasks...', color='yellow')
         print_info([i.full_name for i in tasks])
+    else:
+        if contributing:
+            tasks = course_schedule.get_tasks(started=True)
+            print_info('Testing started groups...', color='yellow')
+            print_info([i.name for i in course_schedule.get_groups(started=True)])
+        else:
+            tasks = course_schedule.get_tasks(enabled=True)
+            print_info('Testing enabled groups...', color='yellow')
+            print_info([i.name for i in course_schedule.get_groups(enabled=True)])
 
-    # Create tester.. to test
-    tester = Tester(cleanup=cleanup, dry_run=dry_run)
+    # tests itself
+    success = _check_tasks(
+        tasks,
+        tester,
+        course_driver,
+        parallelize=parallelize,
+        verbose=not contributing
+    )
 
-    success = check_tasks(tester, tasks, parallelize=parallelize, verbose=not contributing)
-    # if not success:
-    #     raise ChecksFailedError('Got one or more errors during the testing')
     if not success:
         sys.exit(1)
-
-

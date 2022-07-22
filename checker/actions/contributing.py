@@ -7,9 +7,10 @@ import time
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
-import gitlab
+import gitlab.v4.objects
 
-from ..utils.repos import GITLAB, GITLAB_HOST_URL, get_private_project, get_public_project, MASTER_BRANCH
+from ..course import CourseConfig
+from ..utils.glab import GITLAB, GITLAB_HOST_URL, get_private_project, get_public_project, MASTER_BRANCH
 from ..utils.print import print_info
 
 
@@ -25,7 +26,7 @@ def _student_mr_title_generator(merge_request: gitlab.v4.objects.MergeRequest) -
 
 
 def _get_student_mr_title_prefix(full_title: str) -> str:
-    prefix = re.match(r'^\[.*\]', full_title).group(0)
+    prefix = re.match(r'^[.*]', full_title).group(0)
     return prefix
 
 
@@ -71,15 +72,15 @@ def _get_student_mr_source_url(merge_request: gitlab.v4.objects.MergeRequest) ->
     ]), source_branch
 
 
-def copy_merge_requests(dry_run: bool = False) -> None:
+def copy_merge_requests(course_config: CourseConfig, dry_run: bool = False) -> None:
     """Copy changes from all open MR"""
-    private_project = get_private_project()
+    private_project = get_private_project(course_config.private_group, course_config.private_repo)
     full_private_project = GITLAB.projects.get(private_project.id)
-    public_project = get_public_project()
+    public_project = get_public_project(course_config.private_group, course_config.public_repo)
     full_public_project = GITLAB.projects.get(public_project.id)
 
     # Run rebase
-    print_info(f'Go and rebase public project', color='pink')
+    print_info('Go and rebase public project', color='pink')
     public_mrs = full_public_project.mergerequests.list(state='opened')
     for mr in public_mrs:
         print_info(f'Rebase public MR {mr.iid} "{mr.title}":', color='pink')
@@ -88,11 +89,11 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         rebase_in_progress = mr.rebase()['rebase_in_progress']
         print_info("rebase_in_progress", rebase_in_progress)
 
-    print_info(f'Waiting until rebase done...', color='pink')
+    print_info('Waiting until rebase done...', color='pink')
     time.sleep(60)  # TODO: add check
 
     stdout = subprocess.run(
-        f'git fetch private',
+        'git fetch private',
         encoding='utf-8',
         shell=True, check=True,
         stdout=subprocess.PIPE,
@@ -107,7 +108,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
 
     public_mrs = full_public_project.mergerequests.list(state='opened')
 
-    print_info(f'Throughout public MR', color='pink')
+    print_info('Throughout public MR', color='pink')
     for mr in public_mrs:
         full_mr = GITLAB.mergerequests.get(mr.id)
         print_info('full_mr', full_mr)
@@ -134,7 +135,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
             print_info(stdout, color='grey')
 
             # Update desc and so on
-            print_info(f'updating mr...')
+            print_info('updating mr...')
             private_mr.title = _student_mr_title_generator(mr)
             private_mr.description = _student_mr_desc_generator(mr)
             private_mr.labels = ['contributing']
@@ -148,15 +149,16 @@ def copy_merge_requests(dry_run: bool = False) -> None:
             # Create and push branch
             print_info(f'create and checkout {private_branch_name}...')
             stdout = subprocess.run(
-                f'git checkout --force -b {private_branch_name} private/{MASTER_BRANCH} && git push --set-upstream  private {private_branch_name}',
+                f'git checkout --force -b {private_branch_name} private/{MASTER_BRANCH} '
+                f'&& git push --set-upstream  private {private_branch_name}',
                 encoding='utf-8',
                 shell=True, check=True,
                 stdout=subprocess.PIPE,
-            )
+            ).stdout
             print_info(stdout, color='grey')
 
             # Create a MR
-            print_info(f'creating mr...')
+            print_info('creating mr...')
             private_mr = full_private_project.mergerequests.create({
                 'source_branch': private_branch_name,
                 'target_branch': MASTER_BRANCH,
@@ -175,7 +177,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
 
         print_info(f'git status in {private_branch_name}:')
         stdout = subprocess.run(
-            f'git status',
+            'git status',
             encoding='utf-8',
             shell=True, check=True,
             stdout=subprocess.PIPE,
@@ -205,7 +207,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         print_info(stdout, color='grey')
 
         stdout = subprocess.run(
-            f'git status',
+            'git status',
             encoding='utf-8',
             shell=True, check=True,
             stdout=subprocess.PIPE,
@@ -216,7 +218,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         # Git add only modified and deleted
         print_info('Git add modified and commit and push it...')
         stdout = subprocess.run(
-            f'git add -u',
+            'git add -u',
             encoding='utf-8',
             shell=True, check=True,
             stdout=subprocess.PIPE,
@@ -224,7 +226,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         print_info(stdout, color='grey')
 
         stdout = subprocess.run(
-            f'git status && git branch',
+            'git status && git branch',
             encoding='utf-8',
             shell=True, check=True,
             stdout=subprocess.PIPE,
@@ -240,7 +242,7 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         ).stdout
         print_info(stdout, color='grey')
 
-    print_info(f'Deleting outdated private MR', color='pink')
+    print_info('Deleting outdated private MR', color='pink')
     for mr in private_students_mr:
         print_info(f'Deleting outdated MR {mr.iid} {mr.title}...')
         # mr.state_event = 'close'
@@ -248,7 +250,12 @@ def copy_merge_requests(dry_run: bool = False) -> None:
         mr.delete()
 
 
-def create_public_mr(object_attributes: dict | None = None, dry_run: bool = False) -> None:
+def create_public_mr(
+        course_config: CourseConfig,
+        object_attributes: dict[str, str] | None = None,
+        *,
+        dry_run: bool = False,
+) -> None:
     """Copy changes from public repo"""
     object_attributes = object_attributes or {}
     merge_commit_sha = object_attributes['merge_commit_sha']
@@ -259,10 +266,10 @@ def create_public_mr(object_attributes: dict | None = None, dry_run: bool = Fals
     author_id = object_attributes['author_id']
     updated_at = object_attributes['updated_at']
 
-    private_project = get_private_project()
+    private_project = get_private_project(course_config.private_group, course_config.private_repo)
     full_private_project = GITLAB.projects.get(private_project.id)
-    public_project = get_public_project()
-    full_public_project = GITLAB.projects.get(public_project.id)
+    # public_project = get_public_project()
+    # full_public_project = GITLAB.projects.get(public_project.id)
     author = GITLAB.users.get(author_id)
 
     # Get public project sha and generate branch name
@@ -283,7 +290,7 @@ def create_public_mr(object_attributes: dict | None = None, dry_run: bool = Fals
         f'author: {author.username} - {author.name}',
         f'updated_at: {updated_at}',
         f'sha: {public_sha}',
-        f'',
+        '',
         description,
     ])
 
@@ -322,7 +329,7 @@ def create_public_mr(object_attributes: dict | None = None, dry_run: bool = Fals
 
         # Check diff not empty
         stdout = subprocess.run(
-            f'git status',
+            'git status',
             encoding='utf-8',
             shell=True, check=True,
             stdout=subprocess.PIPE,
@@ -330,7 +337,10 @@ def create_public_mr(object_attributes: dict | None = None, dry_run: bool = Fals
         print_info(stdout, color='grey')
 
         if 'Changes to be committed:' not in stdout:
-            print_info(f'Can not create MR. No changes to commit between {MASTER_BRANCH} and public/{MASTER_BRANCH}', color='orange')
+            print_info(
+                f'Can not create MR. No changes to commit between {MASTER_BRANCH} and public/{MASTER_BRANCH}',
+                color='orange'
+            )
             return
 
         # Git add only modified and deleted
@@ -355,5 +365,5 @@ def create_public_mr(object_attributes: dict | None = None, dry_run: bool = Fals
             'allow_maintainer_to_push': True,
         })
 
-        print_info(f'Ok. New MR created', color='green')
+        print_info('Ok. New MR created', color='green')
         print_info(mr.web_url)

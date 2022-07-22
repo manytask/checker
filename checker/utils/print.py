@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import sys
+from typing import Any
 
 
-def print_info(*args, file=None, color: str | None = None, **kwargs):
+def print_info(*args: Any, file: Any = None, color: str | None = None, **kwargs: Any) -> None:
     colors = {
         'white': '\033[97m',
         'cyan': '\033[96m',

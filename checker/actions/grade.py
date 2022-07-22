@@ -1,27 +1,27 @@
-import json
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
-import time
 from datetime import datetime
 
-import requests
-
 from ..utils.print import print_info, print_task_info
-from ..course import Course, Group, Task
-from ..system.tester import Tester, ChecksFailedError
-
-
-REPORT_API_URL = 'https://py.manytask.org/api/report'
+from ..utils.manytask import push_report, PushFailedError
+from ..course import CourseSchedule, Group, Task, CourseDriver, CourseConfig
+from ..testers import Tester
+from ..exceptions import RunFailedError
 
 
 class GitException(Exception):
     pass
 
 
-def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no_upstream') -> list[str]:
+def _get_git_changes(
+        solution_root: str, public_repo_url: str, git_changes_type: str = 'log_between_no_upstream'
+) -> list[str]:
     """
     :param solution_root: Full path to solutions folder
+    :param public_repo_url: Full url to public repo
     :param git_changes_type: one of
         'diff_last', 'diff_between', 'log_between_no_merges', 'log_between_by_author', 'log_between_no_upstream'
     """
@@ -31,11 +31,12 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
 
     current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
     prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
-    if set(prev_commit_sha) == {'0'}:  # first commit or merge request
+    if prev_commit_sha and set(prev_commit_sha) == {'0'}:  # first commit or merge request
         prev_commit_sha = None
 
-    if git_changes_type == 'diff_between' and (current_commit_sha is None or prev_commit_sha is None):
-        print_info(f'CI_COMMIT_SHA or CI_COMMIT_BEFORE_SHA is wrong pipeline_diff can not be used. Using std `git show`')
+    if 'between' in git_changes_type and (current_commit_sha is None or prev_commit_sha is None):
+        print_info('CI_COMMIT_SHA or CI_COMMIT_BEFORE_SHA is wrong pipeline_diff can not be used. '
+                   'Using std `git show`')
         print_info(f'CI_COMMIT_SHA: {current_commit_sha}, CI_COMMIT_BEFORE_SHA: {prev_commit_sha}!')
         git_changes_type = 'diff_last'
 
@@ -76,7 +77,8 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
             git_status = subprocess.run(
                 f'cd {solution_root} && '
                 f'git log --pretty="%H" --no-merges {prev_commit_sha or ""}..{current_commit_sha} | '
-                f'while read commit_hash; do git show --oneline --name-only $commit_hash | tail -n+2; done | sort | uniq',
+                f'while read commit_hash; do git show --oneline --name-only $commit_hash'
+                f'| tail -n+2; done | sort | uniq',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 shell=True
@@ -84,12 +86,15 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
             print_info(git_status)
             changes = git_status.split('\n')
         elif git_changes_type == 'log_between_by_author':
-            print_info(f'Looking log between {prev_commit_sha} and {current_commit_sha} by author="{author_name.split(" ")[0]}"...')
+            print_info(f'Looking log between {prev_commit_sha} and {current_commit_sha} '
+                       f'by author="{author_name.split(" ")[0]}"...')
             prev_commit_sha = '' if prev_commit_sha is None else prev_commit_sha
             git_status = subprocess.run(
                 f'cd {solution_root} && '
-                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}" {prev_commit_sha or ""}..{current_commit_sha} | '
-                f'while read commit_hash; do git show --oneline --name-only $commit_hash | tail -n+2; done | sort | uniq',
+                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}" '
+                f'{prev_commit_sha or ""}..{current_commit_sha} | '
+                f'while read commit_hash; do git show --oneline --name-only $commit_hash '
+                f'| tail -n+2; done | sort | uniq',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 shell=True
@@ -97,13 +102,13 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
             print_info(git_status)
             changes = git_status.split('\n')
         elif git_changes_type == 'log_between_no_upstream':
-            current_public_repo = 'public-2021-fall.git'
-            print_info(f'Looking log_between_no_upstream between {prev_commit_sha} and {current_commit_sha} which not in `{current_public_repo}`...')
+            print_info(f'Looking log_between_no_upstream between {prev_commit_sha} and {current_commit_sha} '
+                       f'which not in `{public_repo_url}`...')
 
             result = subprocess.run(
                 f'cd {solution_root} && '
                 f'(git remote rm upstream | true) &&'
-                f'git remote add upstream https://gitlab.manytask.org/py-tasks/{current_public_repo} &&'
+                f'git remote add upstream {public_repo_url}.git &&'
                 f'git fetch upstream',
                 encoding='utf-8',
                 capture_output=True,
@@ -116,8 +121,10 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
 
             git_status = subprocess.run(
                 f'cd {solution_root} && '
-                f'git log --pretty="%H" {prev_commit_sha or ""}..{current_commit_sha} --no-merges --not --remotes=upstream | '
-                f'while read commit_hash; do git show --oneline --name-only $commit_hash | tail -n+2; done | sort | uniq',
+                f'git log --pretty="%H" {prev_commit_sha or ""}..{current_commit_sha} '
+                f'--no-merges --not --remotes=upstream | '
+                f'while read commit_hash; do git show --oneline --name-only $commit_hash '
+                f'| tail -n+2; done | sort | uniq',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 shell=True
@@ -133,77 +140,118 @@ def _get_git_changes(solution_root: str, git_changes_type: str = 'log_between_no
     return changes
 
 
-def _push_report(task_name: str, user_id: int, score: float, commit_time: datetime = None, check_deadline: bool = True) -> None:
-    # Do not expose token in logs.
-    tester_token = os.environ['TESTER_TOKEN']
-
-    data = {
-        'token': tester_token,
-        'task': task_name,
-        'user_id': user_id,
-        'score': score,
-        'check_deadline': check_deadline,
-    }
-    if commit_time:
-        data['commit_time'] = commit_time
-    response = None
-    for _ in range(3):
-        response = requests.post(url=REPORT_API_URL, data=data)
-
-        if response.status_code < 500:
-            break
-        time.sleep(1.0)
-
-    if response.status_code >= 500:
-        response.raise_for_status()
-    # Client error often means early submission
-    elif response.status_code >= 400:
-        raise Exception(f'{response.status_code}: {response.text}')
-    else:
-        try:
-            result = response.json()
-            print_info(
-                f'Final score for @{result["username"]} (according to deadlines): {result["score"]}',
-                color='blue'
-            )
-        except (json.JSONDecodeError, KeyError):
-            pass
-
-
-def grade_single_task(tester: Tester, task: Task, user_id: int, commit_time: datetime, inspect: bool = False) -> bool:
+def grade_single_task(
+        task: Task,
+        tester: Tester,
+        course_config: CourseConfig,
+        course_driver: CourseDriver,
+        user_id: int,
+        send_time: datetime,
+        inspect: bool = False
+) -> bool:
     print_task_info(task.full_name)
+    source_dir = course_driver.get_task_source_dir(task)
+    public_tests_dir, private_tests_dir = course_driver.get_task_test_dirs(task)
+    assert source_dir, f'{source_dir=} have to exists'
+    assert public_tests_dir, f'{public_tests_dir=} have to exists'
+    assert private_tests_dir, f'{private_tests_dir=} have to exists'
+
     try:
-        score = tester.run_tests(task, task.source_dir, verbose=inspect, normalize_output=inspect)
-        print_info(f'\nSolution score: {score}', color='green')
-        if task.config.review:
-            print_info(f'\nThis task is "review-able", so, open MR and wait till review.', color='blue')
+        score_percentage = tester.test_task(
+            source_dir, public_tests_dir, private_tests_dir,
+            verbose=inspect, normalize_output=inspect
+        )
+        score = round(score_percentage * task.max_score)
+        if score_percentage == 1.:
+            print_info(f'\nSolution score is: {score}', color='green')
+        else:
+            print_info(f'\nSolution score percentage is: {score_percentage}', color='green')
+            print_info(f'\nSolution score is: [{task.max_score}*{score_percentage}]={score}', color='green')
+        if task.review:
+            print_info('\nThis task is "review-able", so, open MR and wait till review.', color='blue')
         elif not inspect:
-            _push_report(task.name, user_id, score, commit_time)
+            use_demand_multiplier = not task.hw
+            try:
+                username, set_score, result_commit_time, result_submit_time, demand_multiplier = push_report(
+                    course_config.manytask_url, task.name, user_id, score, send_time,
+                    use_demand_multiplier=use_demand_multiplier,
+                )
+                print_info(
+                    f'Final score for @{username} (according to deadlines and demand): {set_score}',
+                    color='blue'
+                )
+                if demand_multiplier and demand_multiplier != 1:
+                    print_info(
+                        f'Due to low demand, the task score is multiplied at {demand_multiplier:.4f}',
+                        color='grey'
+                    )
+                if result_commit_time:
+                    print_info(f'Commit at {result_commit_time} (are validated to Submit Time)', color='grey')
+                if result_submit_time:
+                    print_info(f'Submit at {result_submit_time} (deadline is calculated relative to it)', color='grey')
+            except PushFailedError:
+                raise
         return True
-    except ChecksFailedError:
+    except RunFailedError:
         # print_info(e)
         return False
 
 
-def grade_tasks(tester: Tester, tasks: list[Task], user_id: int, commit_time: datetime, inspect: bool = False) -> bool:
+def grade_tasks(
+        tasks: list[Task],
+        tester: Tester,
+        course_config: CourseConfig,
+        course_driver: CourseDriver,
+        user_id: int,
+        send_time: datetime,
+        inspect: bool = False
+) -> bool:
     success = True
     for task in tasks:
-        success &= grade_single_task(tester, task, user_id, commit_time, inspect=inspect)
+        success &= grade_single_task(
+            task,
+            tester,
+            course_config,
+            course_driver,
+            user_id,
+            send_time,
+            inspect=inspect
+        )
     return success
 
 
-def grade_on_ci(course: Course, dry_run: bool = False, inspect: bool = False, test_full_groups: bool = False):
+def grade_on_ci(
+        course_config: CourseConfig,
+        course_schedule: CourseSchedule,
+        course_driver: CourseDriver,
+        tester: Tester,
+        *,
+        test_full_groups: bool = False,
+) -> None:
     solution_root = os.environ['CI_PROJECT_DIR']
 
-    commit_time = datetime.fromisoformat(os.environ['CI_COMMIT_TIMESTAMP'])
     current_time = datetime.now()
+    commit_time = datetime.fromisoformat(os.environ['CI_COMMIT_TIMESTAMP'])
+    # TODO: check datetime format
+    pipeline_created_time: datetime | None = (
+        datetime.strptime(os.environ['CI_PIPELINE_CREATED_AT'], '%Y-%m-%dT%H:%M:%SZ')
+        if 'CI_PIPELINE_CREATED_AT' in os.environ else None
+    )
+    job_start_time: datetime | None = (
+        datetime.strptime(os.environ['CI_JOB_STARTED_AT'], '%Y-%m-%dT%H:%M:%SZ')
+        if 'CI_JOB_STARTED_AT' in os.environ else None
+    )
+    send_time = pipeline_created_time or current_time
 
-    print_info(f'commit_time {commit_time}', color='grey')
     print_info(f'current_time {current_time}', color='grey')
+    print_info(f'-> commit_time {commit_time}', color='grey')
+    print_info(f'-> pipeline_created_time {pipeline_created_time}', color='grey')
+    print_info(f'-> job_start_time {job_start_time}', color='grey')
+    print_info(f'= using send_time {send_time}', color='grey')
 
     # Get changed files via git
     try:
-        changes = _get_git_changes(solution_root)
+        changes = _get_git_changes(solution_root, course_config.gitlab_url + '/' + course_config.public_repo)
     except GitException as e:
         print_info('Ooops... Loading changes failed', color='red')
         print_info(e)
@@ -218,15 +266,16 @@ def grade_on_ci(course: Course, dry_run: bool = False, inspect: bool = False, te
         if len(changed_file) < 2:  # Changed file not in subdir
             continue
 
-        changed_group_dir, changed_task_dir = changed_file[0:2]
+        # changed_group_dir: str = changed_file[0]
+        changed_task_dir: str = changed_file[1]
 
-        if changed_task_dir not in course.tasks:
+        if changed_task_dir not in course_schedule.tasks:
             continue
 
-        if changed_group_dir == '...':  # if task name is too long it's hidden
-            changed_group_dir = course.tasks[changed_task_dir].group.name
+        # if changed_group_dir == '...':  # if task name is too long it's hidden
+        #     changed_group_dir = course_schedule.tasks[changed_task_dir].group.name
 
-        task = course.tasks[changed_task_dir]
+        task = course_schedule.tasks[changed_task_dir]
         # group = course.groups[changed_group_dir]
         group = task.group
 
@@ -246,20 +295,24 @@ def grade_on_ci(course: Course, dry_run: bool = False, inspect: bool = False, te
         for group in groups:
             tasks.extend(group.tasks)
     else:
-        print_info(f'Testing only changed tasks...', color='orange')
+        print_info('Testing only changed tasks...', color='orange')
         print_info(f'Changed tasks: {[i.full_name for i in tasks]}\n')
-
-    # Create tester.. to test
-    tester = Tester(cleanup=True, dry_run=dry_run)
 
     # Grade itself
     user_id = int(os.environ['GITLAB_USER_ID'])
     if tasks:
-        success = grade_tasks(tester, tasks, user_id=user_id, commit_time=commit_time, inspect=inspect)
+        success = grade_tasks(
+            tasks,
+            tester,
+            course_config,
+            course_driver,
+            user_id=user_id,
+            send_time=send_time,
+        )
     else:
         print_info('No changed tasks found :(', color='blue')
         print_info('Hint: commit some changes in tasks you are interested in')
         success = False
 
-    if not success and not inspect:
+    if not success:
         sys.exit(1)
