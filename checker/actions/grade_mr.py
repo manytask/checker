@@ -100,7 +100,7 @@ def _grade_mrs(
     for username in usernames:
         try:
             user = get_user_by_username(username)
-        except:
+        except Exception:
             print_info(f'Can not find user with username={username}>', color='orange')
             continue
 
@@ -119,7 +119,7 @@ def _grade_mrs(
         closed_master_mrs = full_project.mergerequests.list(state='closed', target_branch=MASTER_BRANCH)
 
         if not opened_master_mrs and not merged_master_mrs and not closed_master_mrs:
-            print_info(f'no open mrs; skip it')
+            print_info('no open mrs; skip it')
             continue
 
         print_info(
@@ -161,7 +161,7 @@ def _get_tag_to_folder_dict(course_schedule: CourseSchedule, course_driver: Cour
             source_dir = course_driver.get_task_source_dir(task)
             print_info(f'task "{task.name}" review=true with source_dir={source_dir}', color='grey')
             if source_dir is None:
-                print_info(f'  source_dir is None, skip it', color='grey')
+                print_info('  source_dir is None, skip it', color='grey')
                 continue
             tag_to_folder[task.name] = str(source_dir.relative_to(course_driver.root_dir))
 
@@ -225,7 +225,7 @@ def _singe_mr_grade_score_new(
         })
         try:
             mr_score_discussion.save()
-        except:
+        except Exception:
             print_info('ERROR with saving mr_score_discussion', color='orange')
         mr.save()
 
@@ -240,11 +240,11 @@ def _singe_mr_grade_score_new(
     ][1:]
 
     if not notes:
-        print_info(f'No replays on discussion note. Skip it.', color='grey')
+        print_info('No replays on discussion note. Skip it.', color='grey')
         return
 
     if 'Score' in notes[-1].body and 'set' in notes[-1].body:
-        print_info(f'Score already set. Skip it.', color='grey')
+        print_info('Score already set. Skip it.', color='grey')
         return
 
     score_notes: list[tuple[int, gitlab.v4.objects.ProjectMergeRequestDiscussionNote]] = []
@@ -254,7 +254,7 @@ def _singe_mr_grade_score_new(
 
         try:
             note_score = int(note.body)
-        except:
+        except Exception:
             continue
 
         if note.updated_at != note.created_at:
@@ -265,7 +265,7 @@ def _singe_mr_grade_score_new(
         score_notes.append((note_score, note))
 
     if not score_notes:
-        print_info(f'No score replays on discussion note. Skip it.', color='grey')
+        print_info('No score replays on discussion note. Skip it.', color='grey')
         return
 
     # set score from last score
@@ -287,7 +287,7 @@ def _singe_mr_grade_score_new(
     mr_score_discussion.notes.create({'body': f'Score {last_score} set'})
     try:
         mr_score_discussion.save()
-    except:
+    except Exception:
         print_info('ERROR with saving mr_score_discussion', color='orange')
     print_info(f'Score {last_score} set', color='grey')
 
@@ -345,8 +345,9 @@ def _singe_mr_grade_score(
     if not mr_score_discussion:
         print_info('No score discussions. Skip it.', color='grey')
         return
+    assert mr_score_note is not None
 
-    if (score_set_search := re.search(r'\(score (\d+) set\)', mr_score_note.body)):
+    if score_set_search := re.search(r'\(score (\d+) set\)', mr_score_note.body):
         print_info(f'Found {score_set_search.group(0)}. Skip it.', color='grey')
         return
 
@@ -370,7 +371,7 @@ def _singe_mr_grade_score(
         fixit_str = '(incorrect score, fixit)  \n' + '(Please, create a new one with correct score!)'
         mr_score_note.body = mr_score_note.body.replace(fixit_str, '') + fixit_str
         mr_score_note.save()
-        print_info(f'Score incorrect. fix it ')
+        print_info('Score incorrect. fix it ')
         return
 
     try:
@@ -389,7 +390,7 @@ def _singe_mr_grade_score(
     mr_score_note.body = _score_str + '  \n' + f'(score {score} set)'
     mr_score_note.save()
 
-    print_info(f'Score set')
+    print_info('Score set')
 
 
 def _single_mr_check_basic_checklist(
@@ -532,4 +533,4 @@ def _single_mr_check_basic_checklist(
     mr_checklist_discussion.save()
     mr.save()
 
-    print_info(f'Checklist updated')
+    print_info('Checklist updated')

@@ -72,7 +72,7 @@ def commit_push_all_repo(
 
     print_info('Adding files...')
     t = subprocess.run(
-        f'git add .',
+        'git add .',
         encoding='utf-8',
         stdout=subprocess.PIPE,
         shell=True,

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import json
-import re
-import shutil
 import tempfile
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ..exceptions import TaskTesterTestConfigException, RunFailedError, RegexpCheckFailedError, TesterNotImplemented
+from ..exceptions import TaskTesterTestConfigException, RunFailedError, TesterNotImplemented
 from ..executor import Executor
 from ..utils.print import print_info
 
@@ -21,6 +19,8 @@ class Tester:
     (Task names for tests should be provided)
     """
 
+    SOURCE_FILES_EXTENSIONS: list[str] = []
+
     @dataclass
     class TaskTestConfig:
         """Task Tests Config
@@ -29,7 +29,10 @@ class Tester:
         pass
 
         @classmethod
-        def from_json(cls, test_config: Path) -> 'Tester.TaskTestConfig':
+        def from_json(
+                cls,
+                test_config: Path,
+        ) -> 'Tester.TaskTestConfig':
             """
             Create TaskTestConfig from json config
             @param test_config: Path to the config
@@ -59,102 +62,35 @@ class Tester:
 
             return cls(**config_kwargs)  # type: ignore
 
-    SOURCE_FILES_EXTENSIONS: list[str] = []
-
-    def __init__(self, cleanup: bool = True, dry_run: bool = False):
+    def __init__(
+            self,
+            cleanup: bool = True,
+            dry_run: bool = False,
+    ):
         self.cleanup = cleanup
         self.dry_run = dry_run
         self._executor = Executor(dry_run=dry_run)
 
     @classmethod
-    def create(cls, system: str, cleanup: bool = True, dry_run: bool = False) -> 'Tester':
+    def create(
+            cls,
+            system: str,
+            cleanup: bool = True,
+            dry_run: bool = False,
+    ) -> 'Tester':
         """
         Main creation entrypoint to Tester
         Create one of existed Testers (python, cpp, etc.)
         @param system: Type of the testing system
         @param cleanup: Perform cleanup after testing
         @param dry_run: Setup dry run mode (really executes nothing)
-        @return: Configures Tester object (python, cpp, etc.)
+        @return: Configured Tester object (python, cpp, etc.)
         """
         if system == 'python':
             from . import python
             return python.PythonTester(cleanup=cleanup, dry_run=dry_run)
         else:
             raise TesterNotImplemented(f'Tester for <{system}> are not supported right now')
-
-    @classmethod
-    def _check_regexp(cls, filename: Path, regexps: list[str]) -> None:
-        """
-        Check regexps and raise exception if exists
-        @param filename: Filename to check
-        @param regexps: list of forbidden regexp
-        @return: None
-        """
-        assert filename.exists()
-
-        # TODO: refactor and may be move to helpers
-        # file_content = codecs.open(filename.as_posix(), encoding='utf-8').read()
-        # for regexp in regexps:
-        #     if re.search(regexp, file_content, re.MULTILINE):
-        #         raise RegexpCheckFailedError(f'File {filename} contains banned regexp "{regexp}"')
-
-        with open(filename, 'r') as f:
-            file_content = f.read()
-
-            for regexp in regexps:
-                if re.search(regexp, file_content, re.MULTILINE):
-                    raise RegexpCheckFailedError(f'File {filename} contains banned regexp <{regexp}>')
-
-    @classmethod
-    def _copy_files(
-            cls,
-            source: Path,
-            target: Path,
-            patterns: list[str] | None = None,
-            ignore_patterns: list[str] | None = None,
-            regex_check: bool = True,
-            forbidden_regexp: list[re.Pattern[str]] | None = None,
-    ) -> None:
-        """
-        Helper to copy files between 2 directories and check regexp
-        TODO: think about regexp check as separate stage
-        @param source: Directory or file to copy from
-        @param target: Directory or file to copy to
-        @param patterns: Patterns to copy
-        @param ignore_patterns: Patterns to ignore during copy
-        @param regex_check: Perform regexp check
-        @param forbidden_regexp: List of forbidden regexps
-        @return: None
-        """
-        # TODO: refactor and may be move to helpers
-        forbidden_regexp = forbidden_regexp or []
-        ignore_patterns = ignore_patterns or []
-        target.mkdir(parents=True, exist_ok=True)
-
-        ignore_files: list[Path] = sum([
-            list(source.glob(ignore_pattern))
-            for ignore_pattern in ignore_patterns
-        ], [])
-        for pattern in (patterns or ['*']):
-            for file in source.glob(pattern):
-                if file in ignore_files:
-                    continue
-                relative_filename = str(file.relative_to(source))
-                source_path = source / relative_filename
-                target_path = target / relative_filename
-                if file.is_dir():
-                    cls._copy_files(
-                        source_path, target_path,
-                        patterns=['*'],
-                        ignore_patterns=ignore_patterns,
-                        regex_check=regex_check,
-                        forbidden_regexp=forbidden_regexp,
-                    )
-                    continue
-
-                if regex_check and any(str(source_path).endswith(ext) for ext in cls.SOURCE_FILES_EXTENSIONS):
-                    cls._check_regexp(filename=source_path, regexps=forbidden_regexp)
-                shutil.copyfile(str(source_path), str(target_path))
 
     @abstractmethod
     def _gen_build(
@@ -166,7 +102,7 @@ class Tester:
             private_tests_dir: Path,
             sandbox: bool = True,
             verbose: bool = False,
-            normalize_output: bool = False
+            normalize_output: bool = False,
     ) -> None:
         """
         Copy all files for testing and build the program (if necessary)
@@ -187,7 +123,7 @@ class Tester:
             self,
             test_config: TaskTestConfig,
             build_dir: Path,
-            verbose: bool = False
+            verbose: bool = False,
     ) -> None:
         """
         Clean build directory after testing
@@ -205,10 +141,10 @@ class Tester:
             build_dir: Path,
             sandbox: bool = False,
             verbose: bool = False,
-            normalize_output: bool = False
+            normalize_output: bool = False,
     ) -> float:
         """
-        Run tests for already built task
+        Run tests for already built task and return solution score
         @param test_config: Test config to pass into each stage
         @param build_dir: Directory with task ready for testing
         @param sandbox: Wrap all student's code to sandbox; @see Executor.sandbox
@@ -227,12 +163,16 @@ class Tester:
             normalize_output: bool = False,
     ) -> float:
         """ Inner function to test the task (Folders already specified)
-        Copy scr/build, lint/test and cleanup
+        Perform the following actions:
+        * _gen_build: copy source and test files, check forbidden regxp, build and install if necessary
+        * _run_tests: run testing and linting
+        * _clean_build: cleanup if necessary
         @param source_dir: Solution dir (student's solution or authors' solution)
         @param public_tests_dir: Directory to copy public tests from
         @param private_tests_dir: Directory to copy private tests from
         @param verbose: Verbose output (can exhibit private tests information)
         @param normalize_output: Normalize all stages output to stderr
+        @raise RunFailedError: on any build/test error
         @return: Percentage of the final score
         """
         # Read test config

@@ -36,6 +36,7 @@ def push_report(
     }
     if send_time:
         data['commit_time'] = send_time
+
     response = None
     for _ in range(3):
         response = requests.post(url=f'{report_base_url}/api/report', data=data)
@@ -43,6 +44,7 @@ def push_report(
         if response.status_code < 500:
             break
         time.sleep(1.0)
+    assert response is not None
 
     if response.status_code >= 500:
         response.raise_for_status()

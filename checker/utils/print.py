@@ -4,7 +4,12 @@ import sys
 from typing import Any
 
 
-def print_info(*args: Any, file: Any = None, color: str | None = None, **kwargs: Any) -> None:
+def print_info(
+        *args: Any,
+        file: Any = None,
+        color: str | None = None,
+        **kwargs: Any,
+) -> None:
     colors = {
         'white': '\033[97m',
         'cyan': '\033[96m',
@@ -27,7 +32,9 @@ def print_info(*args: Any, file: Any = None, color: str | None = None, **kwargs:
     file.flush()
 
 
-def print_header_info(info_string: str) -> None:
+def print_header_info(
+        info_string: str,
+) -> None:
     info_extended_string = ' ' + info_string + ' '
     info_extended_string = '+' * (50 - len(info_extended_string) // 2) + \
                            info_extended_string + \
@@ -38,5 +45,7 @@ def print_header_info(info_string: str) -> None:
     print_info('+' * len(info_extended_string), color='pink')
 
 
-def print_task_info(task_name: str) -> None:
+def print_task_info(
+        task_name: str,
+) -> None:
     print_header_info(f'Testing tasks: <{task_name}>')

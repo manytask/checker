@@ -27,27 +27,27 @@ def _get_enabled_files_and_dirs(course_schedule: CourseSchedule, course_driver: 
 
     # Started groups and tasks in it
     # started_group_dirs: set[Path] = {
-    #     course_driver.get_group_source_dir(group)
+    #     source_dir
     #     for group in course_schedule.get_groups(started=True)
-    #     if course_driver.get_group_source_dir(group)
+    #     if (source_dir := course_driver.get_group_source_dir(group))
     # }
     started_tasks_dirs: set[Path] = {
-        course_driver.get_task_source_dir(task)
+        source_dir
         for task in course_schedule.get_tasks(enabled=True, started=True)
-        if course_driver.get_task_source_dir(task)
+        if (source_dir := course_driver.get_task_source_dir(task))
     }
 
     # list enabled task folders ready for deploy
     started_lectures_dirs: set[Path] = {
-        course_driver.get_group_lecture_dir(group)
+        lecture_dir
         for group in course_schedule.get_groups(enabled=True, started=True)
-        if course_driver.get_group_lecture_dir(group)
+        if (lecture_dir := course_driver.get_group_lecture_dir(group))
     }
     # list ended groups folders ready for deploy
     ended_solutions_dirs: set[Path] = {
-        course_driver.get_group_solution_dir(group)
+        solution_dir
         for group in course_schedule.get_groups(enabled=True, ended=True)
-        if course_driver.get_group_solution_dir(group)
+        if (solution_dir := course_driver.get_group_solution_dir(group))
     }
 
     return {*common_files, *course_tools, *started_tasks_dirs, *started_lectures_dirs, *ended_solutions_dirs}

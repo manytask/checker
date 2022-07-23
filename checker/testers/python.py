@@ -5,20 +5,21 @@ from dataclasses import field, InitVar, dataclass
 from pathlib import Path
 
 from .tester import Tester
-from ..exceptions import RunFailedError, ExecutionFailedError, BuildFailedError
+from ..exceptions import RunFailedError, ExecutionFailedError, BuildFailedError, StylecheckFailedError, TestsFailedError
 from ..utils.print import print_info
+from ..utils.files import copy_files, check_folder_contains_regexp
 
 
-IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache']
+IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache', '.mypy_cache']
 COVER_IGNORE_FILES = ['setup.py']
 
 
 class PythonTester(Tester):
+
+    SOURCE_FILES_EXTENSIONS: list[str] = ['.py']
+
     @dataclass
     class TaskTestConfig(Tester.TaskTestConfig):
-        # TODO: remove review from test config
-        review: bool = False
-        checklist: str | None = None
         partially_scored: bool = False
         verbose_tests_output: bool = False
         module_test: bool = False
@@ -39,7 +40,9 @@ class PythonTester(Tester):
         explicit_private_tests: InitVar[list[str]] = None
 
         def __post_init__(
-                self, explicit_public_tests: list[str] | None, explicit_private_tests: list[str] | None
+                self,
+                explicit_public_tests: list[str] | None,
+                explicit_private_tests: list[str] | None,
         ) -> None:
             self.forbidden_regexp += [r'exit\(0\)']  # type: ignore
             for regexp in self.forbidden_regexp:
@@ -48,8 +51,6 @@ class PythonTester(Tester):
             self.public_test_files = ['test_public.py'] + (explicit_public_tests or [])
             self.private_test_files = ['test_private.py'] + (explicit_private_tests or [])
             self.test_files = self.public_test_files + self.private_test_files
-
-    SOURCE_FILES_EXTENSIONS: list[str] = ['.py']
 
     def _gen_build(
             self,
@@ -64,10 +65,20 @@ class PythonTester(Tester):
     ) -> None:
         # Copy submitted code (ignore tests)
         self._executor(
-            self._copy_files,
+            copy_files,
             source=source_dir,
             target=build_dir,
             ignore_patterns=test_config.test_files + IGNORE_FILE_PATTERNS,
+            verbose=verbose,
+        )
+
+        # Check submitted code using forbidden regexp
+        self._executor(
+            check_folder_contains_regexp,
+            folder=build_dir,
+            extensions=self.SOURCE_FILES_EXTENSIONS,
+            regexps=test_config.forbidden_regexp,
+            raise_on_found=True,
             verbose=verbose,
         )
 
@@ -114,21 +125,19 @@ class PythonTester(Tester):
 
         # Copy public test files
         self._executor(
-            self._copy_files,
+            copy_files,
             source=public_tests_dir,
             target=build_dir,
             patterns=test_config.public_test_files,
-            regex_check=False,
             verbose=verbose,
         )
 
         # Copy private test files
         self._executor(
-            self._copy_files,
+            copy_files,
             source=private_tests_dir,
             target=build_dir,
             patterns=test_config.private_test_files,
-            regex_check=False,
             verbose=verbose,
         )
 
@@ -138,11 +147,17 @@ class PythonTester(Tester):
             build_dir: Path,
             verbose: bool = False,
     ) -> None:
-        self._executor(['rm', '-rf', str(build_dir)], check=False, verbose=verbose)
+        self._executor(
+            ['rm', '-rf', str(build_dir)],
+            check=False,
+            verbose=verbose,
+        )
 
     @staticmethod
-    def _parse_summary_score(output: str) -> int:
-        score = 0
+    def _parse_summary_score(
+            output: str,
+    ) -> float:
+        score = 0.0
         for line in output.splitlines():
             if 'Summary score percentage is: ' in line:
                 score += float(line.strip().split('Summary score percentage is: ')[1])
@@ -332,13 +347,13 @@ class PythonTester(Tester):
             raise RunFailedError('Import error', output=import_err.output) from import_err
 
         if tests_err is not None:
-            raise RunFailedError('Public or private tests error', output=tests_err.output) from tests_err
+            raise TestsFailedError('Public or private tests error', output=tests_err.output) from tests_err
 
         if styles_err is not None:
-            raise RunFailedError('Style error', output=styles_err.output) from styles_err
+            raise StylecheckFailedError('Style error', output=styles_err.output) from styles_err
 
         if typing_err is not None:
-            raise RunFailedError('Typing error', output=typing_err.output) from typing_err
+            raise StylecheckFailedError('Typing error', output=typing_err.output) from typing_err
 
         if test_config.partially_scored:
             output = output or ''  # for mypy only

@@ -42,14 +42,24 @@ class Task:
         return self.is_enabled and self.group.is_ended
 
     def get_task_deadline_percentage(
-            self, submit_time: datetime | None = None, extra_time: timedelta | None = None,
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
     ) -> float:
         return self.group.get_task_deadline_percentage(submit_time, extra_time)
 
-    def get_is_overdue_first(self, submit_time: datetime | None = None, extra_time: timedelta | None = None) -> bool:
+    def get_is_overdue_first(
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
+    ) -> bool:
         return self.group.get_is_overdue_first(submit_time=submit_time, extra_time=extra_time)
 
-    def get_is_overdue_second(self, submit_time: datetime | None = None, extra_time: timedelta | None = None) -> bool:
+    def get_is_overdue_second(
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
+    ) -> bool:
         return self.group.get_is_overdue_second(submit_time=submit_time, extra_time=extra_time)
 
 
@@ -83,7 +93,9 @@ class Group:
         return self.is_enabled and self.second_deadline < datetime.now()  # TODO: check timezone
 
     def get_task_deadline_percentage(
-            self, submit_time: datetime | None = None, extra_time: timedelta | None = None
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
     ) -> float:
         extra_time = extra_time or timedelta()
         submit_time = submit_time or datetime.now()  # TODO: check timezone
@@ -95,15 +107,26 @@ class Group:
         percentage = overdue_timedelta / deadlines_timedelta
         return max(0., min(percentage, 1.))
 
-    def get_is_overdue_first(self, submit_time: datetime | None = None, extra_time: timedelta | None = None) -> bool:
+    def get_is_overdue_first(
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
+    ) -> bool:
         return self.get_task_deadline_percentage(submit_time, extra_time) < 1.
 
-    def get_is_overdue_second(self, submit_time: datetime | None = None, extra_time: timedelta | None = None) -> bool:
+    def get_is_overdue_second(
+            self,
+            submit_time: datetime | None = None,
+            extra_time: timedelta | None = None,
+    ) -> bool:
         return self.get_task_deadline_percentage(submit_time, extra_time) == 0.
 
 
 class CourseSchedule:
-    def __init__(self, deadlines_config: Path):
+    def __init__(
+            self,
+            deadlines_config: Path,
+    ):
         try:
             with open(deadlines_config) as config_file:
                 deadlines = yaml.safe_load(config_file)

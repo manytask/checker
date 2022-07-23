@@ -20,6 +20,7 @@ class CourseDriver:
         - task_1/
         - ...
         - tests/
+            - .course.yml
             - .deadlines.yml
             - task_1/
             - ...
@@ -39,6 +40,7 @@ class CourseDriver:
             - group_1/
             - ...
         - tests/
+            - .course.yml
             - .deadlines.yml
             - group_1/
                 - task_1/
@@ -47,6 +49,7 @@ class CourseDriver:
     * lectures
         - .gitlab-ci.yml
         - .gitignore
+        - .course.yml
         - .deadlines.yml
         - README.md
         - group_1/
@@ -57,7 +60,23 @@ class CourseDriver:
                 - task_1/
                 - ...
             lecture/
+                - ...
             solutions/
+                - ...
+        - ...
+
+    * tasks (tba)
+        - .gitlab-ci.yml
+        - .gitignore
+        - .course.yml
+        - .deadlines.yml
+        - README.md
+        - group_1/
+            - task_1/
+                - template/
+                - tests/
+                - solution/
+            - ...
     """
 
     LAYOUTS = ['flat', 'groups']
@@ -102,7 +121,10 @@ class CourseDriver:
         assert config_file_path.exists()
         return config_file_path
 
-    def get_group_lecture_dir(self, group: Group) -> Path | None:
+    def get_group_lecture_dir(
+            self,
+            group: Group
+    ) -> Path | None:
         lecture_dir: Path | None = None
         if self.layout == 'groups':
             lecture_dir = self.root_dir / 'lectures' / group.name
@@ -114,7 +136,10 @@ class CourseDriver:
         lecture_dir = lecture_dir if lecture_dir and lecture_dir.exists() else None
         return lecture_dir
 
-    def get_group_solution_dir(self, group: Group) -> Path | None:
+    def get_group_solution_dir(
+            self,
+            group: Group,
+    ) -> Path | None:
         solution_dir: Path | None = None
         if self.layout == 'groups':
             solution_dir = self.root_dir / 'solutions' / group.name
@@ -126,7 +151,10 @@ class CourseDriver:
         solution_dir = solution_dir if solution_dir and solution_dir.exists() else None
         return solution_dir
 
-    def get_group_source_dir(self, group: Group) -> Path | None:
+    def get_group_source_dir(
+            self,
+            group: Group,
+    ) -> Path | None:
         source_dir: Path | None = None
         if self.layout == 'groups':
             source_dir = self.root_dir / group.name
@@ -138,7 +166,10 @@ class CourseDriver:
         source_dir = source_dir if source_dir and source_dir.exists() else None
         return source_dir
 
-    def get_task_source_dir(self, task: Task) -> Path | None:
+    def get_task_source_dir(
+            self,
+            task: Task,
+    ) -> Path | None:
         task_source_dir: Path | None = None
         if self.layout == 'groups':
             if self.reference_source:
@@ -156,7 +187,10 @@ class CourseDriver:
         task_source_dir = task_source_dir if task_source_dir and task_source_dir.exists() else None
         return task_source_dir
 
-    def get_task_test_dirs(self, task: Task) -> tuple[Path | None, Path | None]:
+    def get_task_test_dirs(
+            self,
+            task: Task,
+    ) -> tuple[Path | None, Path | None]:
         public_tests_dir: Path | None = None
         private_tests_dir: Path | None = None
         if self.layout == 'groups':

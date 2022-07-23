@@ -29,19 +29,25 @@ ClickTypeWritableDirectory = click.Path(file_okay=False, writable=True, path_typ
 
 
 @click.group()
-@click.option('-c', '--config', type=ClickTypeReadableFile, default=None, help='Course config path')
+@click.option('-c', '--config', envvar='CHECKER_CONFIG', type=ClickTypeReadableFile, default=None,
+              help='Course config path')
 @click.version_option(prog_name='checker')
 @click.pass_context
-def main(ctx: click.Context, config: Path | None) -> None:
+def main(
+        ctx: click.Context,
+        config: Path | None,
+) -> None:
     """Students' solutions Checker"""
     # Read course config and pass it to any command
     # If not provided - read .course.yml from the root
     config = config or Path() / '.course.yml'
     if not config.exists():
         config = Path() / 'tests' / '.course.yml'
-    course_config = CourseConfig.from_yaml(config)
 
-    ctx.obj = course_config
+    if not config.exists():
+        raise FileNotFoundError(f'Unable to find `.course.yml` config')
+
+    ctx.obj = CourseConfig.from_yaml(config)
 
 
 @main.command()

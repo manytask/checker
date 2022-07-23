@@ -20,7 +20,10 @@ from .exceptions import ExecutionFailedError
 class Executor:
     EXECUTOR_ENV_WHITELIST = ['PATH']
 
-    def __init__(self, dry_run: bool = False) -> None:
+    def __init__(
+            self,
+            dry_run: bool = False,
+    ) -> None:
         self.dry_run = dry_run
 
     def _execute_external(
@@ -133,8 +136,8 @@ class Executor:
                     uid = pwd.getpwnam('nobody').pw_uid
                     gid = grp.getgrnam('nogroup').gr_gid
                     os.setgroups([])
-                    os.setresgid(gid, gid, gid)
-                    os.setresuid(uid, uid, uid)
+                    os.setresgid(gid, gid, gid)  # type: ignore
+                    os.setresuid(uid, uid, uid)  # type: ignore
                 except Exception:
                     print_info('WARNING: UID and GID change failed, running with current user')
 

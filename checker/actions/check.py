@@ -8,7 +8,7 @@ from contextlib import redirect_stdout, redirect_stderr
 
 from ..course import CourseDriver, CourseSchedule, Task
 from ..testers import Tester
-from ..exceptions import TesterException, RunFailedError
+from ..exceptions import RunFailedError
 from ..utils.print import print_info, print_task_info
 
 
@@ -21,6 +21,7 @@ def _check_single_task(
 ) -> str | None:
     source_dir = course_driver.get_task_source_dir(task)
     public_tests_dir, private_tests_dir = course_driver.get_task_test_dirs(task)
+    assert source_dir, f'{source_dir=} have to exists'
     assert public_tests_dir, f'{public_tests_dir=} have to exists'
     assert private_tests_dir, f'{private_tests_dir=} have to exists'
 

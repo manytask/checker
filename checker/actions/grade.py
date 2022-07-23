@@ -86,18 +86,20 @@ def _get_git_changes(
             print_info(git_status)
             changes = git_status.split('\n')
         elif git_changes_type == 'log_between_by_author':
-            print_info(f'Looking log between {prev_commit_sha} and {current_commit_sha} '
-                       f'by author="{author_name.split(" ")[0]}"...')
+            print_info(
+                f'Looking log between {prev_commit_sha} and {current_commit_sha} '
+                f'by author="{author_name.split(" ")[0]}"...',  # type: ignore
+            )
             prev_commit_sha = '' if prev_commit_sha is None else prev_commit_sha
             git_status = subprocess.run(
                 f'cd {solution_root} && '
-                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}" '
+                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}"'  # type: ignore
                 f'{prev_commit_sha or ""}..{current_commit_sha} | '
                 f'while read commit_hash; do git show --oneline --name-only $commit_hash '
                 f'| tail -n+2; done | sort | uniq',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
-                shell=True
+                shell=True,
             ).stdout
             print_info(git_status)
             changes = git_status.split('\n')

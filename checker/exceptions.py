@@ -60,6 +60,10 @@ class RegexpCheckFailedError(RunFailedError):
     pass
 
 
+class StylecheckFailedError(RunFailedError):
+    pass
+
+
 class TestsFailedError(RunFailedError):
     pass
 
