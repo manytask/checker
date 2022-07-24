@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 from warnings import warn
 
-from .schedule import Task, Group
+from .schedule import Group, Task
 
 
 class CourseDriver:
@@ -109,17 +109,6 @@ class CourseDriver:
 
         assert deadlines_file_path.exists()
         return deadlines_file_path
-
-    def get_config_file_path(self) -> Path:
-        if self.layout == 'groups':
-            config_file_path = self.root_dir / 'tests' / '.course.yml'
-        elif self.layout == 'flat':
-            config_file_path = self.root_dir / 'tests' / '.course.yml'
-        else:
-            assert False, 'Not Reachable'
-
-        assert config_file_path.exists()
-        return config_file_path
 
     def get_group_lecture_dir(
             self,

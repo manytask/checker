@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import os
+import typing
 from pathlib import Path
 
 import gitlab
 import gitlab.v4.objects
 
 from .print import print_info
-
 
 GITLAB_HOST_URL = 'https://gitlab.manytask.org'
 
@@ -31,12 +31,14 @@ def get_project_from_group(
 ) -> gitlab.v4.objects.GroupProject:
     print_info('Get private Project', color='grey')
 
-    _groups: list[gitlab.v4.objects.GroupProject] = GITLAB.groups.list(search=group_name)
+    _groups = GITLAB.groups.list(search=group_name)
+
     assert len(_groups) == 1, f'Could not find group_name={group_name}'
-    group = _groups[0]
+    group = _groups[0]  # type: ignore
 
     project = {i.name: i for i in group.projects.list(all=True)}[project_name]
 
+    project = typing.cast(gitlab.v4.objects.GroupProject, project)
     print_info(f'Got private project: <{project.name}>', color='grey')
 
     return project
@@ -62,13 +64,15 @@ def get_projects_in_group(
     print_info(f'Get projects in group_name={group_name}', color='grey')
 
     _groups = GITLAB.groups.list(search=group_name)
+
     assert len(_groups) == 1, f'Could not find group_name={group_name}'
-    group = _groups[0]
+    group = _groups[0]  # type: ignore
 
     print_info(f'Got group: <{group.name}>', color='grey')
 
     projects = group.projects.list(all=True)
 
+    projects = typing.cast(list[gitlab.v4.objects.GroupProject], projects)
     print_info(f'Got {len(projects)} projects', color='grey')
 
     return projects
@@ -80,18 +84,16 @@ def get_group_members(
     print_info(f'Get members in group_name={group_name}', color='grey')
 
     _groups = GITLAB.groups.list(search=group_name)
+
     assert len(_groups) == 1, f'Could not find group_name={group_name}'
-    group = _groups[0]
+    group = _groups[0]  # type: ignore
 
     print_info(f'Got group: <{group.name}>', color='grey')
 
     members = group.members.list()
 
+    members = typing.cast(list[gitlab.v4.objects.GroupMember], members)
     print_info(f'Got {len(members)} members', color='grey')
-
-    # users = [GITLAB.users.get(m.id) for m in members]
-    #
-    # print_info(f'Got {len(users)} users', color='grey')
 
     return members
 
@@ -113,8 +115,9 @@ def get_user_by_username(
         assert username in _username_to_user, f'Could not find username={username}'
         user = _username_to_user[username]
     else:
-        user = _users[0]
+        user = _users[0]  # type: ignore
 
+    user = typing.cast(gitlab.v4.objects.User, user)
     print_info(f'Got user: <{user.name}>', color='grey')
 
     return user
@@ -145,6 +148,8 @@ def get_current_user() -> gitlab.v4.objects.CurrentUser:
     GITLAB.auth()
     current_user = GITLAB.user
 
+    current_user = typing.cast(gitlab.v4.objects.CurrentUser, current_user)
+
     return current_user
 
 
@@ -154,7 +159,10 @@ def get_group(
     print_info(f'Get group name={name}', color='grey')
 
     _groups = GITLAB.groups.list(search=name)
+
     assert len(_groups) == 1, f'Could not find group name={name}'
-    group = _groups[0]
+    group = _groups[0]  # type: ignore
+
+    group = typing.cast(gitlab.v4.objects.Group, group)
 
     return group

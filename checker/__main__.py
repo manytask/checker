@@ -1,27 +1,25 @@
 """Main executable file. Refer to cli module"""
 from __future__ import annotations
 
-import shutil
-import tempfile
-from pathlib import Path
-import sys
 import json
 import os
+import shutil
+import sys
+import tempfile
+from pathlib import Path
 
 import click
 
-from .course import CourseConfig, CourseSchedule, Task
-from .testers import Tester
-from .course.driver import CourseDriver
-from .utils.print import print_info
-from .utils.glab import MASTER_BRANCH
 from .actions.check import pre_release_check_tasks
+from .actions.contributing import create_public_mr
 from .actions.export import export_enabled, export_public_files
 from .actions.grade import grade_on_ci
 from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
-from .actions.solutions import download_solutions
-from .actions.contributing import create_public_mr
-
+from .course import CourseConfig, CourseSchedule, Task
+from .course.driver import CourseDriver
+from .testers import Tester
+from .utils.glab import MASTER_BRANCH
+from .utils.print import print_info
 
 ClickTypeReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
 ClickTypeReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
@@ -43,9 +41,11 @@ def main(
     config = config or Path() / '.course.yml'
     if not config.exists():
         config = Path() / 'tests' / '.course.yml'
+    if not config.exists():
+        config = Path() / 'tools' / '.course.yml'
 
     if not config.exists():
-        raise FileNotFoundError(f'Unable to find `.course.yml` config')
+        raise FileNotFoundError('Unable to find `.course.yml` config')
 
     ctx.obj = CourseConfig.from_yaml(config)
 
@@ -275,40 +275,6 @@ def export_public(
 
     if not no_cleanup:
         shutil.rmtree(export_dir)
-
-
-@main.command()
-@click.argument('root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--export-dir', type=ClickTypeWritableDirectory, help='Dir to export into')
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.option('--parallelize', is_flag=True, help='Execute parallel checking of tasks')
-@click.pass_context
-def solutions(
-        ctx: click.Context,
-        root: Path | None = None,
-        export_dir: Path | None = None,
-        dry_run: bool = False,
-        parallelize: bool = False,
-) -> None:
-    """download students' solutions"""
-    course_config: CourseConfig = ctx.obj
-
-    root = root or Path()
-    # TODO: swatch to relative to the root
-    root = Path(__file__).parent.parent.parent
-    course_driver = CourseDriver(
-        root_dir=root,
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
-    )
-
-    raise NotImplementedError
-
-    solutions_dir.mkdir(exist_ok=True)
-
-    download_solutions(course, dry_run=dry_run, solutions_dir=solutions_dir, parallelize=parallelize)
 
 
 @main.command()

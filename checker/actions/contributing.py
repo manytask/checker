@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import os
-import subprocess
 import re
+import subprocess
 import time
-from tempfile import TemporaryDirectory
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import gitlab.v4.objects
 
 from ..course import CourseConfig
-from ..utils.glab import GITLAB, GITLAB_HOST_URL, get_private_project, get_public_project, MASTER_BRANCH
+from ..utils.glab import GITLAB, GITLAB_HOST_URL, MASTER_BRANCH, get_private_project, get_public_project
 from ..utils.print import print_info
-
 
 MR_COPY_TOKEN = os.environ.get('MR_COPY_TOKEN', None)
 
@@ -26,7 +25,9 @@ def _student_mr_title_generator(merge_request: gitlab.v4.objects.MergeRequest) -
 
 
 def _get_student_mr_title_prefix(full_title: str) -> str:
-    prefix = re.match(r'^[.*]', full_title).group(0)
+    _title_search = re.match(r'^[.*]', full_title)
+    assert _title_search
+    prefix = _title_search.group(0)
     return prefix
 
 
@@ -110,7 +111,7 @@ def copy_merge_requests(course_config: CourseConfig, dry_run: bool = False) -> N
 
     print_info('Throughout public MR', color='pink')
     for mr in public_mrs:
-        full_mr = GITLAB.mergerequests.get(mr.id)
+        full_mr = GITLAB.mergerequests.get(mr.id)  # type: ignore
         print_info('full_mr', full_mr)
         print_info(f'Look up public MR {mr.iid} "{mr.title}":', color='pink')
         print_info(mr, color='grey')

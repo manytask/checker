@@ -8,8 +8,7 @@ from datetime import datetime
 
 import requests
 
-from ..exceptions import PushFailedError, GetFailedError
-
+from ..exceptions import GetFailedError, PushFailedError
 
 # Do not expose token in logs.
 TESTER_TOKEN = os.environ.get('TESTER_TOKEN', None)

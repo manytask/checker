@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import re
-from dataclasses import field, InitVar, dataclass
+from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 
-from .tester import Tester
-from ..exceptions import RunFailedError, ExecutionFailedError, BuildFailedError, StylecheckFailedError, TestsFailedError
+from ..exceptions import BuildFailedError, ExecutionFailedError, RunFailedError, StylecheckFailedError, TestsFailedError
+from ..utils.files import check_folder_contains_regexp, copy_files
 from ..utils.print import print_info
-from ..utils.files import copy_files, check_folder_contains_regexp
-
+from .tester import Tester
 
 IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache', '.mypy_cache']
 COVER_IGNORE_FILES = ['setup.py']
@@ -52,7 +51,7 @@ class PythonTester(Tester):
             self.private_test_files = ['test_private.py'] + (explicit_private_tests or [])
             self.test_files = self.public_test_files + self.private_test_files
 
-    def _gen_build(
+    def _gen_build(  # type: ignore[override]
             self,
             test_config: TaskTestConfig,
             build_dir: Path,
@@ -141,7 +140,7 @@ class PythonTester(Tester):
             verbose=verbose,
         )
 
-    def _clean_build(
+    def _clean_build(  # type: ignore[override]
             self,
             test_config: TaskTestConfig,
             build_dir: Path,
@@ -164,7 +163,7 @@ class PythonTester(Tester):
                 break
         return score
 
-    def _run_tests(
+    def _run_tests(  # type: ignore[override]
             self,
             test_config: TaskTestConfig,
             build_dir: Path,

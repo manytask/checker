@@ -4,11 +4,11 @@ import io
 import multiprocessing
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from contextlib import redirect_stdout, redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 
 from ..course import CourseDriver, CourseSchedule, Task
-from ..testers import Tester
 from ..exceptions import RunFailedError
+from ..testers import Tester
 from ..utils.print import print_info, print_task_info
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import shutil
 import subprocess
@@ -6,13 +8,15 @@ from pathlib import Path
 
 from ..course import CourseConfig, CourseDriver
 from ..course.schedule import CourseSchedule
-from ..utils.git import setup_repo_in_dir, commit_push_all_repo
+from ..utils.files import filename_match_patterns
+from ..utils.git import commit_push_all_repo, setup_repo_in_dir
 from ..utils.glab import get_current_user
 from ..utils.print import print_info
-from ..utils.files import filename_match_patterns
 
 
-EXPORT_IGNORE_COMMON_FILE_PATTERNS = ['.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml']
+EXPORT_IGNORE_COMMON_FILE_PATTERNS = [
+    '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml',
+]
 
 
 def _get_enabled_files_and_dirs(course_schedule: CourseSchedule, course_driver: CourseDriver) -> set[Path]:

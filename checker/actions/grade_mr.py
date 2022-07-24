@@ -5,12 +5,18 @@ from datetime import datetime
 import gitlab.v4.objects
 
 from ..course import CourseConfig, CourseDriver
-from ..utils.glab import GITLAB, MASTER_BRANCH, get_user_by_username, get_students_projects, \
-    get_all_tutors, get_project_from_group, get_group
-from ..utils.print import print_info, print_header_info
-from ..utils.manytask import push_report, PushFailedError
 from ..course.schedule import CourseSchedule
-
+from ..utils.glab import (
+    GITLAB,
+    MASTER_BRANCH,
+    get_all_tutors,
+    get_group,
+    get_project_from_group,
+    get_students_projects,
+    get_user_by_username,
+)
+from ..utils.manytask import PushFailedError, push_report
+from ..utils.print import print_header_info, print_info
 
 BANNED_FILE_EXTENSIONS = {'csv', 'txt'}
 ALLOWED_FILES = ['requirements.txt', 'runtime.txt']
@@ -138,7 +144,7 @@ def _grade_mrs(
                 print_info('Draft MR - skip it.')
                 continue
             _single_mr_check_basic_checklist(
-                mr, tag_to_folder, dry_run=dry_run
+                mr, tag_to_folder, dry_run=dry_run,
             )
 
         # Check score
@@ -150,7 +156,7 @@ def _grade_mrs(
                 print_info('Draft MR - skip it.')
                 continue
             _singe_mr_grade_score_new(
-                course_config, course_schedule, mr, tag_to_folder, id_to_tutor, user_id, dry_run=dry_run
+                course_config, course_schedule, mr, tag_to_folder, id_to_tutor, user_id, dry_run=dry_run,
             )
 
 
@@ -171,7 +177,7 @@ def _get_tag_to_folder_dict(course_schedule: CourseSchedule, course_driver: Cour
 def _singe_mr_grade_score_new(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
-        mr: gitlab.v4.objects.MergeRequest,
+        mr: gitlab.v4.objects.GroupMergeRequest,
         tag_to_folder: dict[str, str],
         tutors_dict: dict[int, gitlab.v4.objects.GroupMember],
         user_id: int,
@@ -292,109 +298,8 @@ def _singe_mr_grade_score_new(
     print_info(f'Score {last_score} set', color='grey')
 
 
-def _singe_mr_grade_score(
-        course_config: CourseConfig,
-        course_schedule: CourseSchedule,
-        mr: gitlab.v4.objects.MergeRequest,
-        tag_to_folder: dict[str, str],
-        tutors_dict: dict[int, gitlab.v4.objects.GroupMember],
-        user_id: int,
-        *,
-        dry_run: bool = False,
-) -> None:
-    """
-    Get single MR, find score discussion and set a score from it
-    Looking for 'Your final score is: 123' from tutor
-    """
-    print_info('labels', mr.labels, color='grey')
-    print_info('source_branch', mr.source_branch, color='grey')
-
-    # Search for tags
-    tag = None
-    for search_tag in tag_to_folder:
-        if search_tag in mr.labels:
-            tag = search_tag
-            break
-
-    if not tag:
-        print_info(f'Can not find any of {tag_to_folder.keys()} in MR tags ({mr.labels}). Skip it')
-        return
-
-    if REVIEWED_TAG not in mr.labels:
-        print_info(f'No `{REVIEWED_TAG}` tag. Skip it')
-        return
-
-    # get actual task
-    task_name = tag_to_folder[tag].split('/')[-1]
-    print_info('task_name', task_name, color='grey')
-    max_task_score = course_schedule.tasks[task_name].max_score
-    print_info('max_task_score', max_task_score, color='grey')
-
-    # Get Mr checks discussions
-    mr_score_discussion = None
-    mr_score_note = None
-    for discussion in mr.discussions.list():
-        first_note_id = discussion.attributes['notes'][0]['id']
-        note = discussion.notes.get(first_note_id)
-
-        # print_info('note.author', note.author, color='grey')
-        if 'Your final score is:' in note.body and note.author['id'] in tutors_dict:
-            mr_score_discussion = discussion
-            mr_score_note = note
-            break
-    if not mr_score_discussion:
-        print_info('No score discussions. Skip it.', color='grey')
-        return
-    assert mr_score_note is not None
-
-    if score_set_search := re.search(r'\(score (\d+) set\)', mr_score_note.body):
-        print_info(f'Found {score_set_search.group(0)}. Skip it.', color='grey')
-        return
-
-    if mr_score_note.updated_at != mr_score_note.created_at:
-        print_info('Note was edited. Please, create a new one! Skip it.')
-        print_info(f'{mr_score_note.updated_at=} {mr_score_note.created_at=}', color='grey')
-        return
-
-    try:
-        _score_str = re.search(r'Your final score is: (\d+)', mr_score_note.body).group(0)
-        score = int(re.search(r'(\d+)', _score_str).group(0))
-        # try:
-        #     mr_score_discussion.resolved = True
-        # except AttributeError:
-        #     pass
-        mr_score_note.body = _score_str + '  \n' + f'(score {score} setting..)'
-        score = min(score, max_task_score * 2)
-        print_info(f'(score {score} setting..)')
-        mr_score_note.save()
-    except (ValueError, AttributeError):
-        fixit_str = '(incorrect score, fixit)  \n' + '(Please, create a new one with correct score!)'
-        mr_score_note.body = mr_score_note.body.replace(fixit_str, '') + fixit_str
-        mr_score_note.save()
-        print_info('Score incorrect. fix it ')
-        return
-
-    try:
-        username, score, _, _, _ = push_report(
-            course_config.manytask_url, task_name, user_id, score,
-            check_deadline=False, use_demand_multiplier=False,
-        )
-        print_info(
-            f'Final score for @{username}: {score}',
-            color='blue'
-        )
-        # print_info(f'Submit at {commit_time} (deadline is calculated relative to)', color='grey')
-    except PushFailedError:
-        raise
-
-    mr_score_note.body = _score_str + '  \n' + f'(score {score} set)'
-    mr_score_note.save()
-
-    print_info('Score set')
-
-
 def _single_mr_check_basic_checklist(
-        mr: gitlab.v4.objects.MergeRequest,
+        mr: gitlab.v4.objects.GroupMergeRequest,
         tag_to_folder: dict[str, str],
         *,
         dry_run: bool = False,
@@ -477,16 +382,27 @@ def _single_mr_check_basic_checklist(
         first_note_id = mr_checklist_discussion.attributes['notes'][0]['id']
         mr_checklist_note = mr_checklist_discussion.notes.get(first_note_id)
 
+    assert mr_checklist_discussion
+    assert mr_checklist_note
+
     # Generate note
     checks_ok = is_single_folder and have_no_additional_files and pipeline_passed and have_no_conflicts
     try:
-        _first_try_correct_str = re.search(r'first try correct: (False|True)', mr_checklist_note.body).group(0)
-        is_first_try_correct = re.search(r'(False|True)', _first_try_correct_str).group(0) == 'True'
+        _first_try_correct_search = re.search(r'first try correct: (False|True)', mr_checklist_note.body)
+        assert _first_try_correct_search
+        _first_try_correct_str = _first_try_correct_search.group(0)
+        _is_first_try_correct_search = re.search(r'(False|True)', _first_try_correct_str)
+        assert _is_first_try_correct_search
+        is_first_try_correct = _is_first_try_correct_search.group(0) == 'True'
     except (ValueError, AttributeError):
         is_first_try_correct = checks_ok
     try:
-        _updates_num_str = re.search(r'checks num: (\d+)', mr_checklist_note.body).group(0)
-        current_updates_num = int(re.search(r'(\d+)', _updates_num_str).group(0))
+        _updates_num_search = re.search(r'checks num: (\d+)', mr_checklist_note.body)
+        assert _updates_num_search
+        _updates_num_str = _updates_num_search.group(0)
+        current_updates_num_search = re.search(r'(\d+)', _updates_num_str)
+        assert current_updates_num_search
+        current_updates_num = int(current_updates_num_search.group(0))
     except (ValueError, AttributeError):
         current_updates_num = 0
     now_str = str(datetime.now())

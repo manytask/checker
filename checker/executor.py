@@ -13,8 +13,8 @@ try:
 except ImportError:
     unshare = None
 
-from .utils.print import print_info
 from .exceptions import ExecutionFailedError
+from .utils.print import print_info
 
 
 class Executor:
@@ -22,6 +22,7 @@ class Executor:
 
     def __init__(
             self,
+            *,
             dry_run: bool = False,
     ) -> None:
         self.dry_run = dry_run

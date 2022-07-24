@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from ..exceptions import BadConfig, BadTaskConfig, BadGroupConfig
+from ..exceptions import BadConfig, BadGroupConfig, BadTaskConfig
 
 
 @dataclass

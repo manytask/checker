@@ -1,0 +1,19 @@
+name: python
+
+deadlines: hard
+system: python
+layout: groups
+executor: sandbox
+
+
+# gitlab
+gitlab_url: https://gitlab.manytask.org
+#service_username: pythonbot
+students_group: python-spring-2022
+private_group: py-tasks
+private_repo: py-tasks/private-tasks
+public_repo: py-tasks/public-2022-spring
+#lectures_repo: py-tasks/lectures-2022-spring
+
+# manytask
+manytask_url: https://py.manytask.org

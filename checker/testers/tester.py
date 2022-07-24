@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ..exceptions import TaskTesterTestConfigException, RunFailedError, TesterNotImplemented
+from ..exceptions import RunFailedError, TaskTesterTestConfigException, TesterNotImplemented
 from ..executor import Executor
 from ..utils.print import print_info
 
@@ -60,7 +60,7 @@ class Tester:
                 bad_keys = ','.join(raw_config.keys())
                 raise TaskTesterTestConfigException(f'Test Config {test_config} has unknown key(s) <{bad_keys}>')
 
-            return cls(**config_kwargs)  # type: ignore
+            return cls(**config_kwargs)
 
     def __init__(
             self,

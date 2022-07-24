@@ -5,11 +5,11 @@ import subprocess
 import sys
 from datetime import datetime
 
-from ..utils.print import print_info, print_task_info
-from ..utils.manytask import push_report, PushFailedError
-from ..course import CourseSchedule, Group, Task, CourseDriver, CourseConfig
-from ..testers import Tester
+from ..course import CourseConfig, CourseDriver, CourseSchedule, Group, Task
 from ..exceptions import RunFailedError
+from ..testers import Tester
+from ..utils.manytask import PushFailedError, push_report
+from ..utils.print import print_info, print_task_info
 
 
 class GitException(Exception):
@@ -86,14 +86,15 @@ def _get_git_changes(
             print_info(git_status)
             changes = git_status.split('\n')
         elif git_changes_type == 'log_between_by_author':
+            assert isinstance(author_name, str)
             print_info(
                 f'Looking log between {prev_commit_sha} and {current_commit_sha} '
-                f'by author="{author_name.split(" ")[0]}"...',  # type: ignore
+                f'by author="{author_name.split(" ")[0]}"...',
             )
             prev_commit_sha = '' if prev_commit_sha is None else prev_commit_sha
             git_status = subprocess.run(
                 f'cd {solution_root} && '
-                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}"'  # type: ignore
+                f'git log --pretty="%H" --author="{author_name.split(" ")[0]}"'
                 f'{prev_commit_sha or ""}..{current_commit_sha} | '
                 f'while read commit_hash; do git show --oneline --name-only $commit_hash '
                 f'| tail -n+2; done | sort | uniq',
@@ -263,13 +264,13 @@ def grade_on_ci(
     tasks: list[Task] = []
     groups: list[Group] = []
     for changed_file in changes:
-        changed_file = changed_file.split(os.path.sep, maxsplit=2)
+        changed_file_split = changed_file.split(os.path.sep, maxsplit=2)
 
-        if len(changed_file) < 2:  # Changed file not in subdir
+        if len(changed_file_split) < 2:  # Changed file not in subdir
             continue
 
         # changed_group_dir: str = changed_file[0]
-        changed_task_dir: str = changed_file[1]
+        changed_task_dir: str = changed_file_split[1]
 
         if changed_task_dir not in course_schedule.tasks:
             continue

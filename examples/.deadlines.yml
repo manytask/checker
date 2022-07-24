@@ -1,0 +1,42 @@
+- group: group_name
+  start: 10-05-2022 18:00
+  deadline: 23-05-2022 23:59
+  second_deadline: 23-05-2022 23:59
+  enabled: true
+  tasks:
+    - task: task_1
+      enabled: true
+      score: 100
+    - task: task_2
+      score: 50
+    - task: task_3
+      score: 50
+
+- group: other_group_name
+  start: 10-05-2022 18:00
+  deadline: 23-05-2022 23:59
+  second_deadline: 23-05-2022 23:59
+  enabled: true
+  tasks:
+    - task: big_hw
+      review: true
+      score: 400
+    - task: task_4
+      score: 50
+      scoring_func: latest
+
+- group: empty_group_name
+  start: 10-05-2022 18:00
+  deadline: 23-05-2022 23:59
+  second_deadline: 23-05-2022 23:59
+  tasks: []
+
+- group: disabled_group_name
+  start: 10-05-2022 18:00
+  deadline: 23-05-2022 23:59
+  second_deadline: 23-05-2022 23:59
+  enabled: false
+  tasks:
+    - task: task_5
+      score: 50
+      scoring_func: latest
