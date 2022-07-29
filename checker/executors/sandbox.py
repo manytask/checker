@@ -13,12 +13,12 @@ try:
 except ImportError:
     unshare = None
 
-from .exceptions import ExecutionFailedError
-from .utils.print import print_info
+from ..exceptions import ExecutionFailedError
+from ..utils.print import print_info
 
 
-class Executor:
-    EXECUTOR_ENV_WHITELIST = ['PATH']
+class Sandbox:
+    ENV_WHITELIST = ['PATH']
 
     def __init__(
             self,
@@ -117,7 +117,7 @@ class Executor:
             def set_up_env_sandbox() -> None:
                 env = os.environ.copy()
                 os.environ.clear()
-                for variable in self.EXECUTOR_ENV_WHITELIST:
+                for variable in self.ENV_WHITELIST:
                     os.environ[variable] = env[variable]
 
             def set_up_sandbox() -> None:

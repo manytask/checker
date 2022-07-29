@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ..exceptions import RunFailedError, TaskTesterTestConfigException, TesterNotImplemented
-from ..executor import Executor
+from ..executors.sandbox import Sandbox
 from ..utils.print import print_info
 
 
@@ -69,7 +69,7 @@ class Tester:
     ):
         self.cleanup = cleanup
         self.dry_run = dry_run
-        self._executor = Executor(dry_run=dry_run)
+        self._executor = Sandbox(dry_run=dry_run)
 
     @classmethod
     def create(
