@@ -24,7 +24,7 @@ class Task:
     enabled: bool = True
     scoring_func: str = 'max'
     review: bool = False
-    hw: bool = False  # is a big hw
+    marked: bool = False
 
     def __post_init__(self) -> None:
         self.full_name = self.group.name + '/' + self.name
@@ -46,7 +46,7 @@ class Task:
             submit_time: datetime | None = None,
             extra_time: timedelta | None = None,
     ) -> float:
-        return self.group.get_task_deadline_percentage(submit_time, extra_time)
+        return self.group.get_deadline_percentage(submit_time, extra_time)
 
     def get_is_overdue_first(
             self,
@@ -72,7 +72,7 @@ class Group:
     second_deadline: datetime
 
     enabled: bool = True
-    hw: bool = False  # is a big hw
+    marked: bool = False
 
     tasks: list[Task] = field(default_factory=list)
 
@@ -92,7 +92,7 @@ class Group:
     def is_ended(self) -> bool:
         return self.is_enabled and self.second_deadline < datetime.now()  # TODO: check timezone
 
-    def get_task_deadline_percentage(
+    def get_deadline_percentage(
             self,
             submit_time: datetime | None = None,
             extra_time: timedelta | None = None,
@@ -112,14 +112,14 @@ class Group:
             submit_time: datetime | None = None,
             extra_time: timedelta | None = None,
     ) -> bool:
-        return self.get_task_deadline_percentage(submit_time, extra_time) < 1.
+        return self.get_deadline_percentage(submit_time, extra_time) < 1.
 
     def get_is_overdue_second(
             self,
             submit_time: datetime | None = None,
             extra_time: timedelta | None = None,
     ) -> bool:
-        return self.get_task_deadline_percentage(submit_time, extra_time) == 0.
+        return self.get_deadline_percentage(submit_time, extra_time) == 0.
 
 
 class CourseSchedule:
@@ -132,6 +132,9 @@ class CourseSchedule:
                 deadlines = yaml.safe_load(config_file)
         except (yaml.YAMLError, FileNotFoundError) as e:
             raise BadConfig(f'Unable to load deadlines config file <{deadlines_config}>') from e
+
+        if not deadlines:
+            raise BadConfig(f'Empty config file <{deadlines_config}>')
 
         self.groups: OrderedDict[str, Group] = OrderedDict()
         self.tasks: OrderedDict[str, Task] = OrderedDict()
@@ -149,8 +152,8 @@ class CourseSchedule:
                 else:
                     group_second_deadline = group_deadline
 
-                group_is_big_hw = bool(group_config.get('hw', False))
-            except (KeyError, TypeError, ValueError) as e:
+                group_marked = bool(group_config.get('marked', False))
+            except (KeyError, TypeError, ValueError, AttributeError) as e:
                 raise BadGroupConfig(f'Group {group_name} has bad config') from e
 
             group = Group(
@@ -159,7 +162,7 @@ class CourseSchedule:
                 start=group_start,
                 deadline=group_deadline,
                 second_deadline=group_second_deadline,
-                hw=group_is_big_hw,
+                marked=group_marked,
             )
 
             for task_config in group_config.get('tasks', []):
@@ -170,8 +173,8 @@ class CourseSchedule:
                     task_enabled = task_config.get('enabled', True)
                     task_scoring_func = task_config.get('scoring_func', 'max')
                     task_is_review = task_config.get('review', False)
-                    task_is_big_hw = task_config.get('hw', False) or group_is_big_hw
-                except (KeyError, TypeError, ValueError) as e:
+                    task_marked = task_config.get('marked', False) or group_marked
+                except (KeyError, TypeError, ValueError, AttributeError) as e:
                     raise BadTaskConfig(f'Task {task_name} has bad config') from e
 
                 task = Task(
@@ -181,7 +184,7 @@ class CourseSchedule:
                     enabled=task_enabled,
                     scoring_func=task_scoring_func,
                     review=task_is_review,
-                    hw=task_is_big_hw,
+                    marked=task_marked,
                 )
 
                 if task_name in self.tasks:

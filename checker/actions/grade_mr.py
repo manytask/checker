@@ -21,7 +21,8 @@ from ..utils.print import print_header_info, print_info
 BANNED_FILE_EXTENSIONS = {'csv', 'txt'}
 ALLOWED_FILES = ['requirements.txt', 'runtime.txt']
 REVIEWED_TAG = 'reviewed'
-BASIC_CHECKLIST_BANNED_TAGS = {'checklist', REVIEWED_TAG}
+CHECKLIST_TAG = 'checklist'
+BASIC_CHECKLIST_BANNED_TAGS = {CHECKLIST_TAG, REVIEWED_TAG}
 
 
 def grade_students_mrs_to_master(
@@ -43,7 +44,7 @@ def grade_students_mrs_to_master(
         course_schedule,
         course_driver,
         usernames,
-        dry_run=dry_run
+        dry_run=dry_run,
     )
 
 
@@ -61,7 +62,7 @@ def grade_student_mrs(
         course_schedule,
         course_driver,
         [username],
-        dry_run=dry_run
+        dry_run=dry_run,
     )
 
 
@@ -132,7 +133,7 @@ def _grade_mrs(
             f'opened_master_mrs {len(opened_master_mrs)} \t '
             f'merged_master_mrs {len(merged_master_mrs)} \t '
             f'closed_master_mrs {len(closed_master_mrs)}',
-            color='grey'
+            color='grey',
         )
 
         # Check basic checklist
@@ -284,7 +285,7 @@ def _singe_mr_grade_score_new(
         )
         print_info(
             f'Set score for @{username}: {score}',
-            color='blue'
+            color='blue',
         )
         # print_info(f'Submit at {commit_time} (deadline is calculated relative to)', color='grey')
     except PushFailedError:

@@ -7,12 +7,13 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import click
 
 from .actions.check import pre_release_check_tasks
 from .actions.contributing import create_public_mr
-from .actions.export import export_enabled, export_public_files
+from .actions.export import export_public_files
 from .actions.grade import grade_on_ci
 from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
 from .course import CourseConfig, CourseSchedule, Task
@@ -47,7 +48,12 @@ def main(
     if not config.exists():
         raise FileNotFoundError('Unable to find `.course.yml` config')
 
-    ctx.obj = CourseConfig.from_yaml(config)
+    execution_folder = Path()
+
+    ctx.obj = {
+        'course_config': CourseConfig.from_yaml(config),
+        'execution_folder': execution_folder,
+    }
 
 
 @main.command()
@@ -70,7 +76,9 @@ def check(
         contributing: bool = False,
 ) -> None:
     """Run task pre-release checking"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
     root = root or Path()  # Run in some dir or in current dir
     # TODO: swatch to relative to the root
@@ -126,7 +134,9 @@ def grade(
         test_full_groups: bool = False,
 ) -> None:
     """Run task grading"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
     reference_root = reference_root or Path()
     # TODO: swatch to relative to the root
@@ -164,7 +174,9 @@ def grade_mrs(
         dry_run: bool = False,
 ) -> None:
     """Run task grading student's MRs (current user)"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
     reference_root = reference_root or Path()
     # TODO: swatch to relative to the root
@@ -198,7 +210,9 @@ def grade_students_mrs(
         dry_run: bool = False,
 ) -> None:
     """Check all mrs is correct"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
     root = root or Path()
     # TODO: swatch to relative to the root
@@ -216,32 +230,6 @@ def grade_students_mrs(
 
 @main.command()
 @click.argument('root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.pass_context
-def old_export(
-        ctx: click.Context,
-        root: Path | None = None,
-        dry_run: bool = False,
-) -> None:
-    """Export enabled tasks and stuff to public repository"""
-    course_config: CourseConfig = ctx.obj
-
-    root = root or Path()
-    # TODO: swatch to relative to the root
-    root = Path(__file__).parent.parent.parent
-    course_driver = CourseDriver(
-        root_dir=root,
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
-    )
-
-    export_enabled(course_config, course_schedule, course_driver, dry_run=dry_run)
-
-
-@main.command()
-@click.argument('root', required=False, type=ClickTypeReadableDirectory)
 @click.option('--export-dir', type=ClickTypeWritableDirectory, help='TEMP dir to export into')
 @click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
 @click.option('--no-cleanup', is_flag=True, help='Do not cleanup export dir')
@@ -254,11 +242,11 @@ def export_public(
         no_cleanup: bool = False,
 ) -> None:
     """Export enabled tasks and stuff to public repository"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
-    root = root or Path()
-    # TODO: swatch to relative to the root
-    root = Path(__file__).parent.parent.parent
+    root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
         layout=course_config.layout,
@@ -285,7 +273,9 @@ def create_contributing_mr(
         dry_run: bool = False,
 ) -> None:
     """Move public project to private as MR"""
-    course_config: CourseConfig = ctx.obj
+    context: dict[str, Any] = ctx.obj
+    course_config: CourseConfig = context['course_config']
+    execution_folder: Path = context['execution_folder']
 
     trigger_payload = os.environ.get('TRIGGER_PAYLOAD', 'None')
     print_info('trigger_payload', trigger_payload)

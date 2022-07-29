@@ -7,6 +7,7 @@ from pathlib import Path
 from warnings import warn
 
 from .schedule import Group, Task
+from ..exceptions import BadConfig
 
 
 class CourseDriver:
@@ -99,7 +100,10 @@ class CourseDriver:
             warn(f'<{layout}> layout is deprecated', DeprecationWarning)
         self.layout = layout
 
-    def get_deadlines_file_path(self) -> Path:
+    def get_deadlines_file_path(
+            self,
+            raise_on_error: bool = True,
+    ) -> Path:
         if self.layout == 'groups':
             deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
         elif self.layout == 'flat':
@@ -107,7 +111,11 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'
 
-        assert deadlines_file_path.exists()
+        deadlines_file_path = deadlines_file_path if deadlines_file_path and deadlines_file_path.exists() else None
+
+        if raise_on_error and not deadlines_file_path:
+            raise BadConfig(f'Deadlines file <{deadlines_file_path}> not exists')
+
         return deadlines_file_path
 
     def get_group_lecture_dir(

@@ -21,6 +21,7 @@
     - task: big_hw
       review: true
       score: 400
+      marked: true
     - task: task_4
       score: 50
       scoring_func: latest
@@ -36,7 +37,19 @@
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59
   enabled: false
+  marked: true
   tasks:
     - task: task_5
       score: 50
       scoring_func: latest
+
+
+- group: marked_group_name
+  start: 10-05-2022 18:00
+  deadline: 23-05-2022 23:59
+  second_deadline: 23-05-2022 23:59
+  marked: true
+  tasks:
+    - task: task_6
+      score: 20
+      scoring_func: max

@@ -173,7 +173,7 @@ def grade_single_task(
         if task.review:
             print_info('\nThis task is "review-able", so, open MR and wait till review.', color='blue')
         elif not inspect:
-            use_demand_multiplier = not task.hw
+            use_demand_multiplier = not task.marked
             try:
                 username, set_score, result_commit_time, result_submit_time, demand_multiplier = push_report(
                     course_config.manytask_url, task.name, user_id, score, send_time,
