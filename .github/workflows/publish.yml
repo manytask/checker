@@ -9,9 +9,30 @@ on:
 
 jobs:
 
+  bump-version-file:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup git
+      run: |
+          git config user.name "GitHub Actions"
+          git config user.email "<>"
+    - name: Bump version
+      run: |
+        echo "Update version to ${{github.ref_name}}"
+        echo "${{github.ref_name}}" > VERSION
+        # TODO: update CHANGELOG.md with release notes
+    - name: Commit version and move tag
+      run: |
+        git add VERSION
+        git commit -m "auto: update VERSION file"
+        git push origin master
+        git tag -fa ${{github.ref_name}}
+        git push origin master --tags
+    
+
   release-python-package:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Setup Python 3.9
@@ -20,7 +41,7 @@ jobs:
         python-version: 3.9
     - name: Build python package
       run: |
-        python -m pip install wheel
+        python -m pip install -U wheel twine
         python -m pip wheel . --no-deps --wheel-dir dist
         twine upload -r testpypi dist/*
         twine upload dist/*
