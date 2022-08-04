@@ -120,7 +120,8 @@ def check(
         course_driver,
         tester,
         tasks=tasks,
-        parallelize=parallelize, contributing=contributing
+        parallelize=parallelize,
+        contributing=contributing,
     )
 
 
@@ -159,7 +160,7 @@ def grade(
         course_schedule,
         course_driver,
         tester,
-        test_full_groups=test_full_groups
+        test_full_groups=test_full_groups,
     )
     # TODO: think inspect
 

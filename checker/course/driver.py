@@ -103,7 +103,8 @@ class CourseDriver:
     def get_deadlines_file_path(
             self,
             raise_on_error: bool = True,
-    ) -> Path:
+    ) -> Path | None:
+        deadlines_file_path: Path | None = None
         if self.layout == 'groups':
             deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
         elif self.layout == 'flat':
