@@ -19,8 +19,9 @@ from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
 from .course import CourseConfig, CourseSchedule, Task
 from .course.driver import CourseDriver
 from .testers import Tester
-from .utils.glab import MASTER_BRANCH
+from .utils.glab import GitlabConnection
 from .utils.print import print_info
+
 
 ClickTypeReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
 ClickTypeReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
@@ -191,10 +192,20 @@ def grade_mrs(
         deadlines_config=course_driver.get_deadlines_file_path(),
     )
 
+    username = os.environ['CI_PROJECT_NAME']
+
+    gitlab_connection = GitlabConnection(
+        course_config.gitlab_url,
+        course_config.gitlab_api_token,
+        os.environ.get('CI_JOB_TOKEN', None),
+    )
+
     grade_student_mrs(
         course_config,
         course_schedule,
         course_driver,
+        gitlab_connection,
+        username,
         dry_run=dry_run,
     )
     # TODO: think inspect
@@ -225,7 +236,19 @@ def grade_students_mrs(
         deadlines_config=course_driver.get_deadlines_file_path(),
     )
 
-    grade_students_mrs_to_master(course_config, course_schedule, course_driver, dry_run=dry_run)
+    gitlab_connection = GitlabConnection(
+        course_config.gitlab_url,
+        course_config.gitlab_api_token,
+        os.environ.get('CI_JOB_TOKEN', None),
+    )
+
+    grade_students_mrs_to_master(
+        course_config,
+        course_schedule,
+        course_driver,
+        gitlab_connection,
+        dry_run=dry_run,
+    )
 
 
 @main.command()
@@ -259,7 +282,13 @@ def export_public(
     if not export_dir.exists():
         export_dir.mkdir(exist_ok=True, parents=True)
 
-    export_public_files(export_dir, course_config, course_schedule, course_driver, dry_run=dry_run)
+    export_public_files(
+        course_config,
+        course_schedule,
+        course_driver,
+        export_dir,
+        dry_run=dry_run
+    )
 
     if not no_cleanup:
         shutil.rmtree(export_dir)
@@ -304,7 +333,7 @@ def create_contributing_mr(
         print_info(f'mr_state = {mr_state}. Skip it.', color='orange')
         return
 
-    if target_branch != MASTER_BRANCH:
+    if target_branch != course_config.default_branch:
         print_info(f'target_branch = {target_branch}. Skip it.', color='orange')
         return
 

@@ -5,6 +5,9 @@ from pathlib import Path
 from .print import print_info
 
 
+DEFAULT_BRANCH = 'master'
+
+
 def setup_repo_in_dir(
         repo_dir: Path,
         remote_repo_url: str,
@@ -13,7 +16,7 @@ def setup_repo_in_dir(
         service_token: str,
         git_user_email: str = 'no-reply@gitlab.manytask.org',
         git_user_name: str = 'Manytask Bot',
-        branch: str = 'master',
+        branch: str = DEFAULT_BRANCH,
 ) -> None:
     shutil.rmtree(repo_dir)
     repo_dir.mkdir()
@@ -57,7 +60,7 @@ def setup_repo_in_dir(
 def commit_push_all_repo(
         repo_dir: Path,
         alias: str,
-        branch: str = 'master',
+        branch: str = DEFAULT_BRANCH,
         message: str = 'Export public files',
 ) -> None:
     print_info('Git status...')

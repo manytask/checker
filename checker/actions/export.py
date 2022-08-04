@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-import os
 import shutil
-import subprocess
-import uuid
 from pathlib import Path
 
 from ..course import CourseConfig, CourseDriver
 from ..course.schedule import CourseSchedule
 from ..utils.files import filename_match_patterns
 from ..utils.git import commit_push_all_repo, setup_repo_in_dir
-from ..utils.glab import get_current_user
+from ..utils.glab import GitlabConnection
 from ..utils.print import print_info
 
 
@@ -81,19 +78,15 @@ def _get_disabled_files(
 
 
 def export_public_files(
-        export_dir: Path,
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
         course_driver: CourseDriver,
+        export_dir: Path,
         *,
         dry_run: bool = False,
 ) -> None:
-    current_user = get_current_user()
-
-    service_username = current_user.username  # 'pythonbot'
-    git_name = current_user.name  # 'Python Bot'
-    git_email = current_user.email  # 'shad.service.python@gmail.com'
-    service_token = os.environ['PYTHON_COURSE_REPOS_TOKEN']
+    service_username = course_config.gitlab_service_username
+    service_token = course_config.gitlab_service_token
 
     export_dir.mkdir(exist_ok=True, parents=True)
 
@@ -112,8 +105,7 @@ def export_public_files(
         'public',
         service_username=service_username,
         service_token=service_token,
-        git_user_email=git_email,
-        git_user_name=git_name,
+        branch=course_config.default_branch,
     )
 
     # remove all files (to delete deleted files)
@@ -150,4 +142,5 @@ def export_public_files(
     commit_push_all_repo(
         export_dir,
         'public',
+        branch=course_config.default_branch,
     )
