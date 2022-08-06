@@ -1,4 +1,3 @@
-import os
 import re
 from datetime import datetime
 
@@ -272,9 +271,17 @@ def _singe_mr_grade_score_new(
     last_score, last_note = score_notes[-1]
 
     try:
+        if not course_config.manytask_token:
+            raise PushFailedError('Unable to find manytask token')
+
         username, score, _, _, _ = push_report(
-            course_config.manytask_url, task_name, user_id, last_score,
-            check_deadline=False, use_demand_multiplier=False,
+            course_config.manytask_url,
+            course_config.manytask_token,
+            task_name,
+            user_id,
+            last_score,
+            check_deadline=False,
+            use_demand_multiplier=False,
         )
         print_info(
             f'Set score for @{username}: {score}',

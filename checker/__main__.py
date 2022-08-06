@@ -12,7 +12,7 @@ from typing import Any
 import click
 
 from .actions.check import pre_release_check_tasks
-from .actions.contributing import create_public_mr
+from .actions.contributing import create_public_mr  # type: ignore
 from .actions.export import export_public_files
 from .actions.grade import grade_on_ci
 from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
@@ -21,7 +21,6 @@ from .course.driver import CourseDriver
 from .testers import Tester
 from .utils.glab import GitlabConnection
 from .utils.print import print_info
-
 
 ClickTypeReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
 ClickTypeReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
@@ -81,9 +80,7 @@ def check(
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
 
-    root = root or Path()  # Run in some dir or in current dir
-    # TODO: swatch to relative to the root
-    root = Path(__file__).parent.parent.parent
+    root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
         layout=course_config.layout,
@@ -139,9 +136,7 @@ def grade(
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
 
-    reference_root = reference_root or Path()
-    # TODO: swatch to relative to the root
-    reference_root = Path(__file__).parent.parent.parent
+    reference_root = reference_root or execution_folder
     course_driver = CourseDriver(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
         reference_root_dir=reference_root,
@@ -179,9 +174,7 @@ def grade_mrs(
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
 
-    reference_root = reference_root or Path()
-    # TODO: swatch to relative to the root
-    reference_root = Path(__file__).parent.parent.parent
+    reference_root = reference_root or execution_folder
     course_driver = CourseDriver(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
         reference_root_dir=reference_root,
@@ -225,9 +218,7 @@ def grade_students_mrs(
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
 
-    root = root or Path()
-    # TODO: swatch to relative to the root
-    root = Path(__file__).parent.parent.parent
+    root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
         layout=course_config.layout,
@@ -304,7 +295,7 @@ def create_contributing_mr(
     """Move public project to private as MR"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
+    # execution_folder: Path = context['execution_folder']
 
     trigger_payload = os.environ.get('TRIGGER_PAYLOAD', 'None')
     print_info('trigger_payload', trigger_payload)

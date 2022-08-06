@@ -7,9 +7,7 @@ from ..course import CourseConfig, CourseDriver
 from ..course.schedule import CourseSchedule
 from ..utils.files import filename_match_patterns
 from ..utils.git import commit_push_all_repo, setup_repo_in_dir
-from ..utils.glab import GitlabConnection
 from ..utils.print import print_info
-
 
 EXPORT_IGNORE_COMMON_FILE_PATTERNS = [
     '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml',
@@ -98,6 +96,9 @@ def export_public_files(
             relative_filename = str(f.relative_to(course_driver.root_dir))
             print_info(f'  {relative_filename}', color='grey')
         return
+
+    if not service_token:
+        raise Exception('Unable to find service_token')  # TODO: set exception correct type
 
     setup_repo_in_dir(
         export_dir,

@@ -5,13 +5,13 @@ Include tests, layout, manytask url, gitlab urls, etc. settings
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, InitVar
+from dataclasses import InitVar, dataclass
 from pathlib import Path
 
 import yaml
 
-from ..utils.print import print_info
 from ..exceptions import BadConfig
+from ..utils.print import print_info
 
 
 @dataclass

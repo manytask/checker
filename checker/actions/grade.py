@@ -177,6 +177,8 @@ def grade_single_task(
         elif not inspect:
             use_demand_multiplier = not task.marked
             try:
+                if not course_config.manytask_token:
+                    raise PushFailedError('Unable to find manytask token')
                 username, set_score, result_commit_time, result_submit_time, demand_multiplier = push_report(
                     course_config.manytask_url,
                     course_config.manytask_token,

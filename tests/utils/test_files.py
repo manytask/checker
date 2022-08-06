@@ -5,7 +5,10 @@ from pathlib import Path
 import pytest
 
 from checker.utils.files import (
-    filename_match_patterns, copy_files, check_file_contains_regexp, check_folder_contains_regexp,
+    check_file_contains_regexp,
+    check_folder_contains_regexp,
+    copy_files,
+    filename_match_patterns,
 )
 
 
