@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import sys
-
 import grp
 import os
 import pwd
 import subprocess
+import sys
 import time
 from collections.abc import Callable
 from typing import Any
