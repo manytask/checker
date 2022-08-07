@@ -17,7 +17,12 @@ class GitException(Exception):
 
 
 def _get_git_changes(
-        solution_root: str, public_repo_url: str, git_changes_type: str = 'log_between_no_upstream'
+        solution_root: str,
+        public_repo_url: str,
+        author_name: str | None = None,
+        current_commit_sha: str | None = None,
+        prev_commit_sha: str | None = None,
+        git_changes_type: str = 'log_between_no_upstream',
 ) -> list[str]:
     """
     :param solution_root: Full path to solutions folder
@@ -25,12 +30,9 @@ def _get_git_changes(
     :param git_changes_type: one of
         'diff_last', 'diff_between', 'log_between_no_merges', 'log_between_by_author', 'log_between_no_upstream'
     """
-    author_name = os.environ.get('CI_COMMIT_AUTHOR', None)
     if author_name is None and git_changes_type == 'log_between_by_author':
         git_changes_type = 'log_between_no_merges'
 
-    current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
-    prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
     if prev_commit_sha and set(prev_commit_sha) == {'0'}:  # first commit or merge request
         prev_commit_sha = None
 
@@ -175,8 +177,15 @@ def grade_single_task(
         elif not inspect:
             use_demand_multiplier = not task.marked
             try:
+                if not course_config.manytask_token:
+                    raise PushFailedError('Unable to find manytask token')
                 username, set_score, result_commit_time, result_submit_time, demand_multiplier = push_report(
-                    course_config.manytask_url, task.name, user_id, score, send_time,
+                    course_config.manytask_url,
+                    course_config.manytask_token,
+                    task.name,
+                    user_id,
+                    score,
+                    send_time,
                     use_demand_multiplier=use_demand_multiplier,
                 )
                 print_info(
@@ -254,7 +263,17 @@ def grade_on_ci(
 
     # Get changed files via git
     try:
-        changes = _get_git_changes(solution_root, course_config.gitlab_url + '/' + course_config.public_repo)
+        author_name = os.environ.get('CI_COMMIT_AUTHOR', None)
+        current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
+        prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
+
+        changes = _get_git_changes(
+            solution_root,
+            course_config.gitlab_url + '/' + course_config.public_repo,
+            author_name=author_name,
+            current_commit_sha=current_commit_sha,
+            prev_commit_sha=prev_commit_sha,
+        )
     except GitException as e:
         print_info('Ooops... Loading changes failed', color='red')
         print_info(e)

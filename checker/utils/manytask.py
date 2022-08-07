@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 import time
 from datetime import datetime
 
@@ -10,12 +9,10 @@ import requests
 
 from ..exceptions import GetFailedError, PushFailedError
 
-# Do not expose token in logs.
-TESTER_TOKEN = os.environ.get('TESTER_TOKEN', None)
-
 
 def push_report(
         report_base_url: str,
+        tester_token: str,
         task_name: str,
         user_id: int,
         score: float,
@@ -23,10 +20,10 @@ def push_report(
         check_deadline: bool = True,
         use_demand_multiplier: bool = True,
 ) -> tuple[str, int, str | None, str | None, float | None]:
-    assert TESTER_TOKEN, 'You should provide TESTER_TOKEN'
+    # Do not expose token in logs.
 
     data = {
-        'token': TESTER_TOKEN,
+        'token': tester_token,
         'task': task_name,
         'user_id': user_id,
         'score': score,
@@ -64,13 +61,14 @@ def push_report(
 
 def get_score(
         report_base_url: str,
+        tester_token: str,
         task_name: str,
-        user_id: int
+        user_id: int,
 ) -> None:
-    assert TESTER_TOKEN, 'You should provide TESTER_TOKEN'
+    # Do not expose token in logs.
 
     data = {
-        'token': TESTER_TOKEN,
+        'token': tester_token,
         'task': task_name,
         'user_id': user_id,
     }

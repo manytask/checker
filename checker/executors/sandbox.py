@@ -4,6 +4,7 @@ import grp
 import os
 import pwd
 import subprocess
+import sys
 import time
 from collections.abc import Callable
 from typing import Any
@@ -137,8 +138,9 @@ class Sandbox:
                     uid = pwd.getpwnam('nobody').pw_uid
                     gid = grp.getgrnam('nogroup').gr_gid
                     os.setgroups([])
-                    os.setresgid(gid, gid, gid)  # type: ignore
-                    os.setresuid(uid, uid, uid)  # type: ignore
+                    if sys.platform.startswith('linux'):
+                        os.setresgid(gid, gid, gid)
+                        os.setresuid(uid, uid, uid)
                 except Exception:
                     print_info('WARNING: UID and GID change failed, running with current user')
 

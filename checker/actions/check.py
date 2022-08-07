@@ -123,7 +123,7 @@ def pre_release_check_tasks(
         tester,
         course_driver,
         parallelize=parallelize,
-        verbose=not contributing
+        verbose=not contributing,
     )
 
     if not success:
