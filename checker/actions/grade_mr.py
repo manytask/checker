@@ -1,4 +1,3 @@
-import os
 import re
 from datetime import datetime
 
@@ -6,15 +5,7 @@ import gitlab.v4.objects
 
 from ..course import CourseConfig, CourseDriver
 from ..course.schedule import CourseSchedule
-from ..utils.glab import (
-    GITLAB,
-    MASTER_BRANCH,
-    get_all_tutors,
-    get_group,
-    get_project_from_group,
-    get_students_projects,
-    get_user_by_username,
-)
+from ..utils.glab import GitlabConnection
 from ..utils.manytask import PushFailedError, push_report
 from ..utils.print import print_header_info, print_info
 
@@ -29,11 +20,11 @@ def grade_students_mrs_to_master(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
         course_driver: CourseDriver,
+        gitlab_connection: GitlabConnection,
         *,
         dry_run: bool = False,
 ) -> None:
-
-    students_projects = get_students_projects(course_config.students_group)
+    students_projects = gitlab_connection.get_students_projects(course_config.students_group)
     # for project in students_projects:
     #     full_project: gitlab.v4.objects.Project = GITLAB.projects.get(project.id)
     #     username = full_project.name
@@ -43,6 +34,7 @@ def grade_students_mrs_to_master(
         course_config,
         course_schedule,
         course_driver,
+        gitlab_connection,
         usernames,
         dry_run=dry_run,
     )
@@ -52,15 +44,16 @@ def grade_student_mrs(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
         course_driver: CourseDriver,
+        gitlab_connection: GitlabConnection,
+        username: str,
         *,
         dry_run: bool = False,
 ) -> None:
-    username = os.environ['CI_PROJECT_NAME']
-
     _grade_mrs(
         course_config,
         course_schedule,
         course_driver,
+        gitlab_connection,
         [username],
         dry_run=dry_run,
     )
@@ -70,6 +63,7 @@ def _grade_mrs(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
         course_driver: CourseDriver,
+        gitlab_connection: GitlabConnection,
         usernames: list[str],
         *,
         dry_run: bool = False,
@@ -82,7 +76,7 @@ def _grade_mrs(
     print_info('Users:', usernames, color='orange')
 
     # get open mrs to filter all users
-    students_group = get_group(course_config.students_group)
+    students_group = gitlab_connection.get_group(course_config.students_group)
     students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list()
     students_mrs_project_names: set[str] = set()
     for mr in students_mrs:
@@ -99,31 +93,29 @@ def _grade_mrs(
     print_info('Tags and folders to check:', tag_to_folder, color='orange')
 
     # get tutors
-    tutors = get_all_tutors(course_config.private_group)
+    tutors = gitlab_connection.get_all_tutors(course_config.private_group)
     print_info('Tutors:', [f'<{t.username} {t.name}>' for t in tutors], color='orange')
     id_to_tutor = {t.id: t for t in tutors}
 
     # get current user
     for username in usernames:
         try:
-            user = get_user_by_username(username)
+            user = gitlab_connection.get_user_by_username(username)
         except Exception:
             print_info(f'Can not find user with username={username}>', color='orange')
             continue
 
         user_id = user.id
-        # user_id = int(os.environ['GITLAB_USER_ID'])
-        # user = GITLAB.users.get(user_id)
         print_header_info(f'Current user: <{user.username} {user.name}>')
 
         # get current user's project
-        project = get_project_from_group(course_config.students_group, user.username)
-        full_project = GITLAB.projects.get(project.id)
+        project = gitlab_connection.get_project_from_group(course_config.students_group, user.username)
+        full_project = gitlab_connection.gitlab.projects.get(project.id)
         print_info(f'project {project.path_with_namespace}: {project.web_url}')
 
-        opened_master_mrs = full_project.mergerequests.list(state='opened', target_branch=MASTER_BRANCH)
-        merged_master_mrs = full_project.mergerequests.list(state='merged', target_branch=MASTER_BRANCH)
-        closed_master_mrs = full_project.mergerequests.list(state='closed', target_branch=MASTER_BRANCH)
+        opened_master_mrs = full_project.mergerequests.list(state='opened', target_branch=course_config.default_branch)
+        merged_master_mrs = full_project.mergerequests.list(state='merged', target_branch=course_config.default_branch)
+        closed_master_mrs = full_project.mergerequests.list(state='closed', target_branch=course_config.default_branch)
 
         if not opened_master_mrs and not merged_master_mrs and not closed_master_mrs:
             print_info('no open mrs; skip it')
@@ -279,9 +271,17 @@ def _singe_mr_grade_score_new(
     last_score, last_note = score_notes[-1]
 
     try:
+        if not course_config.manytask_token:
+            raise PushFailedError('Unable to find manytask token')
+
         username, score, _, _, _ = push_report(
-            course_config.manytask_url, task_name, user_id, last_score,
-            check_deadline=False, use_demand_multiplier=False,
+            course_config.manytask_url,
+            course_config.manytask_token,
+            task_name,
+            user_id,
+            last_score,
+            check_deadline=False,
+            use_demand_multiplier=False,
         )
         print_info(
             f'Set score for @{username}: {score}',

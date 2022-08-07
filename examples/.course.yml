@@ -8,6 +8,7 @@ executor: sandbox
 
 # gitlab
 gitlab_url: https://gitlab.manytask.org
+default_branch: master
 #service_username: pythonbot
 students_group: python-spring-2022
 private_group: py-tasks

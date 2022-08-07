@@ -3,7 +3,6 @@ from pathlib import Path
 from checker.course.config import CourseConfig
 from checker.course.schedule import CourseSchedule
 
-
 EXAMPLES_FOLDER = Path(__file__).parents[2] / 'examples'
 
 

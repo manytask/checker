@@ -6,8 +6,8 @@ from __future__ import annotations
 from pathlib import Path
 from warnings import warn
 
-from .schedule import Group, Task
 from ..exceptions import BadConfig
+from .schedule import Group, Task
 
 
 class CourseDriver:
@@ -112,9 +112,7 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'
 
-        deadlines_file_path = deadlines_file_path if deadlines_file_path and deadlines_file_path.exists() else None
-
-        if raise_on_error and not deadlines_file_path:
+        if raise_on_error and not deadlines_file_path.exists():
             raise BadConfig(f'Deadlines file <{deadlines_file_path}> not exists')
 
         return deadlines_file_path

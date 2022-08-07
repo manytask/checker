@@ -1,3 +1,4 @@
+# type: ignore
 from __future__ import annotations
 
 import os
@@ -111,7 +112,7 @@ def copy_merge_requests(course_config: CourseConfig, dry_run: bool = False) -> N
 
     print_info('Throughout public MR', color='pink')
     for mr in public_mrs:
-        full_mr = GITLAB.mergerequests.get(mr.id)  # type: ignore
+        full_mr = GITLAB.mergerequests.get(mr.id)
         print_info('full_mr', full_mr)
         print_info(f'Look up public MR {mr.iid} "{mr.title}":', color='pink')
         print_info(mr, color='grey')
