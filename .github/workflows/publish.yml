@@ -51,9 +51,12 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.9
-    - name: Build python package
+    - name: Install requirements for package build
       run: |
         python -m pip install -U wheel twine
+    - name: Build python package
+      run: |
+        echo -n "${{github.ref_name}}" > VERSION
         python -m pip wheel . --no-deps --wheel-dir dist
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
