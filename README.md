@@ -7,9 +7,7 @@
 [![docker](https://img.shields.io/pypi/v/manytask-checker.svg)](https://pypi.org/project/manytask-checker/)
 
 
-Script to test students' assessments for [manytask](https://github.com/yandexdataschool/manytask) 
-
----
+Script to test students' solutions with [manytask](https://github.com/yandexdataschool/manytask) integration
 
 Key features:
 
@@ -19,17 +17,34 @@ Key features:
 * [manytask](https://github.com/yandexdataschool/manytask) integration
 
 
+Please refer to the [manytask](https://github.com/yandexdataschool/manytask) documentation first to understand the drill
+
+---
+
+
 ## How it works 
 
-This lib is a relatively small cli script aiming to run tests in gitlab runner and push results to manytask. 
+The `checker` lib is a relatively small cli script aiming to run tests in gitlab runner and push results to `manytask`. 
+
+
+The full `checker` and `manytask` setup roughly looks as follows
+
+* self-hosted `gitlab` instance - storing repos with assignments and students' repo  
+  * private repo - a repository with tasks, public and private tests, gold solutions, ect.
+  * public repo - a repository available to students with tasks and solution templates
+  * students' group - the group where `manytask` will create repositories for students  
+    each students' repo - fork from public repo
+* `gitlab runners` - place where students' solutions likely to be tested 
+* `checker` script - some script to test students' solutions and push scores/grades to the `manytask`  
+* `manytask` instance - web application managing students' grades (in google sheet) and deadlines (web page)  
+
+
+The flow for checking students' solution looks like: 
 
 1. Student push his solution to a gitlab repo
 2. gitlab-ci runs separate docker in gitlab-runner
-3. gitlab-ci runs this script with some parameters 
-
-The script can do multiple tasks, for example for checking student solutions: 
-
-4. this script detect the latest changes (via git) and select tasks to check
+3. gitlab-ci runs this script with some parameters
+4. the script detect the latest changes (via git) and select tasks to check
 5. the tasks forwarded to `tester` and it returns obtained scores 
 6. the script push student scores to the manytask 
 
