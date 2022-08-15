@@ -102,9 +102,8 @@ class CourseDriver:
 
     def get_deadlines_file_path(
             self,
-            raise_on_error: bool = True,
-    ) -> Path | None:
-        deadlines_file_path: Path | None = None
+    ) -> Path:
+        deadlines_file_path: Path
         if self.layout == 'groups':
             deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
         elif self.layout == 'flat':
@@ -112,7 +111,7 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'
 
-        if raise_on_error and not deadlines_file_path.exists():
+        if not deadlines_file_path or not deadlines_file_path.exists():
             raise BadConfig(f'Deadlines file <{deadlines_file_path}> not exists')
 
         return deadlines_file_path
