@@ -170,7 +170,7 @@ def grade_mrs(
         reference_root: Path | None = None,
         dry_run: bool = False,
 ) -> None:
-    """Run task grading student's MRs (current user)"""
+    """Run student's MRs grading (current user)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -214,7 +214,7 @@ def grade_students_mrs(
         root: Path | None = None,
         dry_run: bool = False,
 ) -> None:
-    """Check all mrs is correct"""
+    """Run students' MRs grading (all users)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -256,7 +256,7 @@ def export_public(
         dry_run: bool = False,
         no_cleanup: bool = False,
 ) -> None:
-    """Export enabled tasks and stuff to public repository"""
+    """Export enabled tasks to public repo"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -286,9 +286,9 @@ def export_public(
         shutil.rmtree(export_dir)
 
 
-@main.command()
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.pass_context
+# @main.command()
+# @click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
+# @click.pass_context
 def create_contributing_mr(
         ctx: click.Context,
         dry_run: bool = False,
