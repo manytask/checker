@@ -124,15 +124,16 @@ class Sandbox:
             def set_up_sandbox() -> None:
                 set_up_env_sandbox()
 
-                if not unshare:
+                if unshare:
+                    try:
+                        unshare.unshare(unshare.CLONE_NEWNET)
+                        subprocess.run(['ip', 'link', 'set', 'lo', 'up'], check=True)
+                    except Exception as e:
+                        print_info('WARNING: unable to create new net namespace, running with current one')
+                        if verbose:
+                            print_info(e.__class__.__name__, e)
+                else:
                     print_info('WARNING: unshare is not installed')
-                try:
-                    unshare.unshare(unshare.CLONE_NEWNET)
-                    subprocess.run(['ip', 'link', 'set', 'lo', 'up'], check=True)
-                except Exception as e:
-                    print_info('WARNING: unable to create new net namespace, running with current one')
-                    if verbose:
-                        print_info(e)
 
                 try:
                     uid = pwd.getpwnam('nobody').pw_uid
@@ -141,8 +142,10 @@ class Sandbox:
                     if sys.platform.startswith('linux'):
                         os.setresgid(gid, gid, gid)
                         os.setresuid(uid, uid, uid)
-                except Exception:
+                except Exception as e:
                     print_info('WARNING: UID and GID change failed, running with current user')
+                    if verbose:
+                        print_info(e.__class__.__name__, e)
 
                 set_up_env_sandbox()
 
