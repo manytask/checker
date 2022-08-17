@@ -9,47 +9,67 @@ from ..utils.files import filename_match_patterns
 from ..utils.git import commit_push_all_repo, setup_repo_in_dir
 from ..utils.print import print_info
 
+
 EXPORT_IGNORE_COMMON_FILE_PATTERNS = [
     '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml',
 ]
 
 
-def _get_enabled_files_and_dirs(course_schedule: CourseSchedule, course_driver: CourseDriver) -> set[Path]:
-    # list common staff
+def _get_enabled_files_and_dirs(
+        course_config: CourseConfig,
+        course_schedule: CourseSchedule,
+        course_driver: CourseDriver,
+) -> set[Path]:
+    # Common staff; files only
     common_files: set[Path] = {
         i for i in course_driver.root_dir.glob('*.*')
         if i.is_file() and not filename_match_patterns(i, EXPORT_IGNORE_COMMON_FILE_PATTERNS)
     }
+
+    # Course docs
+    course_docs: set[Path] = set()
+    if (course_driver.root_dir / 'docs').exists():
+        course_docs.update({course_driver.root_dir / 'docs'})
+    if (course_driver.root_dir / 'images').exists():
+        course_docs.update({course_driver.root_dir / 'images'})
+
+    # Course tools
     course_tools: set[Path] = set()
     if (course_driver.root_dir / 'tools').exists():
-        course_tools = {course_driver.root_dir / 'tools'}
+        course_tools = {
+            i for i in (course_driver.root_dir / 'tools').glob('*')
+            if i.is_dir() or (i.is_file() and not filename_match_patterns(i, EXPORT_IGNORE_COMMON_FILE_PATTERNS))
+        }
 
-    # Started groups and tasks in it
-    # started_group_dirs: set[Path] = {
-    #     source_dir
-    #     for group in course_schedule.get_groups(started=True)
-    #     if (source_dir := course_driver.get_group_source_dir(group))
-    # }
+    # Started tasks
     started_tasks_dirs: set[Path] = {
         source_dir
         for task in course_schedule.get_tasks(enabled=True, started=True)
         if (source_dir := course_driver.get_task_source_dir(task))
     }
 
-    # list enabled task folders ready for deploy
+    # Lectures for enabled groups (if any)
     started_lectures_dirs: set[Path] = {
         lecture_dir
         for group in course_schedule.get_groups(enabled=True, started=True)
         if (lecture_dir := course_driver.get_group_lecture_dir(group))
     }
-    # list ended groups folders ready for deploy
+
+    # Solutions for ended groups (if any)
     ended_solutions_dirs: set[Path] = {
         solution_dir
         for group in course_schedule.get_groups(enabled=True, ended=True)
         if (solution_dir := course_driver.get_group_solution_dir(group))
     }
 
-    return {*common_files, *course_tools, *started_tasks_dirs, *started_lectures_dirs, *ended_solutions_dirs}
+    return {
+        *common_files,
+        *course_docs,
+        *course_tools,
+        *started_tasks_dirs,
+        *started_lectures_dirs,
+        *ended_solutions_dirs
+    }
 
 
 def _dirs_to_files(files_and_dirs: set[Path]) -> set[Path]:
@@ -91,7 +111,7 @@ def export_public_files(
     if dry_run:
         print_info(f'Copy {course_config.gitlab_url}/{course_config.public_repo} repo in {export_dir}')
         print_info('copy files...')
-        files_and_dirs_to_add = _get_enabled_files_and_dirs(course_schedule, course_driver)
+        files_and_dirs_to_add = _get_enabled_files_and_dirs(course_config, course_schedule, course_driver)
         for f in sorted(files_and_dirs_to_add):
             relative_filename = str(f.relative_to(course_driver.root_dir))
             print_info(f'  {relative_filename}', color='grey')
@@ -126,7 +146,7 @@ def export_public_files(
 
     # copy updated files
     print_info('copy files...')
-    files_and_dirs_to_add = _get_enabled_files_and_dirs(course_schedule, course_driver)
+    files_and_dirs_to_add = _get_enabled_files_and_dirs(course_config, course_schedule, course_driver)
     for f in sorted(files_and_dirs_to_add):
         relative_filename = str(f.relative_to(course_driver.root_dir))
         print_info(f'  {relative_filename}', color='grey')

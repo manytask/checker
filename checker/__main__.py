@@ -30,7 +30,7 @@ ClickTypeWritableDirectory = click.Path(file_okay=False, writable=True, path_typ
 @click.group()
 @click.option('-c', '--config', envvar='CHECKER_CONFIG', type=ClickTypeReadableFile, default=None,
               help='Course config path')
-@click.version_option(package_name='checker')
+@click.version_option(package_name='manytask-checker')
 @click.pass_context
 def main(
         ctx: click.Context,
@@ -132,7 +132,7 @@ def grade(
         reference_root: Path | None = None,
         test_full_groups: bool = False,
 ) -> None:
-    """Run task grading"""
+    """Run student's tasks (current ci user)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -170,7 +170,7 @@ def grade_mrs(
         reference_root: Path | None = None,
         dry_run: bool = False,
 ) -> None:
-    """Run student's MRs grading (current user)"""
+    """Run student's MRs grading (current git user)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -279,7 +279,7 @@ def export_public(
         course_schedule,
         course_driver,
         export_dir,
-        dry_run=dry_run
+        dry_run=dry_run,
     )
 
     if not no_cleanup:
