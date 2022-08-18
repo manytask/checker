@@ -93,7 +93,7 @@ def _grade_mrs(
     print_info('Tags and folders to check:', tag_to_folder, color='orange')
 
     # get tutors
-    tutors = gitlab_connection.get_all_tutors(course_config.private_group)
+    tutors = gitlab_connection.get_all_tutors(course_config.private_repo)
     print_info('Tutors:', [f'<{t.username} {t.name}>' for t in tutors], color='orange')
     id_to_tutor = {t.id: t for t in tutors}
 

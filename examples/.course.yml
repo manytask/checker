@@ -1,6 +1,13 @@
 name: python
 
+# course
 deadlines: hard
+second_deadline_max: 0.5
+low_demand_bonus_bound: 0.2  # optional
+max_low_demand_bonus: 1.0  # optional
+
+
+# checker
 system: python
 layout: groups
 executor: sandbox
@@ -9,12 +16,19 @@ executor: sandbox
 # gitlab
 gitlab_url: https://gitlab.manytask.org
 default_branch: master
-#service_username: pythonbot
-students_group: python-spring-2022
-private_group: py-tasks
 private_repo: py-tasks/private-tasks
 public_repo: py-tasks/public-2022-spring
 #lectures_repo: py-tasks/lectures-2022-spring
+students_group: python-spring-2022
+gitlab_service_username: manytask  # optional
+gitlab_service_token_id: GITLAB_SERVICE_TOKEN  # optional
 
 # manytask
 manytask_url: https://py.manytask.org
+manytask_token_id: TESTER_TOKEN  # optional
+gitlab_api_token_id: GITLAB_API_TOKEN  # optional
+
+# info
+lms_url: https://lk.yandexdataschool.ru/courses/[...-course]  # optional
+telegram_channel_invite: https://t.me/joinchat/[...]  # optional
+telegram_chat_invite: https://t.me/joinchat/[...]  # optional

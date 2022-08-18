@@ -18,26 +18,38 @@ from ..utils.print import print_info
 class CourseConfig:
     # main course settings
     name: str
+
+    # course
     deadlines: str
+
+    # checker
     system: str
 
     # manytask
     manytask_url: str
 
     # gitlab
-    students_group: str
-    private_group: str
     private_repo: str
     public_repo: str
+    students_group: str
     lectures_repo: str | None = None
     default_branch: str = 'master'
     gitlab_url: str = 'https://gitlab.manytask.org'
     gitlab_service_username: str = 'manytask'
 
-    # layout
+    # course default
+    second_deadline_max: float = 0.5
+    low_demand_bonus_bound: float = 1.0
+    max_low_demand_bonus: float = 1.0
+
+    # checker default
     layout: str = 'groups'
-    # executor
     executor: str = 'sandbox'
+
+    # info
+    lms_url: str | None = None
+    telegram_channel_invite: str | None = None
+    telegram_chat_invite: str | None = None
 
     # credentials
     manytask_token: str | None = None
@@ -70,11 +82,11 @@ class CourseConfig:
     def from_yaml(cls, course_config: Path) -> 'CourseConfig':
         try:
             with open(course_config) as config_file:
-                config = yaml.safe_load(config_file)
+                config_dict = yaml.safe_load(config_file)
         except (yaml.YAMLError, FileNotFoundError) as e:
             raise BadConfig(f'Unable to load deadlines config file <{course_config}>') from e
 
         try:
-            return cls(**config)
+            return cls(**config_dict)
         except (KeyError, TypeError, ValueError) as e:
             raise BadConfig('Invalid course config') from e
