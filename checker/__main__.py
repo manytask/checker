@@ -284,6 +284,7 @@ def export_public(
 
     if not no_cleanup:
         shutil.rmtree(export_dir)
+        print_info(f'No cleanup flag. Exported files stored in {export_dir}')
 
 
 # @main.command()
