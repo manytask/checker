@@ -14,7 +14,7 @@ from ..course import CourseConfig
 from ..utils.glab import GITLAB, GITLAB_HOST_URL, MASTER_BRANCH, get_private_project, get_public_project
 from ..utils.print import print_info
 
-MR_COPY_TOKEN = os.environ.get('MR_COPY_TOKEN', None)
+MR_COPY_TOKEN = os.environ.get('MR_COPY_TOKEN')
 
 
 def _student_mr_title_generator(merge_request: gitlab.v4.objects.MergeRequest) -> str:
