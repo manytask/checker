@@ -12,6 +12,7 @@ from typing import Any
 import click
 
 from .actions.check import pre_release_check_tasks
+
 # from .actions.contributing import create_public_mr  # type: ignore
 from .actions.export import export_public_files
 from .actions.grade import grade_on_ci
@@ -330,7 +331,7 @@ def create_contributing_mr(
         print_info(f'target_branch = {target_branch}. Skip it.', color='orange')
         return
 
-    create_public_mr(course_config, object_attributes, dry_run=dry_run)  # type: ignore
+    # create_public_mr(course_config, object_attributes, dry_run=dry_run)
 
 
 if __name__ == '__main__':  # pragma: nocover

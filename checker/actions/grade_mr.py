@@ -172,7 +172,7 @@ def _singe_mr_grade_score_new(
         course_schedule: CourseSchedule,
         mr: gitlab.v4.objects.GroupMergeRequest,
         tag_to_folder: dict[str, str],
-        tutors_dict: dict[int, gitlab.v4.objects.GroupMember],
+        tutors_dict: dict[int, gitlab.v4.objects.ProjectMember],
         user_id: int,
         *,
         dry_run: bool = False,

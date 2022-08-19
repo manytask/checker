@@ -104,7 +104,7 @@ class CourseDriver:
         self.reference_tests = reference_tests
 
         if self.reference_source or self.reference_tests:
-            assert self.reference_root_dir, f'To use reference roots `reference_root_dir` should be provided'
+            assert self.reference_root_dir, 'To use reference roots `reference_root_dir` should be provided'
 
         assert layout in CourseDriver.LAYOUTS, f'Course layout <{layout}> are not implemented'
         if layout == 'flat':
@@ -119,12 +119,12 @@ class CourseDriver:
             if self.reference_root_dir:
                 deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
             else:
-                raise BadConfig(f'Unable to find deadlines file without `reference_root_dir`')
+                raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
         elif self.layout == 'flat':
             if self.reference_root_dir:
                 deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
             else:
-                raise BadConfig(f'Unable to find deadlines file without `reference_root_dir`')
+                raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
         else:
             assert False, 'Not Reachable'
 
@@ -185,11 +185,13 @@ class CourseDriver:
         task_source_dir: Path | None = None
         if self.layout == 'groups':
             if self.reference_source:
+                assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
             else:
                 task_source_dir = self.root_dir / task.group.name / task.name
         elif self.layout == 'flat':
             if self.reference_source:
+                assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.name
             else:
                 task_source_dir = self.root_dir / task.name
@@ -207,6 +209,7 @@ class CourseDriver:
         private_tests_dir: Path | None = None
         if self.layout == 'groups':
             if self.reference_tests:
+                assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.group.name / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
             else:
@@ -214,6 +217,7 @@ class CourseDriver:
                 private_tests_dir = self.root_dir / 'tests' / task.group.name / task.name
         elif self.layout == 'flat':
             if self.reference_tests:
+                assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.name
             else:
