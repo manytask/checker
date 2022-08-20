@@ -84,6 +84,7 @@ def check(
     root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
+        reference_root_dir=root,
         layout=course_config.layout,
         reference_source=True,
     )
