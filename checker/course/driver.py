@@ -15,8 +15,9 @@ class CourseDriver:
     Course can have different layouts; Now implemented: @see self.LAYOUTS
 
     * flat [deprecated]
-        - .gitlab-ci.yml
         - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - task_1/
         - ...
@@ -27,8 +28,11 @@ class CourseDriver:
             - ...
 
     * groups
-        - .gitlab-ci.yml
+        - .course.yml
+        - .deadlines.yml
         - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - group_1/
             - task_1/
@@ -41,17 +45,16 @@ class CourseDriver:
             - group_1/
             - ...
         - tests/
-            - .course.yml
-            - .deadlines.yml
             - group_1/
                 - task_1/
                 - ...
 
     * lectures
-        - .gitlab-ci.yml
-        - .gitignore
         - .course.yml
         - .deadlines.yml
+        - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - group_1/
             tasks:
@@ -117,7 +120,7 @@ class CourseDriver:
         deadlines_file_path: Path
         if self.layout == 'groups':
             if self.reference_root_dir:
-                deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
+                deadlines_file_path = self.reference_root_dir / '.deadlines.yml'
             else:
                 raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
         elif self.layout == 'flat':
