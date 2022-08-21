@@ -15,8 +15,9 @@ class CourseDriver:
     Course can have different layouts; Now implemented: @see self.LAYOUTS
 
     * flat [deprecated]
-        - .gitlab-ci.yml
         - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - task_1/
         - ...
@@ -27,8 +28,11 @@ class CourseDriver:
             - ...
 
     * groups
-        - .gitlab-ci.yml
+        - .course.yml
+        - .deadlines.yml
         - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - group_1/
             - task_1/
@@ -41,17 +45,16 @@ class CourseDriver:
             - group_1/
             - ...
         - tests/
-            - .course.yml
-            - .deadlines.yml
             - group_1/
                 - task_1/
                 - ...
 
     * lectures
-        - .gitlab-ci.yml
-        - .gitignore
         - .course.yml
         - .deadlines.yml
+        - .gitignore
+        - .gitlab-ci.yml
+        - .releaser-ci.yml
         - README.md
         - group_1/
             tasks:
@@ -90,10 +93,21 @@ class CourseDriver:
             reference_source: bool = False,
             reference_tests: bool = False,
     ):
+        """
+        @param root_dir: Root folder of the repo to test
+        @param reference_root_dir: Root folder of private repo if necessary
+        @param layout: @see available LAYOUTS in class docstring
+        @param reference_source: Use source from private repo (reference_root_dir)
+        @param reference_tests: Use tests from private repo (reference_root_dir)
+        """
+
         self.root_dir = root_dir
-        self.reference_root_dir = reference_root_dir or root_dir
+        self.reference_root_dir: Path | None = reference_root_dir
         self.reference_source = reference_source
         self.reference_tests = reference_tests
+
+        if self.reference_source or self.reference_tests:
+            assert self.reference_root_dir, 'To use reference roots `reference_root_dir` should be provided'
 
         assert layout in CourseDriver.LAYOUTS, f'Course layout <{layout}> are not implemented'
         if layout == 'flat':
@@ -105,9 +119,15 @@ class CourseDriver:
     ) -> Path:
         deadlines_file_path: Path
         if self.layout == 'groups':
-            deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
+            if self.reference_root_dir:
+                deadlines_file_path = self.reference_root_dir / '.deadlines.yml'
+            else:
+                raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
         elif self.layout == 'flat':
-            deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
+            if self.reference_root_dir:
+                deadlines_file_path = self.reference_root_dir / 'tests' / '.deadlines.yml'
+            else:
+                raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
         else:
             assert False, 'Not Reachable'
 
@@ -168,11 +188,13 @@ class CourseDriver:
         task_source_dir: Path | None = None
         if self.layout == 'groups':
             if self.reference_source:
+                assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
             else:
                 task_source_dir = self.root_dir / task.group.name / task.name
         elif self.layout == 'flat':
             if self.reference_source:
+                assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.name
             else:
                 task_source_dir = self.root_dir / task.name
@@ -190,6 +212,7 @@ class CourseDriver:
         private_tests_dir: Path | None = None
         if self.layout == 'groups':
             if self.reference_tests:
+                assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.group.name / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
             else:
@@ -197,6 +220,7 @@ class CourseDriver:
                 private_tests_dir = self.root_dir / 'tests' / task.group.name / task.name
         elif self.layout == 'flat':
             if self.reference_tests:
+                assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.name
             else:

@@ -97,6 +97,26 @@ class GitlabConnection:
 
         return members
 
+    def get_project_members(
+            self,
+            project_name: str,
+    ) -> list[gitlab.v4.objects.ProjectMember]:
+        print_info(f'Get members in project_name={project_name}', color='grey')
+
+        _projects = self.gitlab.projects.list(search=project_name)
+
+        assert len(_projects) == 1, f'Could not find project_name={project_name}'
+        project = _projects[0]  # type: ignore
+
+        print_info(f'Got project: <{project.name}>', color='grey')
+
+        members = project.members.list()
+
+        members = typing.cast(list[gitlab.v4.objects.ProjectMember], members)
+        print_info(f'Got {len(members)} members', color='grey')
+
+        return members
+
     def get_user_by_username(
             self,
             username: str,
@@ -124,9 +144,9 @@ class GitlabConnection:
 
     def get_all_tutors(
             self,
-            private_group_name: str,
-    ) -> list[gitlab.v4.objects.GroupMember]:
-        return self.get_group_members(private_group_name)
+            private_repo_name: str,
+    ) -> list[gitlab.v4.objects.ProjectMember]:
+        return self.get_project_members(private_repo_name)
 
     def get_students_projects(
             self,

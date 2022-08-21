@@ -12,7 +12,8 @@ from typing import Any
 import click
 
 from .actions.check import pre_release_check_tasks
-from .actions.contributing import create_public_mr  # type: ignore
+
+# from .actions.contributing import create_public_mr  # type: ignore
 from .actions.export import export_public_files
 from .actions.grade import grade_on_ci
 from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
@@ -30,13 +31,13 @@ ClickTypeWritableDirectory = click.Path(file_okay=False, writable=True, path_typ
 @click.group()
 @click.option('-c', '--config', envvar='CHECKER_CONFIG', type=ClickTypeReadableFile, default=None,
               help='Course config path')
-@click.version_option(prog_name='checker')
+@click.version_option(package_name='manytask-checker')
 @click.pass_context
 def main(
         ctx: click.Context,
         config: Path | None,
 ) -> None:
-    """Students' solutions Checker"""
+    """Students' solutions *checker*"""
     # Read course config and pass it to any command
     # If not provided - read .course.yml from the root
     config = config or Path() / '.course.yml'
@@ -83,6 +84,7 @@ def check(
     root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
+        reference_root_dir=root,
         layout=course_config.layout,
         reference_source=True,
     )
@@ -132,7 +134,7 @@ def grade(
         reference_root: Path | None = None,
         test_full_groups: bool = False,
 ) -> None:
-    """Run task grading"""
+    """Run student's tasks (current ci user)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -170,7 +172,7 @@ def grade_mrs(
         reference_root: Path | None = None,
         dry_run: bool = False,
 ) -> None:
-    """Run task grading student's MRs (current user)"""
+    """Run student's MRs grading (current git user)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -191,7 +193,7 @@ def grade_mrs(
     gitlab_connection = GitlabConnection(
         course_config.gitlab_url,
         course_config.gitlab_api_token,
-        os.environ.get('CI_JOB_TOKEN', None),
+        os.environ.get('CI_JOB_TOKEN'),
     )
 
     grade_student_mrs(
@@ -214,7 +216,7 @@ def grade_students_mrs(
         root: Path | None = None,
         dry_run: bool = False,
 ) -> None:
-    """Check all mrs is correct"""
+    """Run students' MRs grading (all users)"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -231,7 +233,7 @@ def grade_students_mrs(
     gitlab_connection = GitlabConnection(
         course_config.gitlab_url,
         course_config.gitlab_api_token,
-        os.environ.get('CI_JOB_TOKEN', None),
+        os.environ.get('CI_JOB_TOKEN'),
     )
 
     grade_students_mrs_to_master(
@@ -256,7 +258,7 @@ def export_public(
         dry_run: bool = False,
         no_cleanup: bool = False,
 ) -> None:
-    """Export enabled tasks and stuff to public repository"""
+    """Export enabled tasks to public repo"""
     context: dict[str, Any] = ctx.obj
     course_config: CourseConfig = context['course_config']
     execution_folder: Path = context['execution_folder']
@@ -264,6 +266,7 @@ def export_public(
     root = root or execution_folder
     course_driver = CourseDriver(
         root_dir=root,
+        reference_root_dir=root,
         layout=course_config.layout,
     )
     course_schedule = CourseSchedule(
@@ -279,16 +282,17 @@ def export_public(
         course_schedule,
         course_driver,
         export_dir,
-        dry_run=dry_run
+        dry_run=dry_run,
     )
 
     if not no_cleanup:
         shutil.rmtree(export_dir)
+        print_info(f'No cleanup flag. Exported files stored in {export_dir}')
 
 
-@main.command()
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.pass_context
+# @main.command()
+# @click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
+# @click.pass_context
 def create_contributing_mr(
         ctx: click.Context,
         dry_run: bool = False,
@@ -329,7 +333,7 @@ def create_contributing_mr(
         print_info(f'target_branch = {target_branch}. Skip it.', color='orange')
         return
 
-    create_public_mr(course_config, object_attributes, dry_run=dry_run)
+    # create_public_mr(course_config, object_attributes, dry_run=dry_run)
 
 
 if __name__ == '__main__':  # pragma: nocover
