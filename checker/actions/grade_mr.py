@@ -77,7 +77,7 @@ def _grade_mrs(
 
     # get open mrs to filter all users
     students_group = gitlab_connection.get_group(course_config.students_group)
-    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list()
+    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list()  # type: ignore
     students_mrs_project_names: set[str] = set()
     for mr in students_mrs:
         students_mrs_project_names.update(mr.web_url.split('/'))
@@ -130,7 +130,7 @@ def _grade_mrs(
 
         # Check basic checklist
         print_info('Lookup checklist')
-        for mr in opened_master_mrs:
+        for mr in opened_master_mrs:  # type: ignore
             print_info(f'Checking MR#{mr.iid} <{mr.title}> ({mr.state})...', color='white')
             print_info(mr.web_url, color='white')
             if mr.title.lower().startswith('wip:') or mr.title.lower().startswith('draft:'):
