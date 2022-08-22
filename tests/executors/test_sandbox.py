@@ -76,33 +76,25 @@ class TestSandbox:
         if os.environ['PATH'] == 'true':
             del os.environ['PATH']
 
-    def test_sandbox(self) -> None:
-        pass
-
     def test_timeout(self) -> None:
         sandbox = Sandbox()
 
-        timeout_command = 'sleep 2'
+        timeout_command = 'sleep 0.5'
         with pytest.raises(ExecutionFailedError):
-            sandbox(timeout_command, timeout=1, shell=True)
+            sandbox(timeout_command, timeout=0.2, shell=True)
 
-    def test_output_catching_external(self) -> None:
+    @pytest.mark.parametrize('command,output', [
+        ('>&1 echo "std"', 'std\n'),
+        ('>&2 echo "err"', 'err\n'),
+        ('>&1 echo "std" && >&2 echo "err"', 'std\nerr\n'),
+        ('>&1 echo "std1" && >&2 echo "err1" && >&1 echo "std2" && >&2 echo "err2"', 'std1\nerr1\nstd2\nerr2\n'),
+    ])
+    def test_output_catching_external(self, command: str, output: str) -> None:
         sandbox = Sandbox()
 
-        assert sandbox('echo "std"', shell=True) is None
+        assert sandbox(command, shell=True) is None
 
-        assert sandbox('>&1 echo "std"', capture_output=True, shell=True) == 'std\n'
-
-        assert sandbox('>&2 echo "error"', capture_output=True, shell=True) == 'error\n'
-
-        assert sandbox(
-            '>&1 echo "std" && >&2 echo "error"', capture_output=True, shell=True
-        ) == 'std\nerror\n'
-
-        assert sandbox(
-            '>&1 echo "std1" && >&2 echo "error1" && >&1 echo "std2" && >&2 echo "error2"',
-            capture_output=True, shell=True
-        ) == 'std1\nerror1\nstd2\nerror2\n'
+        assert sandbox(command, capture_output=True, shell=True) == output
 
     def test_output_catching_callable(self) -> None:
         sandbox = Sandbox()
@@ -128,3 +120,35 @@ class TestSandbox:
             print('error2', file=sys.stderr)
         assert sandbox(print_std_error_complicated, capture_output=True) == 'std1\nerror1\nstd2\nerror2\n'
 
+    @pytest.mark.parametrize('command,output', [
+        ('>&1 echo "std"', 'std\n'),
+        ('>&2 echo "err"', 'err\n'),
+        ('>&1 echo "std" && >&2 echo "err"', 'std\nerr\n'),
+        ('>&1 echo "std1" && >&2 echo "err1" && >&1 echo "std2" && >&2 echo "err2"', 'std1\nerr1\nstd2\nerr2\n'),
+    ])
+    def test_output_catching_while_error(self, command: str, output: str) -> None:
+        sandbox = Sandbox()
+
+        command += ' && false'
+
+        with pytest.raises(ExecutionFailedError) as exc_info:
+            sandbox(command, capture_output=True, shell=True)
+
+        assert exc_info.value.output == output
+
+    @pytest.mark.parametrize('command,output', [
+        ('>&1 echo "std"', 'std\n'),
+        ('>&2 echo "err"', 'err\n'),
+        ('>&1 echo "std" && >&2 echo "err"', 'std\nerr\n'),
+        ('>&1 echo "std1" && >&2 echo "err1" && >&1 echo "std2" && >&2 echo "err2"', 'std1\nerr1\nstd2\nerr2\n'),
+    ])
+    def test_output_catching_while_timeout(self, command: str, output: str) -> None:
+        sandbox = Sandbox()
+
+        command += ' && sleep 0.5'
+
+        with pytest.raises(ExecutionFailedError) as exc_info:
+            sandbox(command, capture_output=True, timeout=0.2, shell=True)
+
+        assert output in exc_info.value.output
+        assert 'exceeded time limit' in exc_info.value.output

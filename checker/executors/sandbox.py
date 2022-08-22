@@ -62,7 +62,7 @@ class Sandbox:
                     close_fds=False,
                     encoding='utf-8',
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
+                    stderr=subprocess.STDOUT,  # https://docs.python.org/3/library/subprocess.html -> capture_output
                     **kwargs
                 )
                 elapsed_time_seconds = time.monotonic() - start_time
@@ -86,10 +86,16 @@ class Sandbox:
                                f'with a limit of {kwargs["timeout"]:.0f} seconds')
                 return None
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            timeout_msg = ''
             if isinstance(e, subprocess.TimeoutExpired):
-                print_info(f'Your solution exceeded time limit: {kwargs["timeout"]} seconds', color='red')
+                timeout_msg = f'Your solution exceeded time limit: {kwargs["timeout"]} seconds'
+                if not capture_output:
+                    print_info(timeout_msg, color='red')
+
+            output = e.output or ''
+            output = output if isinstance(output, str) else output.decode('utf-8')
             raise ExecutionFailedError(
-                output=(str(e.stderr) or '') + (str(e.stdout) or '') if capture_output else None
+                output=output + timeout_msg if capture_output else None
             ) from e
 
     def _execute_callable(
@@ -120,7 +126,7 @@ class Sandbox:
             self,
             command: str | list[str] | Callable[..., Any],
             *,
-            timeout: int | None = None,
+            timeout: float | None = None,
             sandbox: bool = False,
             env_sandbox: bool = False,
             capture_output: bool = False,
