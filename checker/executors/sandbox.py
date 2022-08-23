@@ -135,13 +135,13 @@ class Sandbox:
     ) -> str | None:
         if isinstance(command, list) or isinstance(command, str):
 
-            def set_up_env_sandbox() -> None:
+            def set_up_env_sandbox() -> None:  # pragma: nocover
                 env = os.environ.copy()
                 os.environ.clear()
                 for variable in self.ENV_WHITELIST:
                     os.environ[variable] = env[variable]
 
-            def set_up_sandbox() -> None:
+            def set_up_sandbox() -> None:  # pragma: nocover
                 set_up_env_sandbox()
 
                 if unshare:

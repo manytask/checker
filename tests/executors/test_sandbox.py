@@ -19,6 +19,26 @@ skip_without_unshare = pytest.mark.skipif(
 
 
 class TestSandbox:
+    def test_dry_run(self, capsys: pytest.CaptureFixture[str]) -> None:
+        sandbox = Sandbox(dry_run=True)
+
+        failed_command_never_execute = 'false'
+        sandbox(failed_command_never_execute)
+
+        captured = capsys.readouterr()
+        assert len(captured.out) + len(captured.err) > 0
+        assert failed_command_never_execute in (captured.out + captured.err)
+
+    def test_verbose(self, capsys: pytest.CaptureFixture[str]) -> None:
+        sandbox = Sandbox()
+
+        simple_command = 'true'
+        sandbox(simple_command, verbose=True)
+
+        captured = capsys.readouterr()
+        assert len(captured.out) + len(captured.err) > 0
+        assert simple_command in (captured.out + captured.err)
+
     def test_execute_external_str(self, tmp_path: Path) -> None:
         sandbox = Sandbox()
 
@@ -50,7 +70,7 @@ class TestSandbox:
         sandbox(create_file)
         assert tmp_file.exists()
 
-    def test_env_sandbox(self) -> None:
+    def test_sandbox_blocks_env(self) -> None:
         sandbox = Sandbox()
 
         # test clear all not allowed variables
@@ -59,6 +79,7 @@ class TestSandbox:
         cmd_assert_blacklist_env_exists = '[ ! -z "${NOT_EXISTED_VAR_123}" ]'
 
         sandbox(cmd_assert_blacklist_env_not_exists, env_sandbox=True, shell=True)
+        sandbox(cmd_assert_blacklist_env_not_exists, sandbox=True, shell=True)
         sandbox(cmd_assert_blacklist_env_exists, env_sandbox=False, shell=True)
 
         del os.environ['NOT_EXISTED_VAR_123']
@@ -70,11 +91,20 @@ class TestSandbox:
         cmd_assert_whitelist_env_exists = '[ ! -z "${PATH}" ]'
 
         sandbox(cmd_assert_whitelist_env_exists, env_sandbox=True, shell=True)
+        sandbox(cmd_assert_whitelist_env_exists, sandbox=True, shell=True)
         with pytest.raises(ExecutionFailedError):
             sandbox(cmd_assert_whitelist_env_not_exists, env_sandbox=False, shell=True)
 
         if os.environ['PATH'] == 'true':
             del os.environ['PATH']
+
+    @skip_without_unshare
+    def test_sandbox_blocks_web(self) -> None:
+        sandbox = Sandbox()
+
+        command_ping = ['ping', '-c 2', 'google.com.']
+        with pytest.raises(ExecutionFailedError):
+            sandbox(command_ping, sandbox=True)
 
     def test_timeout(self) -> None:
         sandbox = Sandbox()
