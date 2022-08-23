@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import grp
+import io
 import os
 import pwd
 import subprocess
 import sys
 import time
 from collections.abc import Callable
+from contextlib import redirect_stderr, redirect_stdout
 from typing import Any
 
 try:
@@ -59,8 +61,8 @@ class Sandbox:
                     command,
                     close_fds=False,
                     encoding='utf-8',
-                    # stderr=subprocess.PIPE,
-                    capture_output=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,  # https://docs.python.org/3/library/subprocess.html -> capture_output
                     **kwargs
                 )
                 elapsed_time_seconds = time.monotonic() - start_time
@@ -68,28 +70,39 @@ class Sandbox:
                 if verbose and 'timeout' in kwargs:
                     timeout_msg = f'\nElapsed time is {elapsed_time_seconds:.2f} ' \
                                   f'with a limit of {kwargs["timeout"]:.0f} seconds\n'
-                if completed_process.stderr or completed_process.stdout:
-                    return (str(completed_process.stderr) or '') + (str(completed_process.stdout) or '') + timeout_msg
+                if completed_process.stdout:
+                    return completed_process.stdout + timeout_msg
                 return None
             else:
                 start_time = time.monotonic()
-                subprocess.run(command, close_fds=False, **kwargs)
+                subprocess.run(
+                    command,
+                    close_fds=False,
+                    **kwargs
+                )
                 elapsed_time_seconds = time.monotonic() - start_time
                 if verbose and 'timeout' in kwargs:
                     print_info(f'Elapsed time is {elapsed_time_seconds:.2f} '
                                f'with a limit of {kwargs["timeout"]:.0f} seconds')
                 return None
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            timeout_msg = ''
             if isinstance(e, subprocess.TimeoutExpired):
-                print_info(f'Your solution exceeded time limit: {kwargs["timeout"]} seconds', color='red')
+                timeout_msg = f'Your solution exceeded time limit: {kwargs["timeout"]} seconds'
+                if not capture_output:
+                    print_info(timeout_msg, color='red')
+
+            output = e.output or ''
+            output = output if isinstance(output, str) else output.decode('utf-8')
             raise ExecutionFailedError(
-                output=(str(e.stderr) or '') + (str(e.stdout) or '') if capture_output else None
+                output=output + timeout_msg if capture_output else None
             ) from e
 
     def _execute_callable(
             self,
             command: Callable[..., Any],
             *,
+            capture_output: bool = False,
             verbose: bool = False,
             **kwargs: Any,
     ) -> str | None:
@@ -100,28 +113,35 @@ class Sandbox:
         if self.dry_run:
             return None
 
-        command(**kwargs)
-        return None
+        if capture_output:
+            f = io.StringIO()
+            with redirect_stdout(f), redirect_stderr(sys.stdout):
+                command(**kwargs)
+            return f.getvalue()
+        else:
+            command(**kwargs)
+            return None
 
     def __call__(
             self,
             command: str | list[str] | Callable[..., Any],
             *,
-            timeout: int | None = None,
+            timeout: float | None = None,
             sandbox: bool = False,
             env_sandbox: bool = False,
+            capture_output: bool = False,
             verbose: bool = False,
             **kwargs: Any,
     ) -> str | None:
         if isinstance(command, list) or isinstance(command, str):
 
-            def set_up_env_sandbox() -> None:
+            def set_up_env_sandbox() -> None:  # pragma: nocover
                 env = os.environ.copy()
                 os.environ.clear()
                 for variable in self.ENV_WHITELIST:
                     os.environ[variable] = env[variable]
 
-            def set_up_sandbox() -> None:
+            def set_up_sandbox() -> None:  # pragma: nocover
                 set_up_env_sandbox()
 
                 if unshare:
@@ -133,7 +153,7 @@ class Sandbox:
                         if verbose:
                             print_info(e.__class__.__name__, e)
                 else:
-                    print_info('WARNING: unshare is not installed')
+                    print_info('WARNING: unshare is not installed, running without ip namespace')
 
                 try:
                     uid = pwd.getpwnam('nobody').pw_uid
@@ -155,6 +175,8 @@ class Sandbox:
                 kwargs['preexec_fn'] = set_up_sandbox
             if timeout is not None:
                 kwargs['timeout'] = timeout
-            return self._execute_external(command, verbose=verbose, **kwargs)
+            return self._execute_external(command, capture_output=capture_output, verbose=verbose, **kwargs)
         elif callable(command):
-            return self._execute_callable(command, verbose=verbose, **kwargs)
+            if env_sandbox or sandbox or timeout:
+                print_info('WARNING: env_sandbox, sandbox and timeout unavailable for callable execution, skip it')
+            return self._execute_callable(command, capture_output=capture_output, verbose=verbose, **kwargs)
