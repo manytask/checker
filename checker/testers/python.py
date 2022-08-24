@@ -29,11 +29,12 @@ class PythonTester(Tester):
 
         public_test_files: list[str] = field(default_factory=list)
         private_test_files: list[str] = field(default_factory=list)
-        test_files: list[str] = field(default_factory=list)
 
         test_timeout: int = 60  # seconds
         coverage: bool | int = False
 
+        # Created on init
+        test_files: list[str] = field(init=False, default_factory=list)
         # Init only
         explicit_public_tests: InitVar[list[str]] = None
         explicit_private_tests: InitVar[list[str]] = None

@@ -1,0 +1,15 @@
+{
+    "partially_scored": false,
+    "verbose_tests_output": false,
+    "module_test": false,
+    "build_wheel": false,
+    "run_mypy": false,
+
+    "forbidden_regexp": [".*"],
+
+    "public_test_files": ["test_other_public.py"],
+    "private_test_files": ["test_other_private.py"],
+
+    "test_timeout": 60,
+    "coverage": 90
+}

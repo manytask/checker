@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 # Base exception for all package
 class CheckerException(Exception):
+    __test__ = False  # to disable pytest detecting it as Test class
     pass
 
 

@@ -20,6 +20,7 @@ class Tester:
     """
 
     SOURCE_FILES_EXTENSIONS: list[str] = []
+    __test__ = False  # to disable pytest detecting it as Test class
 
     @dataclass
     class TaskTestConfig:
@@ -44,7 +45,7 @@ class Tester:
                     with open(task_config_path) as f:
                         raw_config = json.load(f)
                     if not isinstance(raw_config, dict):
-                        raise TypeError(f'Got <{type(raw_config).__name__}> instead of <dict>')
+                        raise TaskTesterTestConfigException(f'Got <{type(raw_config).__name__}> instead of <dict>')
                 else:
                     raw_config = {}
             except (json.JSONDecodeError, TypeError) as e:
@@ -103,7 +104,7 @@ class Tester:
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,
-    ) -> None:
+    ) -> None:  # pragma: nocover
         """
         Copy all files for testing and build the program (if necessary)
         @param test_config: Test config to pass into each stage
@@ -124,7 +125,7 @@ class Tester:
             test_config: TaskTestConfig,
             build_dir: Path,
             verbose: bool = False,
-    ) -> None:
+    ) -> None:  # pragma: nocover
         """
         Clean build directory after testing
         @param test_config: Test config to pass into each stage
@@ -142,7 +143,7 @@ class Tester:
             sandbox: bool = False,
             verbose: bool = False,
             normalize_output: bool = False,
-    ) -> float:
+    ) -> float:  # pragma: nocover
         """
         Run tests for already built task and return solution score
         @param test_config: Test config to pass into each stage
