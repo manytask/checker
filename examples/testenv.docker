@@ -1,0 +1,7 @@
+FROM cr.yandex/crp9onavos88ug32d5r2/grader/py/base-image:latest
+
+COPY . /opt/shad
+RUN python3 -m pip install /opt/shad/tools/testlib
+RUN cp /opt/shad/.gitlab-ci.yml /opt/shad/.grader-ci.yml  # Create reference for comparison when running tests
+
+RUN find /opt/shad/tests -name '*.py' | xargs chmod o-rwx
