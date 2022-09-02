@@ -27,7 +27,7 @@ class TesterException(CheckerException):
     pass
 
 
-class TesterNotImplemented(CheckerException):
+class TesterNotImplemented(TesterException):
     pass
 
 

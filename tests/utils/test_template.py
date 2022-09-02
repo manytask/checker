@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from checker.utils import clear_gold_solution
+from checker.utils import create_template_from_gold_solution
 
 
 def create_file(filename: Path, content: str) -> None:
@@ -104,9 +104,42 @@ class TestTemplate:
         tmp_file_code = tmp_path / f'{test_case.name}.py'
         create_file(tmp_file_code, test_case.code)
 
-        clear_gold_solution(tmp_file_code)
+        create_template_from_gold_solution(tmp_file_code)
 
         with open(tmp_file_code, 'r') as file:
             content = file.read()
 
             assert content == cleandoc(test_case.template)
+
+    def test_no_file(self, tmp_path: Path) -> None:
+        tmp_file_code = tmp_path / 'this_file_does_not_exist.py'
+
+        with pytest.raises(AssertionError):
+            create_template_from_gold_solution(tmp_file_code)
+
+    def test_no_mark(self, tmp_path: Path) -> None:
+        CODE = """
+        a = 1
+        """
+        tmp_file_code = tmp_path / 'wrong.py'
+        create_file(tmp_file_code, CODE)
+
+        assert not create_template_from_gold_solution(tmp_file_code)
+        assert not create_template_from_gold_solution(tmp_file_code, raise_not_found=False)
+
+        with pytest.raises(AssertionError):
+            create_template_from_gold_solution(tmp_file_code, raise_not_found=True)
+
+    def test_single_mark(self, tmp_path: Path) -> None:
+        CODE = """
+        a = 1
+        # TODO: CODE HERE
+        """
+        tmp_file_code = tmp_path / 'wrong.py'
+        create_file(tmp_file_code, CODE)
+
+        assert not create_template_from_gold_solution(tmp_file_code)
+        assert not create_template_from_gold_solution(tmp_file_code, raise_not_found=False)
+
+        with pytest.raises(AssertionError):
+            create_template_from_gold_solution(tmp_file_code, raise_not_found=True)
