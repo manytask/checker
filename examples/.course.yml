@@ -11,6 +11,7 @@ max_low_demand_bonus: 1.0  # optional
 system: python
 layout: groups
 executor: sandbox
+templates: create
 
 
 # gitlab

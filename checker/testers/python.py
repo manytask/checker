@@ -10,7 +10,7 @@ from ..utils.print import print_info
 from .tester import Tester
 
 
-IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache', '.mypy_cache']
+IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache', '.mypy_cache', '.tester.json']
 COVER_IGNORE_FILES = ['setup.py']
 
 

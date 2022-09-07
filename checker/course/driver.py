@@ -64,36 +64,37 @@ class CourseDriver:
             tasks:
                 - task_1/
                 - ...
-            tests/
-                - task_1/
-                - ...
             lecture/
-                - ...
-            solutions/
                 - ...
         - ...
 
-    * tasks (tba)
-        - .gitlab-ci.yml
-        - .gitignore
-        - .course.yml
-        - .deadlines.yml
-        - README.md
-        - group_1/
+                ...
             - task_1/
-                - template/
-                - tests/
+                - task/
+                    - README.md
+                    - solution.py
+                    - test_.....py
+                - template/ [optional]
+                - private/ [optional]
                 - solution/
+                - .
             - ...
+
+    For templates:
+        * explicit - will search gold solution in private folder
+        * create - will search gold solution in private folder
+        * create_or_search - will search gold solution in private folder
     """
 
     LAYOUTS = ['flat', 'groups']
+    TEMPLATES = ['create', 'explicit', 'create_or_search']
 
     def __init__(
             self,
             root_dir: Path,
             reference_root_dir: Path | None = None,
             layout: str = 'groups',
+            templates: str = 'explicit',
             use_reference_source: bool = False,
             use_reference_tests: bool = False,
     ):
@@ -101,6 +102,7 @@ class CourseDriver:
         @param root_dir: Root folder of the repo to test
         @param reference_root_dir: Root folder of private repo if necessary
         @param layout: @see available LAYOUTS in class docstring
+        @param templates: @see available TEMPLATES in class var and utils -> clear_gold_solution function
         @param use_reference_source: Use source from private repo (reference_root_dir)
         @param use_reference_tests: Use all tests from private repo copy (reference_root_dir)
         """
@@ -117,6 +119,9 @@ class CourseDriver:
         if layout == 'flat':
             warn(f'<{layout}> layout is deprecated', DeprecationWarning)
         self.layout = layout
+
+        assert layout in CourseDriver.TEMPLATES, f'Templates <{layout}> are not implemented'
+        self.templates = templates
 
     def get_deadlines_file_path(
             self,

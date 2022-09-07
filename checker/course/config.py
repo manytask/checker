@@ -24,6 +24,7 @@ class CourseConfig:
 
     # checker
     system: str
+    templates: str  # create or explicit
 
     # manytask
     manytask_url: str
