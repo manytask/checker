@@ -29,11 +29,11 @@ class CourseConfig:
     manytask_url: str
 
     # gitlab
-    private_repo: str
+    course_group: str
     public_repo: str
     students_group: str
     lectures_repo: str | None = None
-    default_branch: str = 'master'
+    default_branch: str = 'main'
     gitlab_url: str = 'https://gitlab.manytask.org'
     gitlab_service_username: str = 'manytask'
 
