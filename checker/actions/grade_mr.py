@@ -93,7 +93,7 @@ def _grade_mrs(
     print_info('Tags and folders to check:', tag_to_folder, color='orange')
 
     # get tutors
-    tutors = gitlab_connection.get_all_tutors(course_config.private_repo)
+    tutors = gitlab_connection.get_all_tutors(course_config.course_group)
     print_info('Tutors:', [f'<{t.username} {t.name}>' for t in tutors], color='orange')
     id_to_tutor = {t.id: t for t in tutors}
 
@@ -172,7 +172,7 @@ def _singe_mr_grade_score_new(
         course_schedule: CourseSchedule,
         mr: gitlab.v4.objects.GroupMergeRequest,
         tag_to_folder: dict[str, str],
-        tutors_dict: dict[int, gitlab.v4.objects.ProjectMember],
+        tutors_dict: dict[int, gitlab.v4.objects.GroupMember],
         user_id: int,
         *,
         dry_run: bool = False,

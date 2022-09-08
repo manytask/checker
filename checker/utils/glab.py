@@ -43,13 +43,6 @@ class GitlabConnection:
 
         return project
 
-    def get_private_project(
-            self,
-            private_group_name: str,
-            private_repo_name: str,
-    ) -> gitlab.v4.objects.GroupProject:
-        return self.get_project_from_group(private_group_name, private_repo_name)
-
     def get_public_project(
             self,
             private_group_name: str,
@@ -144,9 +137,9 @@ class GitlabConnection:
 
     def get_all_tutors(
             self,
-            private_repo_name: str,
-    ) -> list[gitlab.v4.objects.ProjectMember]:
-        return self.get_project_members(private_repo_name)
+            private_group_name: str,
+    ) -> list[gitlab.v4.objects.GroupMember]:
+        return self.get_group_members(private_group_name)
 
     def get_students_projects(
             self,
