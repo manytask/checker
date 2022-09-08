@@ -76,7 +76,7 @@ def _get_student_mr_source_url(merge_request: gitlab.v4.objects.MergeRequest) ->
 
 def copy_merge_requests(course_config: CourseConfig, dry_run: bool = False) -> None:
     """Copy changes from all open MR"""
-    raise NotImplemented
+    raise NotImplementedError
 
     private_project = get_private_project(course_config.private_group, course_config.private_repo)
     full_private_project = GITLAB.projects.get(private_project.id)
@@ -261,7 +261,7 @@ def create_public_mr(
         dry_run: bool = False,
 ) -> None:
     """Copy changes from public repo"""
-    raise NotImplemented
+    raise NotImplementedError
 
     object_attributes = object_attributes or {}
     merge_commit_sha = object_attributes['merge_commit_sha']
