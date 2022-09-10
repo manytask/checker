@@ -3,7 +3,7 @@
 NB: First you need [manytask](https://github.com/yandexdataschool/manytask) up and running as checker is integrated with manytask only. 
 
 
-Note: The following instructions assume you will use `checker`. If you are going to use custom `checker` with manytask - just read these docs for advices and approaches  
+Note: The following instructions assume you will use `checker`. If you are going to use custom `checker` with manytask - just read these docs for advices and approaches
 
 
 ---
@@ -70,6 +70,18 @@ So the recommended layout is the following
 * [python/public-fall-2022](https://gitlab.manytask.org/python/public-fall-2022/) - this year public repo (only public tasks and tests)
 
 
+### Service account 
+
+Also, you need to create service account with access to the students' repos.  
+
+Go to manytask.gitlab.org -> [course_name] -> Settings -> Access Tokens  
+Create named group token with write(!) repo and write(!) api permissions  
+Save it and use later as `GITLAB_SERVICE_TOKEN`
+
+It will automatically create user `[token_name]123_bot` with access to the group.  
+The token can be used even for http access with `https://any_non_empty:$GITLAB_SERVICE_TOKEN@gitlab.manytask.org/path/to/the/repo.git` 
+
+
 ## Gitlab runners 
 
 You need gitlab runners to run checker script. 
@@ -134,23 +146,11 @@ If you'd like to use private runners - add it as group runners to your course gr
 3. Check students group to have active runners (1 in total) 
 
 
-### Secrets and security
+### Security
 
 Note: see [examples/config.gitlab.toml](../examples/config.gitlab.toml)  
 
-#### `.gitlab-ci.yml` comparison 
-
 Student can change `.gitlab-ci.yml` and get all secrets exposed. So in public runner we need to compare it with original `.gitlab-ci.yml` file
-
-#### Variables
-
-You need to add some secret variables for testing (tester tokens, docker token, etc.)
-
-If you add it as gitlab variables, student can run custom job and print variables available in gitlab variables.   
-
-TBA
-
-Now try to use gitlab variables only setup.
 
 
 ## docker
@@ -167,7 +167,7 @@ see [examples/base.docker](../examples/base.docker) and  [examples/testenv.docke
 #### Docker registry 
 
 Currently, the main registry is docker yandex cloud registry (credentials: @slon)  
-Be ready to set `DOCKER_AUTH_CONFIG` and `DOCKER_PASS_JSON_KEY` to gitlab-runners config (see [examples/config.gitlab.toml](../examples/config.gitlab.toml))
+Be ready to set `DOCKER_AUTH_CONFIG` to gitlab-runners config (see [examples/config.gitlab.toml](../examples/config.gitlab.toml))
 
 
 ## gitlab-ci
@@ -189,3 +189,27 @@ We offer to create 2 separate files:
 see [examples/.gitlab-ci.yml](../examples/.gitlab-ci.yml) and  [examples/.releaser-ci.yml](../examples/.releaser-ci.yml)
 
 So you need to select in private repo CI/CD Settings `.releaser-ci.yml` as ci file.
+
+
+## Repo settings and Variables 
+
+
+* In gitlab.com -> [course_group]  
+  Set variables for checker and gitlab runner to operate   
+  * DOCKER_AUTH_CONFIG (none),  
+  * TESTER_TOKEN (protected, masked),  
+  * GITLAB_SERVICE_TOKEN (protected, masked)  
+
+
+* In gitlab.com -> [course_group] -> private  
+  Set CI/CD settings: 
+  * `.releaser-ci.yml` as ci file  
+  * strategy - clone   
+  * Scheduling for each day time just after the lecture (to auto publish assignments)
+
+
+* In gitlab.manytask.org -> [course_group]  
+  Set variables for checker and gitlab runner to operate   
+  * DOCKER_AUTH_CONFIG (none),  
+  * TESTER_TOKEN (masked),  
+  * GITLAB_SERVICE_TOKEN (masked) 
