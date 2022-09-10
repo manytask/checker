@@ -11,4 +11,4 @@ RUN apt-get update && \
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --upgrade -r /tmp/requirements.txt
 
-RUN python3 -m pip install --upgrade manytask-checker==0.2.0
+RUN python3 -m pip install --upgrade manytask-checker==0.4.1

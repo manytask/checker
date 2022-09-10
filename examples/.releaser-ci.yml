@@ -11,7 +11,15 @@ stages:
   - manual
 
 
+.docker:
+  image: docker:20.10.17
+  before_script:
+    # register `config.json` to be able to push
+    - mkdir -p $HOME/.docker && echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
+
+
 rebuild-base-image:
+  extends: .docker
   stage: build
   rules:
     - if: $TRIGGER_PAYLOAD
@@ -23,8 +31,6 @@ rebuild-base-image:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
     - when: on_success
-  tags:
-    - python-builder
   script:
     # Note: Expected docker registry `$REGISTRY` to be already authenticated
     - echo "building base image = $REGISTRY/base-image:$CI_COMMIT_REF_NAME"
@@ -59,9 +65,6 @@ check-tools-testlib:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
     - when: on_success
-  allow_failure: false
-  tags:
-    - python-private-tester
   script:
     - python3 -m pip install --editable tools/testlib
     - python3 -m flake8 tools/testlib
@@ -82,9 +85,6 @@ check-tasks:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
     - when: on_success
-  allow_failure: false
-  tags:
-    - python-private-tester
   script:
     - python3 -m pip install --editable tools/testlib
     - python3 -m checker check --parallelize
@@ -99,14 +99,13 @@ deploy-public:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
-  tags:
-    - python-private-tester
   script:
     # Note: GITLAB_API_TOKEN expected as a env secret (token with push access to public repo)
     # Copy all files to public repo
     - python3 -m checker export-public
 
 deploy-docker:
+  extends: .docker
   stage: deploy
   rules:
     - if: $TRIGGER_PAYLOAD
@@ -114,8 +113,6 @@ deploy-docker:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
-  tags:
-    - docker-builder-python
   script:
     # Note: Expected docker registry `$REGISTRY` to be already authenticated
     - echo "using image = $REGISTRY/base-image:latest"
@@ -132,8 +129,6 @@ deploy-manytask:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
-  tags:
-    - python-private-tester
   script:
     - 'curl --fail --silent -X POST -H "Authorization: Bearer $TESTER_TOKEN"
         -H "Content-type: application/x-yaml" --data-binary "@.course.yml"
@@ -163,7 +158,5 @@ grade-students-mr:
       when: never
     - when: manual
       allow_failure: true
-  tags:
-    - python-private-tester
   script:
     - python3 -m checker grade-students-mrs

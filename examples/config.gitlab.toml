@@ -1,51 +1,44 @@
-concurrent = 6
+concurrent = 16
 log_level = "info"
 
 [session_server]
   session_timeout = 1800
 
 [[runners]]
-  name = "python-ysda-shell-with-docker"
-  url = "https://gitlab.manytask.org/"
-  token = "..."
-  executor = "docker"
-  limit = 1
-  environment = ["TESTER_TOKEN=...", "DOCKER_PASS_JSON_KEY=\"...\""]
-  pre_build_script = "echo \"$DOCKER_PASS_JSON_KEY\" | base64 -d - | docker login --password-stdin --username \"json_key\" https://cr.yandex"
-  [runners.custom_build_dir]
-  [runners.docker]
-    tls_verify = false
-    image = "docker:20.10.15"
-    volumes = ["/var/run/docker.sock:/var/run/docker.sock"]
-    pull_policy = ["always"]
-    shm_size = 0
-
-[[runners]]
-  name = "python-ysda-private-tester"
-  url = "https://gitlab.manytask.org/"
-  token = "..."
-  executor = "docker"
-  limit = 2
-  environment = ["TESTER_TOKEN=...", "DOCKER_AUTH_CONFIG={\"auths\": {\"https://cr.yandex\": {\"email\": \"not@val.id\", \"auth\": \"...\"}}}"]
-  [runners.docker]
-    tls_verify = false
-    image = ""
-    volumes = ["/cache"]
-    allowed_images = ["cr.yandex/crp9onavos88ug32d5r2/grader/py/*", "curlimages/*"]
-    pull_policy = ["always"]
-    shm_size = 0
-
-[[runners]]
-  name = "python-ysda-public-runner"
-  url = "https://gitlab.manytask.org/"
-  token = "..."
-  executor = "docker"
+  name = "manytask-private-heavy-0"
   limit = 4
-  environment = ["TESTER_TOKEN=...", "GITLAB_API_TOKEN=...", "DOCKER_AUTH_CONFIG={\"auths\": {\"https://cr.yandex\": {\"email\": \"not@val.id\", \"auth\": \"...\"}}}"]
+  url = "https://gitlab.com/"
+  token = "TOKEN"
+  executor = "docker"
+  environment = ["DOCKER_HOST=unix:///var/run/docker.sock", "DOCKER_TLS_CERTDIR=\"\""]
+  [runners.docker]
+    tls_verify = false
+    tls_certs_path = ""
+    image = "docker:stable"
+    privileged = true
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    disable_cache = false
+    volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
+    pull_policy = ["always"]
+    shm_size = 0
+
+[[runners]]
+  name = "manytask-public-heavy-0"
+  limit = 16
+  url = "https://gitlab.manytask.org/"
+  token = "TOKEN"
+  executor = "docker"
   pre_build_script = "cmp $CI_CONFIG_PATH /opt/shad/.grader-ci.yml # echo 'If this fails you need to pull latest changes'"
   [runners.docker]
     tls_verify = false
-    image = "?base"
+    image = "docker:latest"
+    memory = "512m"
+    cpus = "4"
+    privileged = false
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    disable_cache = false
     volumes = ["/cache"]
     allowed_images = ["cr.yandex/crp9onavos88ug32d5r2/grader/py/*"]
     pull_policy = ["always"]

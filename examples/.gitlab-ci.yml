@@ -1,4 +1,5 @@
 variables:
+  GIT_DEPTH: 10
   GIT_STRATEGY: clone
   REGISTRY: cr.yandex/crp9onavos88ug32d5r2/grader/py
 
@@ -6,8 +7,6 @@ variables:
 # Testing and Grading all changed tasks
 grade:
   image: $REGISTRY/testenv:latest
-  tags:
-    - python-public-tester
   rules:
     - if: $CI_PROJECT_NAME =~ /^public-(fall|spring)-20\d\d/
       when: never
@@ -28,8 +27,6 @@ grade:
 # Auto on Merge Requests: check current student mege requests
 grade-mrs:
   image: $REGISTRY/testenv:latest
-  tags:
-    - python-public-tester
   rules:
     - if: $CI_PROJECT_NAME =~ /^public-(fall|spring)-20\d\d/
       when: never
@@ -47,8 +44,6 @@ grade-mrs:
 # Checking contribution to the main repo
 check:
   image: $REGISTRY/testenv:latest
-  tags:
-    - python-public-tester
   rules:
     - if: $CI_PROJECT_NAME =~ /^public-(fall|spring)-20\d\d/
       when: never
