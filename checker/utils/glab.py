@@ -14,14 +14,20 @@ class GitlabConnection:
             self,
             gitlab_host_url: str,
             api_token: str | None = None,
+            private_token: str | None = None,
             job_token: str | None = None,
     ):
         if api_token:
             self.gitlab = gitlab.Gitlab(gitlab_host_url, private_token=api_token)
+        elif private_token:
+            self.gitlab = gitlab.Gitlab(gitlab_host_url, private_token=private_token)
         elif job_token:
             self.gitlab = gitlab.Gitlab(gitlab_host_url, job_token=job_token)
         else:
-            print_info('None of `api_token` or `job_token` provided; use without credentials', color='orange')
+            print_info(
+                'None of `api_token`/`private_token` or `job_token` provided; use without credentials',
+                color='orange',
+            )
             self.gitlab = gitlab.Gitlab(gitlab_host_url)
 
     def get_project_from_group(
