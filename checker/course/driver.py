@@ -61,7 +61,7 @@ class CourseDriver:
         - .releaser-ci.yml
         - README.md
         - group_1/
-            tasks:
+            tasks/
                 - task_1/
                 - ...
             lecture/
@@ -81,9 +81,9 @@ class CourseDriver:
             - ...
 
     For templates:
-        * explicit - will search gold solution in private folder
-        * create - will search gold solution in private folder
-        * create_or_search - will search gold solution in private folder
+        * explicit - will search template in public folder
+        * create - will search gold solution in private folder and create template from it
+        * create_or_search - will search template in public folder or will create template from gold solution
     """
 
     LAYOUTS = ['flat', 'groups']
