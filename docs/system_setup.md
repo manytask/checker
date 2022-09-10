@@ -8,13 +8,6 @@ Note: The following instructions assume you will use `checker`. If you are going
 
 ---
 
-## Pre-setup
-
-One-time actions necessary for the functioning of the entire repo
-
-TBA
-
-
 ## Pre-requirements 
 
 Also, please refet to the [manytask setup docs -> new-course/new-semester](https://github.com/yandexdataschool/manytask/blob/main/docs/system_setup.md#new-course) to get and set  up:
@@ -26,17 +19,28 @@ Also, please refet to the [manytask setup docs -> new-course/new-semester](https
 * Running manytask instance
 
 
-## Gitlab layout
+## Layout
 
-This script will rely on the following layouts of the course repositories 
+### Pre-required
+
+Assuming you already have base layout for manytask system up' see [manytask setup docs -> new-course/new-semester](https://github.com/yandexdataschool/manytask/blob/main/docs/system_setup.md#new-course)
+
+* course group (gitlab.manytask.org), e.g. [python](https://gitlab.manytask.org/python/)
+* this year students group (gitlab.manytask.org), e.g. [python/students-fall-2022](https://gitlab.manytask.org/python/students-fall-2022/)
+* this year public repo (gitlab.manytask.org or gitlab.com), e.g. [python/public-fall-2022](https://gitlab.manytask.org/python/public-fall-2022/)
+
+
+### Setup layout
+
+This script will rely on the following layouts of the course repositories
 
 #### Private-repo (recommended)
 
 The following layout allows you to push assignments automatically and fielder files students will see (for example hide all docker files or configs)
 
-* `private-repo` - private repository with tasks, tests, ect
-* `public-repo` - public repository with auto-exported tasks from `private-repo`
-* private students' group 
+* `private` (gitlab.com or gitlab.manytask.org) - private repository with tasks, tests, ect - (hosted on gitlab.com (recommended) or gitlab.manytask.org) 
+* `python/public-2022-fall` - public repository of this year with auto-exported tasks from `private-repo` (hosted on gitlab.manytask.org (recommended) or gitlab.com)
+* private students' group e.g. `python/students-fall-2022`
 
 So each student can see only `public-repo` repo and his/her own repo and can not access `private-repo`
 
@@ -45,44 +49,108 @@ So each student can see only `public-repo` repo and his/her own repo and can not
 
 In this case auto-exporting of the tasks will not work. However, the task checking is still working.  
 
-* `tasks` - public repository with assignments for students   
-* `tests` - git submodule in `tasks`; private repository with tests and all private info 
-* private students' group 
+* `python/public-2022-fall` - public repository with assignments for students   
+* `python/tests-2022-fall` - git `tests` submodule in `public-2022-fall`; private repository with tests and all private info 
+* private students' group e.g. `python/students-fall-2022`
 
 So each student can see only `tasks` repo and his/her own repo and can not access `tests`
 
 
+### Final layout
+
+So the recommended layout is the following 
+
+`gitlab.com`
+* [manytask/python](https://gitlab.com/manytask/python) - course group + group runner 
+* [manytask/python/private](https://gitlab.com/manytask/python/private) - private course repo (all tasks and tests)
+
+`gitlab.manytask.org`
+* [python](https://gitlab.manytask.org/python/) - course group
+* [python/students-fall-2022](https://gitlab.manytask.org/python/students-fall-2022/) - this year students group
+* [python/public-fall-2022](https://gitlab.manytask.org/python/public-fall-2022/) - this year public repo (only public tasks and tests)
+
+
 ## Gitlab runners 
 
-To test students solutions you need gitlab-runner. We recommend yo to use [gitalb-runner in docker](https://docs.gitlab.com/runner/install/docker.html)
+You need gitlab runners to run checker script. 
 
-It's convenient to have 3 runners:
+This system we try to utilize shared/group runners as much as possible to decrease the number of services to up and maintain for each separate course.  
+
+### server
+
+You need to obtain a server for your runners.  
+The base requirements is `gitlab runner` and `docker`.
+
+If you create runner in separate machine, it's better to use [self-hoster runner for linux](https://docs.gitlab.com/runner/install/linux-repository.html)  
+If you create runner in shared machine, it's better to use [self-hoster runner in docker](https://docs.gitlab.com/runner/install/docker.html)  
+
+Sometimes gitlab runner will leave outdated docker images, so you need to add in chrone: 
+```shell
+0 3 * * * /usr/bin/bash -c 'docker system prune'
+```
+
+Note: if you will use shared runners for your course - just check it's available, no need to create new ones.
+
+
+### gitlab.com
+
+You need 2 runners available for your private repository:  
 * `build` - runner for docker building
 * `private-tester` - to check reference-solution and test... tests
-* `public-tester` - to check and grade students' solutions 
 
-See [examples/config.gitlab.toml](../examples/config.gitlab.toml)
-
-All runners are created in course groups, so you can create them once.
-- `build` and `private-tester` are attached to the admin/course folder (e.g `py-tasks`)
-- `public-tester` is attached to the general students group (e.g `python`)
+1. Go to the gitlab.com main group (e.g. [manytask](https://gitlab.com/manytask)) and add runners.  
+   If you use private runners, go to your course group (e.g. [manytask/python](https://gitlab.com/manytask/python))  
+   Group -> CI/CD settings -> Runners
 
 
-1. First you need to run gitlab runner itself, using [gitalb-runner in docker instruction](https://docs.gitlab.com/runner/install/docker.html) 
- 
- 
-2. Register runners, following [register gitlab-runner with docker instruction](https://docs.gitlab.com/runner/register/index.html#docker)
-   * Go to admin group -> CI/CD settings and register `build` and `private-tester`
-   * Go to general students group -> CI/CD settings and register `public-tester`
+2. Register runners, following [register gitlab-runner instruction](https://docs.gitlab.com/runner/register/#registering-runners)
+   * Register `build` and `private-tester` runners
    * It will register them in gitlab and generate `config.toml` in `/srv/gitlab-runner/config` 
    * Copy generated tokens from `config.toml` (you need to keep only tokens) and update `config.toml` to match [examples/config.gitlab.toml](../examples/config.gitlab.toml)  
-   * reload gitlab runner to update config `docker restart gitlab-runner`
-
-3. Check admin group and general students group to have active runners (3 in total) 
+   * reload gitlab runner
 
 
-Note: Important detail - in public tester in [examples/config.gitlab.toml](../examples/config.gitlab.toml) you can see comparison of gitlab-ci config with original scored in docker. 
-It's done for students not to change `.gitlab-ci.yml` file and set 100% score, for example
+3. Check group to have active runners (2 in total) 
+
+
+### gitlab.manytask.org
+
+Also you need runner to check students' solution 
+
+For self-hosted gitlab instance it's even easier - we can use shared runners.  
+If you'd like to use private runners - add it as group runners to your course group and disable shared runners.  
+
+
+1. For shared runners go GitLab Admin Area -> Overview -> Runners
+
+
+2. Register runners, following [register gitlab-runner instruction](https://docs.gitlab.com/runner/register/#registering-runners)
+   * Register `public-tester` runner
+   * It will register them in gitlab and generate `config.toml` in `/srv/gitlab-runner/config` 
+   * Copy generated tokens from `config.toml` (you need to keep only tokens) and update `config.toml` to match [examples/config.gitlab.toml](../examples/config.gitlab.toml)  
+   * reload gitlab runner
+
+
+3. Check students group to have active runners (1 in total) 
+
+
+### Secrets and security
+
+Note: see [examples/config.gitlab.toml](../examples/config.gitlab.toml)  
+
+#### `.gitlab-ci.yml` comparison 
+
+Student can change `.gitlab-ci.yml` and get all secrets exposed. So in public runner we need to compare it with original `.gitlab-ci.yml` file
+
+#### Variables
+
+You need to add some secret variables for testing (tester tokens, docker token, etc.)
+
+If you add it as gitlab variables, student can run custom job and print variables available in gitlab variables.   
+
+TBA
+
+Now try to use gitlab variables only setup.
 
 
 ## docker
@@ -91,7 +159,7 @@ Gitlab runner operates and run dockers. So you need to create docker where test 
 
 It's convenient to have 2 dockers: 
 
-* `base` - 'empty' docker with libs and apps you will use for testing (as well as `checker` pkg)
+* `base` - 'empty' docker with libs and apps you will use for testing (as well as `checker` pkg). Students can use it to run and test course tasks in docker
 * `testenv` - based on `base` docker with copied tests 
 
 see [examples/base.docker](../examples/base.docker) and  [examples/testenv.docker](../examples/testenv.docker)
