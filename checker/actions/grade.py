@@ -180,7 +180,7 @@ def grade_single_task(
                 if not course_config.manytask_token:
                     raise PushFailedError('Unable to find manytask token')
                 files = {
-                    path.name: (str(path), open(path, 'rb'))
+                    path.name: (str(path.relative_to(source_dir)), open(path, 'rb'))
                     for path in source_dir.glob('**/*')
                     if path.is_file()
                 }
