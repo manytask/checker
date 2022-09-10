@@ -1,6 +1,7 @@
 """Helpers to interact with manytask (push scores tasks)"""
 from __future__ import annotations
 
+import io
 import json
 import time
 from datetime import datetime
@@ -16,12 +17,12 @@ def push_report(
         task_name: str,
         user_id: int,
         score: float,
+        files: dict[str, tuple[str, io.BufferedReader]] | None = None,
         send_time: datetime | None = None,
         check_deadline: bool = True,
         use_demand_multiplier: bool = True,
 ) -> tuple[str, int, str | None, str | None, float | None]:
     # Do not expose token in logs.
-
     data = {
         'token': tester_token,
         'task': task_name,
@@ -35,7 +36,7 @@ def push_report(
 
     response = None
     for _ in range(3):
-        response = requests.post(url=f'{report_base_url}/api/report', data=data)
+        response = requests.post(url=f'{report_base_url}/api/report', data=data, files=files)
 
         if response.status_code < 500:
             break
@@ -66,7 +67,6 @@ def get_score(
         user_id: int,
 ) -> None:
     # Do not expose token in logs.
-
     data = {
         'token': tester_token,
         'task': task_name,

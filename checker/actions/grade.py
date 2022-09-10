@@ -179,13 +179,19 @@ def grade_single_task(
             try:
                 if not course_config.manytask_token:
                     raise PushFailedError('Unable to find manytask token')
+                files = {
+                    path.name: (str(path), open(path, 'rb'))
+                    for path in source_dir.glob('**/*')
+                    if path.is_file()
+                }
                 username, set_score, result_commit_time, result_submit_time, demand_multiplier = push_report(
                     course_config.manytask_url,
                     course_config.manytask_token,
                     task.name,
                     user_id,
                     score,
-                    send_time,
+                    files=files,
+                    send_time=send_time,
                     use_demand_multiplier=use_demand_multiplier,
                 )
                 print_info(
