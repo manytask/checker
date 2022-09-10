@@ -30,17 +30,17 @@ def setup_repo_in_dir(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
-        check=True,
         cwd=repo_dir,
     )
     print_info(r.stdout, color='grey')
     if r.returncode != 0:
         print_info('empty repo, init it first')
         r = subprocess.run(
-            f'git init --initial-branch {branch} && git remote add origin {remote_repo_url} && git ch',
+            f'git init --initial-branch {branch} && git remote add origin {remote_repo_url} && git fetch',
             encoding='utf-8',
             stdout=subprocess.PIPE,
             shell=True,
+            check=True,
             cwd=repo_dir,
         )
         print_info(r.stdout, color='grey')
@@ -52,7 +52,6 @@ def setup_repo_in_dir(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
-        check=True,
         cwd=repo_dir,
     )
     print_info(r.stdout, color='grey')
@@ -65,7 +64,6 @@ def setup_repo_in_dir(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
-        check=True,
         cwd=repo_dir,
     )
     print_info(r.stdout, color='grey')
@@ -120,5 +118,7 @@ def commit_push_all_repo(
         cwd=repo_dir,
     )
     print_info(r.stdout, color='grey')
+    if r.returncode != 0:
+        raise Exception('Can not export files in public repo')  # TODO: make right type
 
     print_info('Done.')
