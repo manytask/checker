@@ -102,9 +102,6 @@ def export_public_files(
         *,
         dry_run: bool = False,
 ) -> None:
-    service_username = course_config.gitlab_service_username
-    service_token = course_config.gitlab_service_token
-
     export_dir.mkdir(exist_ok=True, parents=True)
 
     if dry_run:
@@ -116,15 +113,23 @@ def export_public_files(
             print_info(f'  {relative_filename}', color='grey')
         return
 
-    if not service_token:
+    if not course_config.gitlab_service_token:
         raise Exception('Unable to find service_token')  # TODO: set exception correct type
 
+    print_info('Setting up public repo...', color='orange')
+    print_info(
+        f'username {course_config.gitlab_service_username} \n'
+        f'name {course_config.gitlab_service_name} \n'
+        f'branch {course_config.default_branch} \n',
+        color='grey'
+    )
     setup_repo_in_dir(
         export_dir,
         f'{course_config.gitlab_url}/{course_config.public_repo}',
-        'public',
-        service_username=service_username,
-        service_token=service_token,
+        service_username=course_config.gitlab_service_username,
+        service_token=course_config.gitlab_service_token,
+        git_user_email=course_config.gitlab_service_email,
+        git_user_name=course_config.gitlab_service_name,
         branch=course_config.default_branch,
     )
 
@@ -144,7 +149,7 @@ def export_public_files(
         deleted_files.add(str(path.as_posix()))
 
     # copy updated files
-    print_info('copy files...')
+    print_info('Copy updated files...', color='orange')
     files_and_dirs_to_add = _get_enabled_files_and_dirs(course_config, course_schedule, course_driver)
     for f in sorted(files_and_dirs_to_add):
         relative_filename = str(f.relative_to(course_driver.root_dir))
@@ -161,6 +166,5 @@ def export_public_files(
     # files for git add
     commit_push_all_repo(
         export_dir,
-        'public',
         branch=course_config.default_branch,
     )

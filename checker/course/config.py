@@ -36,6 +36,8 @@ class CourseConfig:
     default_branch: str = 'main'
     gitlab_url: str = 'https://gitlab.manytask.org'
     gitlab_service_username: str = 'manytask'
+    gitlab_service_email: str = 'no-reply@gitlab.manytask.org'
+    gitlab_service_name: str = 'Manytask Bot'
 
     # course default
     second_deadline_max: float = 0.5
