@@ -191,9 +191,8 @@ def grade_mrs(
     username = os.environ['CI_PROJECT_NAME']
 
     gitlab_connection = GitlabConnection(
-        course_config.gitlab_url,
-        course_config.gitlab_api_token,
-        os.environ.get('CI_JOB_TOKEN'),
+        gitlab_host_url=course_config.gitlab_url,
+        job_token=os.environ.get('CI_JOB_TOKEN'),
     )
 
     grade_student_mrs(
@@ -232,9 +231,8 @@ def grade_students_mrs(
     )
 
     gitlab_connection = GitlabConnection(
-        course_config.gitlab_url,
-        course_config.gitlab_api_token,
-        os.environ.get('CI_JOB_TOKEN'),
+        gitlab_host_url=course_config.gitlab_url,
+        private_token=course_config.gitlab_service_token,
     )
 
     grade_students_mrs_to_master(
