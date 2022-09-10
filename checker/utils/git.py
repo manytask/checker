@@ -92,7 +92,7 @@ def commit_push_all_repo(
     r = subprocess.run(
         'git add .',
         encoding='utf-8',
-        stdout=subprocess.PIPE, 
+        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
         cwd=repo_dir,
@@ -103,7 +103,7 @@ def commit_push_all_repo(
     r = subprocess.run(
         f'git commit --all -m "{message}"',
         encoding='utf-8',
-        stdout=subprocess.PIPE, 
+        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
         cwd=repo_dir,
@@ -114,7 +114,7 @@ def commit_push_all_repo(
     r = subprocess.run(
         f'git push -o ci.skip origin {branch}',
         encoding='utf-8',
-        stdout=subprocess.PIPE, 
+        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         shell=True,
         cwd=repo_dir,
