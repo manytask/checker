@@ -85,7 +85,7 @@ def commit_push_all_repo(
         shell=True,
         check=True,
         cwd=repo_dir,
-    ).stdout
+    )
     print_info(r.stdout, color='grey')
 
     print_info('* adding files...')
@@ -96,7 +96,7 @@ def commit_push_all_repo(
         stderr=subprocess.STDOUT,
         shell=True,
         cwd=repo_dir,
-    ).stdout
+    )
     print_info(r.stdout, color='grey')
 
     print_info('* committing...')
