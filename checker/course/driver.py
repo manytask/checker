@@ -3,6 +3,7 @@ Classes to map course schedule to real filesystem
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from warnings import warn
 
@@ -232,3 +233,17 @@ class CourseDriver:
         public_tests_dir = public_tests_dir if public_tests_dir and public_tests_dir.exists() else None
         private_tests_dir = private_tests_dir if private_tests_dir and private_tests_dir.exists() else None
         return public_tests_dir, private_tests_dir
+
+    def get_task_dir_name(
+            self,
+            path: str,
+    ) -> str | None:
+        path_split = path.split(os.path.sep, maxsplit=2)
+        if len(path_split) < 2:  # Changed file not in subdir
+            return None
+        if self.layout == 'groups':
+            return path_split[1]
+        elif self.layout == 'flat':
+            return path_split[0]
+        else:
+            assert False, 'Not Reachable'
