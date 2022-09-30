@@ -1,0 +1,4 @@
+{
+    "allow_change": ["foo.h"],
+    "tests": ["test_foo"]
+}
