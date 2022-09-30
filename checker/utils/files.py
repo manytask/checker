@@ -107,3 +107,30 @@ def check_folder_contains_regexp(
                     raise AssertionError(f'File <{source_path}> contains one of <{regexps}>')
                 return True
     return False
+
+
+def check_files_contains_regexp(
+        folder: Path,
+        regexps: list[str],
+        patterns: list[str] | None = None,
+        raise_on_found: bool = False,
+) -> bool:
+    """
+    Check regexps appears in files that matching patterns
+    @param folder: Folder to check
+    @param regexps: list of forbidden regexp
+    @param patterns: list of patterns for file matching
+    @param raise_on_found: Raise Error on Found Exception
+    @raise AssertionError: if folder or any file does not exist
+    @return: True if any of regexp found
+    """
+    assert folder.exists() and folder.is_dir()
+    if patterns is None:
+        patterns = ['**/*.*']
+    for pattern in patterns:
+        for source_path in folder.glob(pattern):
+            if check_file_contains_regexp(source_path, regexps):
+                if raise_on_found:
+                    raise AssertionError(f'File <{source_path}> contains one of <{regexps}>')
+                return True
+    return False
