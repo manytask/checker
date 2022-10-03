@@ -64,6 +64,7 @@ def main(
 @click.option('--no-clean', is_flag=True, help='Clean or not check tmp folders')
 @click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
 @click.option('--parallelize', is_flag=True, help='Execute parallel checking of tasks')
+@click.option('--num-processes', type=int, default=None, help='Num of processes parallel checking (default: unlimited)')
 @click.option('--contributing', is_flag=True, help='Run task check for students` contribution (decrease verbosity)')
 @click.pass_context
 def check(
@@ -74,6 +75,7 @@ def check(
         no_clean: bool = False,
         dry_run: bool = False,
         parallelize: bool = False,
+        num_processes: int | None = None,
         contributing: bool = False,
 ) -> None:
     """Run task pre-release checking"""
@@ -121,6 +123,7 @@ def check(
         tester,
         tasks=tasks,
         parallelize=parallelize,
+        num_processes=num_processes,
         contributing=contributing,
     )
 

@@ -54,16 +54,17 @@ def _check_tasks(
         tester: Tester,
         course_driver: CourseDriver,
         parallelize: bool = False,
+        num_processes: int | None = None,
         verbose: bool = True,
 ) -> bool:
     # Check itself
     if parallelize:
-        num_cores = multiprocessing.cpu_count()
-        print_info(f'Parallelize task checks with <{num_cores}> cores...', color='blue')
+        _num_processes = num_processes or multiprocessing.cpu_count()
+        print_info(f'Parallelize task checks with <{_num_processes}> processes...', color='blue')
 
         success = True
         # with ThreadPoolExecutor(max_workers=num_cores) as e:
-        with ProcessPoolExecutor(max_workers=num_cores) as e:
+        with ProcessPoolExecutor(max_workers=_num_processes) as e:
             check_futures = {
                 e.submit(_check_single_task, task, tester, course_driver, verbose=verbose, catch_output=True)
                 for task in tasks
@@ -101,6 +102,7 @@ def pre_release_check_tasks(
         tasks: list[Task] | None = None,
         *,
         parallelize: bool = False,
+        num_processes: int | None = None,
         contributing: bool = False,
 ) -> None:
     # select tasks or use `tasks` param
@@ -123,6 +125,7 @@ def pre_release_check_tasks(
         tester,
         course_driver,
         parallelize=parallelize,
+        num_processes=num_processes,
         verbose=not contributing,
     )
 
