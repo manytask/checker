@@ -12,7 +12,10 @@ from .schedule import Group, Task
 
 class CourseDriver:
     """The interlayer between course and file system
-    Course can have different layouts; Now implemented: @see self.LAYOUTS
+    Course can have different layouts;
+    You can select 2 layouts: for private and for public repo
+    for script to know how to read private script and how to write to the public repo
+    Now implemented: @see self.PUBLIC_LAYOUTS, self.PRIVATE_LAYOUTS
 
     * flat [deprecated]
         - .gitignore
@@ -90,23 +93,23 @@ class CourseDriver:
             root_dir: Path,
             reference_root_dir: Path | None = None,
             layout: str = 'groups',
-            reference_source: bool = False,
-            reference_tests: bool = False,
+            use_reference_source: bool = False,
+            use_reference_tests: bool = False,
     ):
         """
         @param root_dir: Root folder of the repo to test
         @param reference_root_dir: Root folder of private repo if necessary
         @param layout: @see available LAYOUTS in class docstring
-        @param reference_source: Use source from private repo (reference_root_dir)
-        @param reference_tests: Use tests from private repo (reference_root_dir)
+        @param use_reference_source: Use source from private repo (reference_root_dir)
+        @param use_reference_tests: Use all tests from private repo copy (reference_root_dir)
         """
 
         self.root_dir = root_dir
         self.reference_root_dir: Path | None = reference_root_dir
-        self.reference_source = reference_source
-        self.reference_tests = reference_tests
+        self.use_reference_source = use_reference_source
+        self.use_reference_tests = use_reference_tests
 
-        if self.reference_source or self.reference_tests:
+        if self.use_reference_source or self.use_reference_tests:
             assert self.reference_root_dir, 'To use reference roots `reference_root_dir` should be provided'
 
         assert layout in CourseDriver.LAYOUTS, f'Course layout <{layout}> are not implemented'
@@ -187,13 +190,13 @@ class CourseDriver:
     ) -> Path | None:
         task_source_dir: Path | None = None
         if self.layout == 'groups':
-            if self.reference_source:
+            if self.use_reference_source:
                 assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
             else:
                 task_source_dir = self.root_dir / task.group.name / task.name
         elif self.layout == 'flat':
-            if self.reference_source:
+            if self.use_reference_source:
                 assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.name
             else:
@@ -211,7 +214,7 @@ class CourseDriver:
         public_tests_dir: Path | None = None
         private_tests_dir: Path | None = None
         if self.layout == 'groups':
-            if self.reference_tests:
+            if self.use_reference_tests:
                 assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.group.name / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
@@ -219,7 +222,7 @@ class CourseDriver:
                 public_tests_dir = self.root_dir / '.' / task.group.name / task.name
                 private_tests_dir = self.root_dir / 'tests' / task.group.name / task.name
         elif self.layout == 'flat':
-            if self.reference_tests:
+            if self.use_reference_tests:
                 assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.name
                 private_tests_dir = self.reference_root_dir / 'tests' / task.name

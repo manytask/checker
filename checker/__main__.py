@@ -88,7 +88,7 @@ def check(
         root_dir=root,
         reference_root_dir=root,
         layout=course_config.layout,
-        reference_source=True,
+        use_reference_source=True,
     )
     course_schedule = CourseSchedule(
         deadlines_config=course_driver.get_deadlines_file_path(),
@@ -147,7 +147,7 @@ def grade(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
         reference_root_dir=reference_root,
         layout=course_config.layout,
-        reference_tests=True,
+        use_reference_tests=True,
     )
     course_schedule = CourseSchedule(
         deadlines_config=course_driver.get_deadlines_file_path(),
@@ -185,7 +185,7 @@ def grade_mrs(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
         reference_root_dir=reference_root,
         layout=course_config.layout,
-        reference_tests=True,
+        use_reference_tests=True,
     )
     course_schedule = CourseSchedule(
         deadlines_config=course_driver.get_deadlines_file_path(),
