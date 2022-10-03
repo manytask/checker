@@ -88,7 +88,7 @@ def check(
         root_dir=root,
         reference_root_dir=root,
         layout=course_config.layout,
-        use_reference_source=True,
+        reference_source=True,
     )
     course_schedule = CourseSchedule(
         deadlines_config=course_driver.get_deadlines_file_path(),
