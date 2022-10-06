@@ -290,7 +290,7 @@ def grade_on_ci(
     groups: list[Group] = []
     for changed_file in changes:
         changed_task_dir = course_driver.get_task_dir_name(changed_file)
-        if changed_task_dir is None:
+        if changed_task_dir not in course_schedule.tasks:
             continue
 
         # if changed_group_dir == '...':  # if task name is too long it's hidden
