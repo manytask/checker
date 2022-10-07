@@ -93,6 +93,9 @@ class Tester:
         elif system == 'make':
             from . import make
             return make.MakeTester(cleanup=cleanup, dry_run=dry_run)
+        elif system == 'cpp':
+            from . import cpp
+            return cpp.CppTester(cleanup=cleanup, dry_run=dry_run)
         else:
             raise TesterNotImplemented(f'Tester for <{system}> are not supported right now')
 

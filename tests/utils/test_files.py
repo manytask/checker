@@ -6,6 +6,7 @@ import pytest
 
 from checker.utils.files import (
     check_file_contains_regexp,
+    check_files_contains_regexp,
     check_folder_contains_regexp,
     copy_files,
     filename_match_patterns,
@@ -125,3 +126,34 @@ class TestFileRegexpSearch:
             check_folder_contains_regexp(tmp_path, ['tmp'], [r'.*'], raise_on_found=True)
 
         assert not check_folder_contains_regexp(tmp_path, ['tmp'], [r'ttt'], raise_on_found=True)
+
+    @pytest.mark.parametrize('regexps,regexps_for_files,contains', [
+        (['12'], ['aba.tmp2'], False),
+        (['2'], ['aba.tmp2'], True),
+        (['12'], ['*b*'], False),
+        (['12'], ['*a*'], True),
+        (['12'], ['a'], False),
+        (['12'], ['*tmp2'], False),
+        (['12'], ['**/*a.tmp*'], True),
+        (['32'], ['**/*a.tmp*'], True),
+        (['32'], ['**/a.tmp*'], False),
+        (['.*4.*'], ['a.tmp', 'aba.tmp2'], False),
+        (['.*3.*'], ['a.tmp', 'aba.tmp2'], True),
+        (['.*3.'], ['a.tmp', 'aba.tmp2'], True),
+        (['.*3.'], ['a.tmp'], False),
+        (['.*'], None, True),
+        (['123'], None, True),
+        (['.*'], [], False),
+        ([], None, False),
+    ])
+    def test_check_files_contains_regexp(
+            self,
+            tmp_path: Path,
+            regexps: list[str],
+            regexps_for_files: list[str],
+            contains: bool
+    ) -> None:
+        with open(tmp_path / 'a.tmp', 'w') as f1, open(tmp_path / 'aba.tmp2', 'w') as f2:
+            f1.write('123')
+            f2.write('321')
+        assert check_files_contains_regexp(tmp_path, regexps, regexps_for_files) == contains
