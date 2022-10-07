@@ -16,7 +16,7 @@ try:
 except ImportError:
     unshare = None
 
-from ..exceptions import ExecutionFailedError
+from ..exceptions import ExecutionFailedError, TimeoutExpiredError
 from ..utils.print import print_info
 
 
@@ -94,9 +94,11 @@ class Sandbox:
 
             output = e.output or ''
             output = output if isinstance(output, str) else output.decode('utf-8')
-            raise ExecutionFailedError(
-                output=output + timeout_msg if capture_output else None
-            ) from e
+            output = output + timeout_msg if capture_output else None
+            if isinstance(e, subprocess.TimeoutExpired):
+                raise TimeoutExpiredError(output=output) from e
+            else:
+                raise ExecutionFailedError(output=output) from e
 
     def _execute_callable(
             self,

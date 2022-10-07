@@ -4,7 +4,13 @@ import glob
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..exceptions import BuildFailedError, ExecutionFailedError, StylecheckFailedError, TestsFailedError
+from ..exceptions import (
+    BuildFailedError,
+    ExecutionFailedError,
+    StylecheckFailedError,
+    TestsFailedError,
+    TimeoutExpiredError,
+)
 from ..utils.files import check_files_contains_regexp, copy_files
 from ..utils.print import print_info
 from .tester import Tester
@@ -19,6 +25,7 @@ class CppTester(Tester):
         build_type: str = 'ASAN'
         allow_change: list[str] = field(default_factory=list)
         forbidden_regexp: list[str] = field(default_factory=list)
+        timeout: float = 60.
 
         def __post_init__(
                 self,
@@ -139,11 +146,15 @@ class CppTester(Tester):
                     cwd=build_dir,
                     verbose=verbose,
                     capture_output=True,
-                    timeout=60,
+                    timeout=test_config.timeout,
                 )
                 print_info('OK', color='green')
+            except TimeoutExpiredError:
+                print_info('ERROR', color='red')
+                message = f'Your solution exceeded time limit: {test_config.timeout} seconds'
+                raise TestsFailedError(message)
             except ExecutionFailedError:
                 print_info('ERROR', color='red')
-                raise TestsFailedError("Test failed")
+                raise TestsFailedError("Test failed (wrong answer or sanitizer error)")
         print_info('All tests passed', color='green')
         return 1.
