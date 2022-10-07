@@ -15,7 +15,7 @@ def cpp_tester() -> CppTester:
     return CppTester(cleanup=True, dry_run=False)
 
 
-def init_task(tmp_path: Path, code: str, timeout: float | None = None):
+def init_task(tmp_path: Path, code: str, **kwargs):
     course_dir = Path(__file__).parent / 'test_cpp_course'
     reference_dir = tmp_path / 'reference'
     root_dir = tmp_path / 'student'
@@ -28,13 +28,12 @@ def init_task(tmp_path: Path, code: str, timeout: float | None = None):
     with open(source_dir / 'foo.h', 'w') as f:
         f.write(code)
 
-    if timeout is not None:
-        tester_path = private_tests_dir / '.tester.json'
-        with open(tester_path, 'r') as f:
-            config = json.load(f)
-            config['timeout'] = timeout
-        with open(tester_path, 'w') as f:
-            json.dump(config, f)
+    tester_path = private_tests_dir / '.tester.json'
+    with open(tester_path, 'r') as f:
+        config = json.load(f)
+        config.update(kwargs)
+    with open(tester_path, 'w') as f:
+        json.dump(config, f)
 
     format_path = reference_dir / 'run-clang-format.py'
     format_path.chmod(format_path.stat().st_mode | stat.S_IEXEC)
@@ -45,7 +44,7 @@ STAGE_BUILD = 1
 STAGE_CLANG_FORMAT = 2
 STAGE_CLANG_TIDY = 3
 STAGE_TEST = 4
-STAGE_UNREACHABLE = 6
+STAGE_UNREACHABLE = 5
 
 def check_fail_on_stage(err: str, stage: int):
     messages = [
@@ -54,7 +53,6 @@ def check_fail_on_stage(err: str, stage: int):
         'Running clang format...',
         'Running clang tidy...',
         'Running test_foo...',
-        'All tests passed'
     ]
     for i, message in enumerate(messages):
         if i <= stage:
@@ -129,7 +127,32 @@ class TestCppTester:
         code = f'#include <thread>\n#include <chrono>\n\nint Foo() {sleep_code}'
         timeout = 1e-3
         with pytest.raises(TestsFailedError):
-            cpp_tester.test_task(*init_task(tmp_path, code, timeout))
+            cpp_tester.test_task(*init_task(tmp_path, code, timeout=timeout))
         err = capsys.readouterr().err
         check_fail_on_stage(err, STAGE_TEST)
         assert f'exceeded time limit: {timeout}' in err
+
+    def test_crash_me_success(
+            self,
+            tmp_path: Path,
+            cpp_tester: CppTester,
+            capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        code = 'int Foo() {\n    return 43;\n}\n'
+        cpp_tester.test_task(*init_task(tmp_path, code, is_crash_me=True))
+        err = capsys.readouterr().err
+        check_fail_on_stage(err, STAGE_UNREACHABLE)
+        assert 'Program has crashed' in err
+
+    def test_crash_me_fail(
+            self,
+            tmp_path: Path,
+            cpp_tester: CppTester,
+            capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        code = 'int Foo() {\n    return 42;\n}\n'
+        with pytest.raises(TestsFailedError):
+            cpp_tester.test_task(*init_task(tmp_path, code, is_crash_me=True))
+        err = capsys.readouterr().err
+        check_fail_on_stage(err, STAGE_TEST)
+        assert 'Program has not crashed' in err

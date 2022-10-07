@@ -26,6 +26,8 @@ class CppTester(Tester):
         allow_change: list[str] = field(default_factory=list)
         forbidden_regexp: list[str] = field(default_factory=list)
         timeout: float = 60.
+        is_crash_me: bool = False
+        args: dict[str, list[str]] = field(default_factory=dict)
 
         def __post_init__(
                 self,
@@ -140,21 +142,29 @@ class CppTester(Tester):
         for test_binary in test_config.tests:
             try:
                 print_info(f'Running {test_binary}...', color='orange')
+                args = test_config.args.get(test_binary, [])
                 self._executor(
-                    str(build_dir / test_binary),
+                    [str(build_dir / test_binary), *args],
                     sandbox=True,
                     cwd=build_dir,
                     verbose=verbose,
                     capture_output=True,
                     timeout=test_config.timeout,
                 )
+                if test_config.is_crash_me:
+                    print_info('ERROR', color='red')
+                    raise TestsFailedError('Program has not crashed')
                 print_info('OK', color='green')
             except TimeoutExpiredError:
                 print_info('ERROR', color='red')
                 message = f'Your solution exceeded time limit: {test_config.timeout} seconds'
                 raise TestsFailedError(message)
             except ExecutionFailedError:
-                print_info('ERROR', color='red')
-                raise TestsFailedError("Test failed (wrong answer or sanitizer error)")
-        print_info('All tests passed', color='green')
+                if not test_config.is_crash_me:
+                    print_info('ERROR', color='red')
+                    raise TestsFailedError("Test failed (wrong answer or sanitizer error)")
+        if test_config.is_crash_me:
+            print_info('Program has crashed', color='green')
+        else:
+            print_info('All tests passed', color='green')
         return 1.
