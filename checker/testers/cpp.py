@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import glob
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -116,8 +115,9 @@ class CppTester(Tester):
 
         try:
             print_info('Running clang tidy...', color='orange')
+            files = [str(file) for file in task_dir.rglob('*.cpp')]
             self._executor(
-                ['clang-tidy', '-p', '.', *task_dir.rglob('*.cpp')],
+                ['clang-tidy', '-p', '.', *files],
                 cwd=build_dir,
                 verbose=verbose,
             )
