@@ -156,7 +156,7 @@ class CppTester(Tester):
                 print_info(f'Running {test_binary}...', color='orange')
                 args = test_config.args.get(test_binary, [])
                 if test_binary in test_config.input_file:
-                    stdin = open(test_config.input_file[test_binary], 'r')
+                    stdin = open(build_dir / test_config.input_file[test_binary], 'r')
                 self._executor(
                     [str(build_dir / test_binary), *args],
                     sandbox=True,
