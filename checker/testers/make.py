@@ -63,7 +63,7 @@ class MakeTester(Tester):
             verbose: bool = False,
             normalize_output: bool = False,
     ) -> float:
-        tests_cmd = ['make']
+        tests_cmd = ['make', '-B']
 
         tests_err = None
         try:
