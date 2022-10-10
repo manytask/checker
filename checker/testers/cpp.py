@@ -116,9 +116,8 @@ class CppTester(Tester):
 
         try:
             print_info('Running clang tidy...', color='orange')
-            regexp = str(task_dir / '*.cpp')
             self._executor(
-                ['clang-tidy', '-p', '.', *glob.glob(regexp)],
+                ['clang-tidy', '-p', '.', *task_dir.rglob('*.cpp')],
                 cwd=build_dir,
                 verbose=verbose,
             )
