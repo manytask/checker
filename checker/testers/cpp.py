@@ -28,6 +28,7 @@ class CppTester(Tester):
         timeout: float = 60.
         is_crash_me: bool = False
         args: dict[str, list[str]] = field(default_factory=dict)
+        capture_output: bool = True
 
         def __post_init__(
                 self,
@@ -148,7 +149,7 @@ class CppTester(Tester):
                     sandbox=True,
                     cwd=build_dir,
                     verbose=verbose,
-                    capture_output=True,
+                    capture_output=test_config.capture_output,
                     timeout=test_config.timeout,
                 )
                 if test_config.is_crash_me:
