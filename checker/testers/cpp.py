@@ -29,6 +29,7 @@ class CppTester(Tester):
         is_crash_me: bool = False
         args: dict[str, list[str]] = field(default_factory=dict)
         capture_output: bool = True
+        copy_to_build: list[str] = field(default_factory=list)
 
         def __post_init__(
                 self,
@@ -61,6 +62,13 @@ class CppTester(Tester):
             source=source_dir,
             target=task_dir,
             patterns=test_config.allow_change,
+            verbose=verbose,
+        )
+        self._executor(
+            copy_files,
+            source=task_dir,
+            target=build_dir,
+            patterns=test_config.copy_to_build,
             verbose=verbose,
         )
 
