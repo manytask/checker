@@ -53,6 +53,10 @@ class ExecutionFailedError(RunFailedError):
     pass
 
 
+class TimeoutExpiredError(ExecutionFailedError):
+    pass
+
+
 class BuildFailedError(RunFailedError):
     pass
 

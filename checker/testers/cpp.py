@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-import glob
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..exceptions import BuildFailedError, ExecutionFailedError, StylecheckFailedError, TestsFailedError
+from ..exceptions import (
+    BuildFailedError,
+    ExecutionFailedError,
+    StylecheckFailedError,
+    TestsFailedError,
+    TimeoutExpiredError,
+)
 from ..utils.files import check_files_contains_regexp, copy_files
 from ..utils.print import print_info
 from .tester import Tester
@@ -14,11 +19,19 @@ class CppTester(Tester):
 
     @dataclass
     class TaskTestConfig(Tester.TaskTestConfig):
-        tests: list[str] = field(default_factory=list)
-        linter: bool = True
-        build_type: str = 'ASAN'
         allow_change: list[str] = field(default_factory=list)
         forbidden_regexp: list[str] = field(default_factory=list)
+        copy_to_build: list[str] = field(default_factory=list)
+
+        linter: bool = True
+        build_type: str = 'Asan'
+        is_crash_me: bool = False
+
+        tests: list[str] = field(default_factory=list)
+        input_file: dict[str, str] = field(default_factory=dict)
+        args: dict[str, list[str]] = field(default_factory=dict)
+        timeout: float = 60.
+        capture_output: bool = True
 
         def __post_init__(
                 self,
@@ -51,6 +64,13 @@ class CppTester(Tester):
             source=source_dir,
             target=task_dir,
             patterns=test_config.allow_change,
+            verbose=verbose,
+        )
+        self._executor(
+            copy_files,
+            source=task_dir,
+            target=build_dir,
+            patterns=test_config.copy_to_build,
             verbose=verbose,
         )
 
@@ -98,9 +118,9 @@ class CppTester(Tester):
 
         try:
             print_info('Running clang tidy...', color='orange')
-            regexp = str(task_dir / '*.cpp')
+            files = [str(file) for file in task_dir.rglob('*.cpp')]
             self._executor(
-                ['clang-tidy', '-p', '.', *glob.glob(regexp)],
+                ['clang-tidy', '-p', '.', *files],
                 cwd=build_dir,
                 verbose=verbose,
             )
@@ -131,19 +151,38 @@ class CppTester(Tester):
             normalize_output: bool = False,
     ) -> float:
         for test_binary in test_config.tests:
+            stdin = None
             try:
                 print_info(f'Running {test_binary}...', color='orange')
+                args = test_config.args.get(test_binary, [])
+                if test_binary in test_config.input_file:
+                    stdin = open(build_dir / test_config.input_file[test_binary], 'r')
                 self._executor(
-                    str(build_dir / test_binary),
+                    [str(build_dir / test_binary), *args],
                     sandbox=True,
                     cwd=build_dir,
                     verbose=verbose,
-                    capture_output=True,
-                    timeout=60,
+                    capture_output=test_config.capture_output,
+                    timeout=test_config.timeout,
+                    stdin=stdin
                 )
+                if test_config.is_crash_me:
+                    print_info('ERROR', color='red')
+                    raise TestsFailedError('Program has not crashed')
                 print_info('OK', color='green')
-            except ExecutionFailedError:
+            except TimeoutExpiredError:
                 print_info('ERROR', color='red')
-                raise TestsFailedError("Test failed")
-        print_info('All tests passed', color='green')
+                message = f'Your solution exceeded time limit: {test_config.timeout} seconds'
+                raise TestsFailedError(message)
+            except ExecutionFailedError:
+                if not test_config.is_crash_me:
+                    print_info('ERROR', color='red')
+                    raise TestsFailedError("Test failed (wrong answer or sanitizer error)")
+            finally:
+                if stdin is not None:
+                    stdin.close()
+        if test_config.is_crash_me:
+            print_info('Program has crashed', color='green')
+        else:
+            print_info('All tests passed', color='green')
         return 1.
