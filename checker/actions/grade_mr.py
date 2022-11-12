@@ -397,7 +397,7 @@ def _single_mr_check_basic_checklist(
         _is_first_try_correct_search = re.search(r'(False|True)', _first_try_correct_str)
         assert _is_first_try_correct_search
         is_first_try_correct = _is_first_try_correct_search.group(0) == 'True'
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError, AssertionError):
         is_first_try_correct = checks_ok
     try:
         _updates_num_search = re.search(r'checks num: (\d+)', mr_checklist_note.body)
@@ -406,7 +406,7 @@ def _single_mr_check_basic_checklist(
         current_updates_num_search = re.search(r'(\d+)', _updates_num_str)
         assert current_updates_num_search
         current_updates_num = int(current_updates_num_search.group(0))
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError, AssertionError):
         current_updates_num = 0
     now_str = str(datetime.now())
     checklist_note_msg = [
