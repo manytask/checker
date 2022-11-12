@@ -211,7 +211,7 @@ class Tester:
                 normalize_output=normalize_output
             )
         except RunFailedError as e:
-            print_info('\nOoops... Something went wrong: ' + e.msg, color='red')
+            print_info('\nOoops... Something went wrong: ' + e.msg + (e.output or ''), color='red')
             raise e
         finally:
             if self.cleanup:
