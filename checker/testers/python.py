@@ -85,10 +85,11 @@ class PythonTester(Tester):
         # Install submitted code as module if needed
         if test_config.module_test:
             # assert setup files exists
-            setup_files = [i.name for i in build_dir.glob(r'setup.*')]
-            if 'setup.py' not in setup_files and 'setup.cfg' not in setup_files:
+            setup_files = {i.name for i in build_dir.glob(r'setup.*')} | \
+                          {i.name for i in build_dir.glob(r'pyproject.*')}
+            if 'setup.py' not in setup_files and 'setup.cfg' not in setup_files and 'pyproject.toml' not in setup_files:
                 raise BuildFailedError(
-                    'This task is in editable `module` mode. You have to provide setup.cfg/setup.py file'
+                    'This task is in editable `module` mode. You have to provide pyproject.toml/setup.cfg/setup.py file'
                 )
             if 'setup.py' not in setup_files:
                 raise BuildFailedError('This task is in editable `module` mode. You have to provide setup.py file')
