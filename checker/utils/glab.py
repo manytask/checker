@@ -39,7 +39,8 @@ class GitlabConnection:
 
         _groups = self.gitlab.groups.list(get_all=True, search=group_name)
 
-        assert len(_groups) == 1, f'Could not find group_name={group_name}'
+        print_info(_groups, color='grey')
+        assert len(_groups) >= 1, f'Could not find group_name={group_name}'
         group = _groups[0]  # type: ignore
 
         project = {i.name: i for i in group.projects.list(all=True)}[project_name]
@@ -64,7 +65,7 @@ class GitlabConnection:
 
         _groups = self.gitlab.groups.list(get_all=True, search=group_name)
 
-        assert len(_groups) == 1, f'Could not find group_name={group_name}'
+        assert len(_groups) >= 1, f'Could not find group_name={group_name}'
         group = _groups[0]  # type: ignore
 
         print_info(f'Got group: <{group.name}>', color='grey')
@@ -84,7 +85,8 @@ class GitlabConnection:
 
         _groups = self.gitlab.groups.list(get_all=True, search=group_name)
 
-        assert len(_groups) == 1, f'Could not find group_name={group_name}'
+        print_info(_groups, color='grey')
+        assert len(_groups) >= 1, f'Could not find group_name={group_name}'
         group = _groups[0]  # type: ignore
 
         print_info(f'Got group: <{group.name}>', color='grey')
@@ -104,7 +106,7 @@ class GitlabConnection:
 
         _projects = self.gitlab.projects.list(get_all=True, search=project_name)
 
-        assert len(_projects) == 1, f'Could not find project_name={project_name}'
+        assert len(_projects) >= 1, f'Could not find project_name={project_name}'
         project = _projects[0]  # type: ignore
 
         print_info(f'Got project: <{project.name}>', color='grey')
@@ -181,7 +183,7 @@ class GitlabConnection:
 
         _groups = self.gitlab.groups.list(get_all=True, search=name)
 
-        assert len(_groups) == 1, f'Could not find group name={name}'
+        assert len(_groups) >= 1, f'Could not find group name={name}'
         group = _groups[0]  # type: ignore
 
         group = typing.cast(gitlab.v4.objects.Group, group)
