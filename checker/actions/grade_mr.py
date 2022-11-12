@@ -79,7 +79,7 @@ def _grade_mrs(
 
     # get open mrs to filter all users
     students_group = gitlab_connection.get_group(course_config.students_group)
-    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list()  # type: ignore
+    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list(get_all=True)  # type: ignore
     students_mrs_project_names: set[str] = set()
     for mr in students_mrs:
         students_mrs_project_names.update(mr.web_url.split('/'))
