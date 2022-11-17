@@ -114,6 +114,16 @@ class PythonTester(Tester):
                 )
                 if normalize_output:
                     print_info(output or '', end='')
+
+                if (build_dir / 'build').exists():
+                    output = self._executor(
+                        ['rm', '-rf', str(build_dir / 'build')],
+                        verbose=verbose,
+                        env_sandbox=sandbox,
+                        capture_output=normalize_output,
+                    )
+                    if normalize_output:
+                        print_info(output or '', end='')
             else:
                 output = self._executor(
                     ['pip3', 'install', '-e', str(build_dir), '--force'],
