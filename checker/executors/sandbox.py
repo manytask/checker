@@ -146,16 +146,16 @@ class Sandbox:
             def set_up_sandbox() -> None:  # pragma: nocover
                 set_up_env_sandbox()
 
-                if unshare:
-                    try:
-                        unshare.unshare(unshare.CLONE_NEWNET)
-                        subprocess.run(['ip', 'link', 'set', 'lo', 'up'], check=True)
-                    except Exception as e:
-                        print_info('WARNING: unable to create new net namespace, running with current one')
-                        if verbose:
-                            print_info(e.__class__.__name__, e)
-                else:
-                    print_info('WARNING: unshare is not installed, running without ip namespace')
+                # if unshare:
+                #     try:
+                #         unshare.unshare(unshare.CLONE_NEWNET)
+                #         subprocess.run(['ip', 'link', 'set', 'lo', 'up'], check=True)
+                #     except Exception as e:
+                #         print_info('WARNING: unable to create new net namespace, running with current one')
+                #         if verbose:
+                #             print_info(e.__class__.__name__, e)
+                # else:
+                #     print_info('WARNING: unshare is not installed, running without ip namespace')
 
                 try:
                     uid = pwd.getpwnam('nobody').pw_uid
