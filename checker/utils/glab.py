@@ -91,7 +91,7 @@ class GitlabConnection:
 
         print_info(f'Got group: <{group.name}>', color='grey')
 
-        members = group.members.list(all=True)
+        members = group.members.list(all=True, get_all=True)
 
         members = typing.cast(list[gitlab.v4.objects.GroupMember], members)
         print_info(f'Got {len(members)} members', color='grey')
@@ -111,7 +111,7 @@ class GitlabConnection:
 
         print_info(f'Got project: <{project.name}>', color='grey')
 
-        members = project.members.list(all=True)
+        members = project.members.list(all=True, get_all=True)
 
         members = typing.cast(list[gitlab.v4.objects.ProjectMember], members)
         print_info(f'Got {len(members)} members', color='grey')
