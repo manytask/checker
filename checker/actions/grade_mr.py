@@ -239,7 +239,6 @@ def _singe_mr_grade_score_new(
         mr_score_discussion.notes.get(note['id'])
         for note in mr_score_discussion.attributes['notes']
     ]
-    print_info('All notes (filtering first one):', notes, 'grey')
     notes = notes[1:]
 
     if not notes:
@@ -364,8 +363,10 @@ def _single_mr_check_basic_checklist(
     wrong_file = None
     for file in file_changed:
         if file.split('.')[-1] in BANNED_FILE_EXTENSIONS:
+            print_info(f'  check {file}', color='grey')
             for allowed_file in ALLOWED_FILES:
-                if file.endswith(allowed_file):
+                if file.endswith(allowed_file) or file == allowed_file:
+                    print_info(f'  allow {file} as {allowed_file}', color='grey')
                     continue
             have_no_additional_files = False
             wrong_file = file
