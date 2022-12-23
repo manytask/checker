@@ -364,10 +364,8 @@ def _single_mr_check_basic_checklist(
     for file in file_changed:
         if file.split('.')[-1] in BANNED_FILE_EXTENSIONS:
             print_info(f'  check {file}', color='grey')
-            for allowed_file in ALLOWED_FILES:
-                if file.endswith(allowed_file) or file == allowed_file:
-                    print_info(f'  allow {file} as {allowed_file}', color='grey')
-                    continue
+            if any(file.endswith(allowed_file) for allowed_file in ALLOWED_FILES):
+                continue
             have_no_additional_files = False
             wrong_file = file
             break
