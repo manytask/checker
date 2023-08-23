@@ -51,7 +51,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y iputils-ping cmake ninja-build clang-tidy clang-format
       - name: Run tests
-        run: python -m pytest --cpp --cov-report=xml tests/
+        run: python -m pytest --python --cpp --cov-report=xml tests/
       - name: Upload coverage
         uses: codecov/codecov-action@v2
         with:

@@ -9,6 +9,9 @@ from checker.exceptions import StylecheckFailedError, TestsFailedError
 from checker.testers.python import PythonTester
 
 
+py_tests = pytest.mark.skipif("not config.getoption('python')")
+
+
 @pytest.fixture(scope='function')
 def python_tester() -> PythonTester:
     return PythonTester(cleanup=True, dry_run=False)
@@ -45,6 +48,7 @@ def create_task(path: Path, files: dict[str, str]) -> None:
             f.write(content)
 
 
+@py_tests
 class TestPythonTester:
     def test_simple_task(
             self,
