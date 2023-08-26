@@ -55,11 +55,11 @@ def _get_enabled_files_and_dirs(
         if (lecture_dir := course_driver.get_group_lecture_dir(group))
     }
 
-    # Solutions for ended groups (if any)
-    ended_solutions_dirs: set[Path] = {
-        solution_dir
+    # Reviews for ended groups (if any)
+    ended_reviews_dirs: set[Path] = {
+        review_dir
         for group in course_schedule.get_groups(enabled=True, ended=True)
-        if (solution_dir := course_driver.get_group_solution_dir(group))
+        if (review_dir := course_driver.get_group_submissions_review_dir(group))
     }
 
     return {
@@ -68,7 +68,7 @@ def _get_enabled_files_and_dirs(
         *course_tools,
         *started_tasks_dirs,
         *started_lectures_dirs,
-        *ended_solutions_dirs
+        *ended_reviews_dirs
     }
 
 

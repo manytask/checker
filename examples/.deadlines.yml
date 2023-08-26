@@ -1,4 +1,4 @@
-- group: group_name
+- group: 5.5.group_name
   start: 10-05-2022 18:00
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59
@@ -12,7 +12,7 @@
     - task: task_3
       score: 50
 
-- group: other_group_name
+- group: 4.4.other_group_name
   start: 10-05-2022 18:00
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59
@@ -26,13 +26,13 @@
       score: 50
       scoring_func: latest
 
-- group: empty_group_name
+- group: 3.empty_group_name
   start: 10-05-2022 18:00
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59
   tasks: []
 
-- group: disabled_group_name
+- group: 2.disabled_group_name
   start: 10-05-2022 18:00
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59
@@ -44,7 +44,7 @@
       scoring_func: latest
 
 
-- group: marked_group_name
+- group: 1.marked_group_name
   start: 10-05-2022 18:00
   deadline: 23-05-2022 23:59
   second_deadline: 23-05-2022 23:59

@@ -63,38 +63,36 @@ class CourseDriver:
         - group_1/
             tasks/
                 - task_1/
+                    - task/
+                        - README.md
+                        - solution.py
+                        - test_.....py
+                    - template/ [optional]
+                    - private/ [optional]
+                    - solution/
+                    - .
                 - ...
-            lecture/
+            lecture/ [optional]
+                - ...
+            review/ [optional]
                 - ...
         - ...
 
-                ...
-            - task_1/
-                - task/
-                    - README.md
-                    - solution.py
-                    - test_.....py
-                - template/ [optional]
-                - private/ [optional]
-                - solution/
-                - .
-            - ...
-
     For templates:
-        * explicit - will search template in public folder
+        * search - will search template in public folder
         * create - will search gold solution in private folder and create template from it
         * create_or_search - will search template in public folder or will create template from gold solution
     """
 
-    LAYOUTS = ['flat', 'groups']
-    TEMPLATES = ['create', 'explicit', 'create_or_search']
+    LAYOUTS = ['flat', 'groups', 'lectures']
+    TEMPLATES = ['create', 'search', 'create_or_search']
 
     def __init__(
             self,
             root_dir: Path,
             reference_root_dir: Path | None = None,
             layout: str = 'groups',
-            templates: str = 'explicit',
+            template: str = 'search',
             use_reference_source: bool = False,
             use_reference_tests: bool = False,
     ):
@@ -102,7 +100,7 @@ class CourseDriver:
         @param root_dir: Root folder of the repo to test
         @param reference_root_dir: Root folder of private repo if necessary
         @param layout: @see available LAYOUTS in class docstring
-        @param templates: @see available TEMPLATES in class var and utils -> clear_gold_solution function
+        @param template: @see available TEMPLATES in class var and utils -> clear_gold_solution function
         @param use_reference_source: Use source from private repo (reference_root_dir)
         @param use_reference_tests: Use all tests from private repo copy (reference_root_dir)
         """
@@ -120,14 +118,19 @@ class CourseDriver:
             warn(f'<{layout}> layout is deprecated', DeprecationWarning)
         self.layout = layout
 
-        assert layout in CourseDriver.TEMPLATES, f'Templates <{layout}> are not implemented'
-        self.templates = templates
+        assert template in CourseDriver.TEMPLATES, f'Template <{layout}> are not implemented'
+        self.template = template
 
     def get_deadlines_file_path(
             self,
     ) -> Path:
         deadlines_file_path: Path
-        if self.layout == 'groups':
+        if self.layout == 'lectures':
+            if self.reference_root_dir:
+                deadlines_file_path = self.reference_root_dir / '.deadlines.yml'
+            else:
+                raise BadConfig('Unable to find deadlines file without `reference_root_dir`')
+        elif self.layout == 'groups':
             if self.reference_root_dir:
                 deadlines_file_path = self.reference_root_dir / '.deadlines.yml'
             else:
@@ -150,7 +153,9 @@ class CourseDriver:
             group: Group
     ) -> Path | None:
         lecture_dir: Path | None = None
-        if self.layout == 'groups':
+        if self.layout == 'lectures':
+            lecture_dir = self.root_dir / group.name / 'lecture'
+        elif self.layout == 'groups':
             lecture_dir = self.root_dir / 'lectures' / group.name
         elif self.layout == 'flat':
             lecture_dir = None
@@ -160,42 +165,53 @@ class CourseDriver:
         lecture_dir = lecture_dir if lecture_dir and lecture_dir.exists() else None
         return lecture_dir
 
-    def get_group_solution_dir(
+    def get_group_submissions_review_dir(
             self,
             group: Group,
     ) -> Path | None:
-        solution_dir: Path | None = None
-        if self.layout == 'groups':
-            solution_dir = self.root_dir / 'solutions' / group.name
+        review_dir: Path | None = None
+        if self.layout == 'lectures':
+            review_dir = self.root_dir / group.name / 'review'
+        elif self.layout == 'groups':
+            review_dir = self.root_dir / 'solutions' / group.name
         elif self.layout == 'flat':
-            solution_dir = None
+            review_dir = None
         else:
             assert False, 'Not Reachable'
 
-        solution_dir = solution_dir if solution_dir and solution_dir.exists() else None
-        return solution_dir
+        review_dir = review_dir if review_dir and review_dir.exists() else None
+        return review_dir
 
-    def get_group_source_dir(
+    def get_group_dir(
             self,
             group: Group,
     ) -> Path | None:
-        source_dir: Path | None = None
+        root_dir: Path | None = None
+        if self.layout == 'lectures':
+            root_dir = self.root_dir / group.name
         if self.layout == 'groups':
-            source_dir = self.root_dir / group.name
+            root_dir = self.root_dir / group.name
         elif self.layout == 'flat':
-            source_dir = None
+            root_dir = None
         else:
             assert False, 'Not Reachable'
 
-        source_dir = source_dir if source_dir and source_dir.exists() else None
-        return source_dir
+        root_dir = root_dir if root_dir and root_dir.exists() else None
+        return root_dir
 
     def get_task_source_dir(
             self,
             task: Task,
     ) -> Path | None:
         task_source_dir: Path | None = None
-        if self.layout == 'groups':
+        if self.layout == 'lectures':
+            # TODO: fix to the right folder
+            if self.use_reference_source:
+                assert self.reference_root_dir
+                task_source_dir = self.reference_root_dir / task.group.name / 'tasks' / task.name
+            else:
+                task_source_dir = self.root_dir / task.group.name / 'tasks' / task.name
+        elif self.layout == 'groups':
             if self.use_reference_source:
                 assert self.reference_root_dir
                 task_source_dir = self.reference_root_dir / 'tests' / task.group.name / task.name
@@ -219,7 +235,16 @@ class CourseDriver:
     ) -> tuple[Path | None, Path | None]:
         public_tests_dir: Path | None = None
         private_tests_dir: Path | None = None
-        if self.layout == 'groups':
+        if self.layout == 'lectures':
+            # TODO: fix to the right folder
+            if self.use_reference_source:
+                assert self.reference_root_dir
+                public_tests_dir = self.reference_root_dir / task.group.name / 'tasks' / task.name
+                private_tests_dir = self.reference_root_dir / task.group.name / 'tasks' / task.name
+            else:
+                public_tests_dir = self.root_dir / task.group.name / 'tasks' / task.name
+                private_tests_dir = self.root_dir / task.group.name / 'tasks' / task.name
+        elif self.layout == 'groups':
             if self.use_reference_tests:
                 assert self.reference_root_dir
                 public_tests_dir = self.reference_root_dir / '.' / task.group.name / task.name
@@ -249,7 +274,9 @@ class CourseDriver:
         path_split = path.split(os.path.sep, maxsplit=2)
         if len(path_split) < 2:  # Changed file not in subdir
             return None
-        if self.layout == 'groups':
+        if self.layout == 'lectures':
+            return path_split[1]
+        elif self.layout == 'groups':
             return path_split[1]
         elif self.layout == 'flat':
             return path_split[0]
