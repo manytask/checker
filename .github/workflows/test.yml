@@ -26,7 +26,7 @@ jobs:
           python -m pip install -e .[test]
       - name: Run isort
         run: python -m isort checker --check
-      - name: Run flake8
+      - name: Run ruff
         run: python -m ruff checker
       - name: Run mypy
         run: python -m mypy checker
