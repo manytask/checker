@@ -49,9 +49,7 @@ class CourseConfig:
     executor: str = 'sandbox'
 
     # info
-    lms_url: str | None = None
-    telegram_channel_invite: str | None = None
-    telegram_chat_invite: str | None = None
+    links: dict[str, str] = None
 
     # credentials
     manytask_token: str | None = None
