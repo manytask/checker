@@ -47,7 +47,7 @@ test = [
     "ruff ==0.0.285",
     "types-requests >=2.20.0,<3.0.0",
     "types-PyYAML >=6.0.0,<7.0.0",
-    "wheel >=0.42.0",
+    "wheel >=0.40.0",
 ]
 
 [tool.setuptools.dynamic]
