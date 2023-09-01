@@ -49,7 +49,7 @@ class CourseConfig:
     executor: str = 'sandbox'
 
     # info
-    links: dict[str, str] = None
+    links: dict[str, str] | None = None
 
     # credentials
     manytask_token: str | None = None
