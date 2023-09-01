@@ -6,12 +6,14 @@ import pytest
 
 from checker.exceptions import ExecutionFailedError
 
+
 try:
     import unshare
 except ImportError:
     unshare = None
 
 from checker.executors.sandbox import Sandbox
+
 
 skip_without_unshare = pytest.mark.skipif(
     unshare is None, reason='unshare lib is unavailable'

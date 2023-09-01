@@ -8,6 +8,7 @@ from checker.exceptions import BuildFailedError, StylecheckFailedError, TestsFai
 from checker.testers.cpp import CppTester
 from checker.utils import copy_files
 
+
 cpp_tests = pytest.mark.skipif("not config.getoption('cpp')")
 
 @pytest.fixture(scope='function')

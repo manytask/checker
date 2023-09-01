@@ -11,6 +11,7 @@ from ..utils.glab import GitlabConnection
 from ..utils.manytask import PushFailedError, push_report
 from ..utils.print import print_header_info, print_info
 
+
 BANNED_FILE_EXTENSIONS = {'csv', 'json', 'txt', 'db'}
 ALLOWED_FILES = ['requirements.txt', 'runtime.txt']
 REVIEWED_TAG = 'reviewed'

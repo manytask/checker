@@ -11,6 +11,7 @@ from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Any
 
+
 try:
     import unshare
 except ImportError:
