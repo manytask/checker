@@ -185,17 +185,18 @@ class PythonTester(Tester):
             normalize_output: bool = False,
     ) -> float:
         # TODO: replace with preserved setup.cfg
-        codestyle_cmd = [
-            'flake8',
-            '--exclude', ','.join(test_config.private_test_files),
-            '--max-line-length', '120',
-            str(build_dir)
-        ]
         # codestyle_cmd = [
-        #     'ruff',
+        #     'flake8',
         #     '--exclude', ','.join(test_config.private_test_files),
         #     '--max-line-length', '120',
+        #     str(build_dir)
         # ]
+        codestyle_cmd = [
+            'ruff',
+            '--exclude', ','.join(test_config.private_test_files),
+            '--line-length', '120',
+            str(build_dir)
+        ]
         mypy_cmd = [
             'mypy',
             '--no-incremental',
