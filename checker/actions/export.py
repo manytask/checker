@@ -9,6 +9,7 @@ from ..utils.files import filename_match_patterns
 from ..utils.git import commit_push_all_repo, setup_repo_in_dir
 from ..utils.print import print_info
 
+
 EXPORT_IGNORE_COMMON_FILE_PATTERNS = [
     '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml',
 ]

@@ -11,6 +11,7 @@ from ..utils.glab import GitlabConnection
 from ..utils.manytask import PushFailedError, push_report
 from ..utils.print import print_header_info, print_info
 
+
 BANNED_FILE_EXTENSIONS = {'csv', 'json', 'txt', 'db'}
 ALLOWED_FILES = ['requirements.txt', 'runtime.txt']
 REVIEWED_TAG = 'reviewed'
@@ -79,7 +80,8 @@ def _grade_mrs(
 
     # get open mrs to filter all users
     students_group = gitlab_connection.get_group(course_config.students_group)
-    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = students_group.mergerequests.list(get_all=True)  # type: ignore
+    students_mrs: list[gitlab.v4.objects.GroupMergeRequest] = (students_group.mergerequests
+                                                               .list(get_all=True))  # type: ignore
     students_mrs_project_names: set[str] = set()
     for mr in students_mrs:
         students_mrs_project_names.update(mr.web_url.split('/'))
@@ -115,9 +117,15 @@ def _grade_mrs(
         full_project = gitlab_connection.gitlab.projects.get(project.id)
         print_info(f'project {project.path_with_namespace}: {project.web_url}')
 
-        opened_master_mrs = full_project.mergerequests.list(get_all=True, state='opened', target_branch=course_config.default_branch)
-        merged_master_mrs = full_project.mergerequests.list(get_all=True, state='merged', target_branch=course_config.default_branch)
-        closed_master_mrs = full_project.mergerequests.list(get_all=True, state='closed', target_branch=course_config.default_branch)
+        opened_master_mrs = full_project.mergerequests.list(
+            get_all=True, state='opened', target_branch=course_config.default_branch,
+        )
+        merged_master_mrs = full_project.mergerequests.list(
+            get_all=True, state='merged', target_branch=course_config.default_branch,
+        )
+        closed_master_mrs = full_project.mergerequests.list(
+            get_all=True, state='closed', target_branch=course_config.default_branch,
+        )
 
         if not opened_master_mrs and not merged_master_mrs and not closed_master_mrs:
             print_info('no open mrs; skip it')

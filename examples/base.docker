@@ -1,4 +1,4 @@
-FROM python:3.10.6-slim
+FROM python:3.11.5-slim
 
 ENV TZ Europe/Moscow
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -11,4 +11,4 @@ RUN apt-get update && \
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --upgrade -r /tmp/requirements.txt
 
-RUN python3 -m pip install --upgrade manytask-checker==0.4.1
+RUN python3 -m pip install --upgrade manytask-checker==0.6.11

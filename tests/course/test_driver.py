@@ -2,6 +2,7 @@ from pathlib import Path
 
 from checker.course.driver import CourseDriver
 
+
 DATA_FOLDER = Path(__file__).parents[1] / 'data' / 'driver'
 
 

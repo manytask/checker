@@ -147,11 +147,11 @@ Install lib in dev mode
 ### Running tests and linters 
 
 ```shell
-pytest .
+pytest . --cpp --python
 ```
 
 ```shell
-flake8 checker tests
+ruff checker
 mypy checker
 isort --check .
 ```

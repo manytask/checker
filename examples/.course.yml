@@ -23,12 +23,16 @@ students_group: python/students-fall-2022
 gitlab_service_username: manytask  # optional
 gitlab_service_token_id: GITLAB_SERVICE_TOKEN  # optional
 
+
 # manytask
 manytask_url: https://py.manytask.org
 manytask_token_id: TESTER_TOKEN  # optional
 gitlab_api_token_id: GITLAB_API_TOKEN  # optional
 
+
 # info
-lms_url: https://lk.yandexdataschool.ru/courses/[...-course]  # optional
-telegram_channel_invite: https://t.me/joinchat/[...]  # optional
-telegram_chat_invite: https://t.me/joinchat/[...]  # optional
+links:  # optional, any number of links
+  "TG Channel": https://t.me/joinchat/
+  "TG Chat": https://t.me/joinchat/
+  "LMS": https://lk.yandexdataschool.ru/
+  "Contribute Manytask": https://github.com/yandexdataschool/manytask

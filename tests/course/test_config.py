@@ -5,6 +5,7 @@ import pytest
 from checker.course.config import CourseConfig
 from checker.exceptions import BadConfig
 
+
 DATA_FOLDER = Path(__file__).parents[1] / 'data' / 'config'
 
 

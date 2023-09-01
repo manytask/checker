@@ -9,6 +9,7 @@ from ..utils.files import check_folder_contains_regexp, copy_files
 from ..utils.print import print_info
 from .tester import Tester
 
+
 IGNORE_FILE_PATTERNS = ['*.md', 'build', '__pycache__', '.pytest_cache', '.mypy_cache']
 COVER_IGNORE_FILES = ['setup.py']
 
@@ -190,6 +191,11 @@ class PythonTester(Tester):
             '--max-line-length', '120',
             str(build_dir)
         ]
+        # codestyle_cmd = [
+        #     'ruff',
+        #     '--exclude', ','.join(test_config.private_test_files),
+        #     '--max-line-length', '120',
+        # ]
         mypy_cmd = [
             'mypy',
             '--no-incremental',
