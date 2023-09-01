@@ -145,6 +145,27 @@ class TestPythonTester:
         with pytest.raises(StylecheckFailedError):
             python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
 
+    def test_ruff_error(
+            self,
+            tmp_path: Path,
+            python_tester: PythonTester,
+    ) -> None:
+        CODE = """
+        def foo() -> str:
+            return 'Hello looolooolooolooolooolooollooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooolooo world!'
+        """
+        PUBLIC_TESTS = """
+        def test_nothing() -> None:
+            assert True
+        """
+        CONFIG = """
+        {"run_mypy": false}
+        """
+        create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
+
+        with pytest.raises(StylecheckFailedError):
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+
     def test_pytest_error(
             self,
             tmp_path: Path,
@@ -163,8 +184,34 @@ class TestPythonTester:
         """
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
-        with pytest.raises(TestsFailedError):
+        with pytest.raises(TestsFailedError) as ex:
             python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+
+    def test_pytest_error_no_duble_error(
+            self,
+            tmp_path: Path,
+            python_tester: PythonTester,
+            capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        CODE = """
+        def foo() -> str:
+            return 'Hello world!'
+        """
+        PUBLIC_TESTS = """
+        def test_nothing() -> None:
+            assert False
+        """
+        CONFIG = """
+        {"run_mypy": false}
+        """
+        with capsys.disabled():
+            create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
+
+        with pytest.raises(TestsFailedError) as ex:
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+        captured = capsys.readouterr()
+
+        assert captured.err.count('short test summary info ') == 1
 
     def test_wheel_build(
             self,

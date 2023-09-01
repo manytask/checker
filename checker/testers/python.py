@@ -194,7 +194,9 @@ class PythonTester(Tester):
         # codestyle_cmd = [
         #     'ruff',
         #     '--exclude', ','.join(test_config.private_test_files),
-        #     '--max-line-length', '120',
+        #     '--line-length', '120',
+        #     '--no-fix',
+        #     str(build_dir)
         # ]
         mypy_cmd = [
             'mypy',
@@ -280,6 +282,7 @@ class PythonTester(Tester):
             if normalize_output:
                 print_info(e.output, end='')
                 e.output = ''
+                output = ''
             print_info('ERROR', color='red')
 
         # Check typing
@@ -306,6 +309,7 @@ class PythonTester(Tester):
             if normalize_output:
                 print_info(e.output, end='')
                 e.output = ''
+                output = ''
             print_info('ERROR', color='red')
 
         # Check import and tests collecting
@@ -321,6 +325,7 @@ class PythonTester(Tester):
             )
             if normalize_output:
                 print_info(output, end='')
+                output = ''
             print_info('OK', color='green')
         except ExecutionFailedError as e:
             # Always reraise for import checks
@@ -329,6 +334,7 @@ class PythonTester(Tester):
             if normalize_output:
                 print_info(e.output, end='')
                 e.output = ''
+                output = ''
             print_info('ERROR', color='red')
 
         # Check tests
@@ -354,6 +360,8 @@ class PythonTester(Tester):
 
             if normalize_output or test_config.partially_scored:
                 print_info(output, end='')
+                e.output = ''
+                output = ''
 
             if test_config.partially_scored:
                 print_info('ERROR? (Some tests failed, but this is partially_scored task)', color='orange')
