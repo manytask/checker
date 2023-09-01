@@ -195,6 +195,7 @@ class PythonTester(Tester):
             'ruff',
             '--exclude', ','.join(test_config.private_test_files),
             '--line-length', '120',
+            '--no-fix',
             str(build_dir)
         ]
         mypy_cmd = [
