@@ -105,8 +105,8 @@ class Tester:
             test_config: TaskTestConfig,
             build_dir: Path,
             source_dir: Path,
-            public_tests_dir: Path,
-            private_tests_dir: Path,
+            public_tests_dir: Path | None,
+            private_tests_dir: Path | None,
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,
@@ -164,8 +164,9 @@ class Tester:
     def test_task(
             self,
             source_dir: Path,
-            public_tests_dir: Path,
-            private_tests_dir: Path,
+            config_dir: Path,
+            public_tests_dir: Path | None,
+            private_tests_dir: Path | None,
             verbose: bool = False,
             normalize_output: bool = False,
     ) -> float:
@@ -175,6 +176,7 @@ class Tester:
         * _run_tests: run testing and linting
         * _clean_build: cleanup if necessary
         @param source_dir: Solution dir (student's solution or authors' solution)
+        @param config_dir: Directory with task config
         @param public_tests_dir: Directory to copy public tests from
         @param private_tests_dir: Directory to copy private tests from
         @param verbose: Verbose output (can exhibit private tests information)
@@ -183,7 +185,7 @@ class Tester:
         @return: Percentage of the final score
         """
         # Read test config
-        test_config = self.TaskTestConfig.from_json(private_tests_dir / '.tester.json')
+        test_config = self.TaskTestConfig.from_json(config_dir / '.tester.json')
 
         # Create build dir as tmp dir
         build_dir = Path(tempfile.mkdtemp())

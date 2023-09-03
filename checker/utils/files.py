@@ -4,6 +4,8 @@ import re
 import shutil
 from pathlib import Path
 
+from .print import print_info
+
 
 def filename_match_patterns(
         file: Path,
@@ -22,14 +24,14 @@ def filename_match_patterns(
 
 
 def copy_files(
-        source: Path,
+        source: Path | None,
         target: Path,
         patterns: list[str] | None = None,
         ignore_patterns: list[str] | None = None,
 ) -> None:
     """
     Copy files between 2 directories
-    @param source: Directory or file to copy from
+    @param source: Directory or file to copy from (none to skip)
     @param target: Directory or file to copy to
     @param patterns: Patterns to copy
     @param ignore_patterns: Patterns to ignore during copy
@@ -37,6 +39,10 @@ def copy_files(
     """
     ignore_patterns = ignore_patterns or []
     target.mkdir(parents=True, exist_ok=True)
+
+    if source is None:
+        print_info(f'Warning: Skip copying files from <{source}> to <{target}>')
+        return
 
     ignore_files: list[Path] = sum([
         list(source.glob(ignore_pattern))

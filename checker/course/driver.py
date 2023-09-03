@@ -357,6 +357,37 @@ class CourseDriver:
 
         return private_tests_dir
 
+    def get_task_config_dir(
+            self,
+            task: Task,
+            check_exists: bool = True,
+    ) -> Path | None:
+        config_dir: Path | None = None
+
+        if self.layout == 'lectures':
+            if self.repo_type == 'private':
+                config_dir = self.root_dir / task.group.name / 'tasks' / task.name
+            else:
+                config_dir = None
+        elif self.layout == 'groups':
+            if self.repo_type == 'private':
+                config_dir = self.root_dir / 'tests' / task.group.name / task.name
+            else:
+                config_dir = None
+        elif self.layout == 'flat':
+            if self.repo_type == 'private':
+                config_dir = self.root_dir / 'tests' / task.name
+            else:
+                config_dir = None
+        else:
+            assert False, 'Not Reachable'  # pragma: no cover
+
+        if check_exists and config_dir and not config_dir.exists():
+            print_info(f'Task config dir <{config_dir}> not exists, set to None.')
+            config_dir = None
+
+        return config_dir
+
     def get_task_dir_name(
             self,
             path: str,
