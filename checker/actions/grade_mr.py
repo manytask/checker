@@ -36,7 +36,7 @@ def grade_students_mrs_to_master(
     _grade_mrs(
         course_config,
         course_schedule,
-        course_driver,
+        private_course_driver,
         gitlab_connection,
         usernames,
         dry_run=dry_run,

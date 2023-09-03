@@ -130,7 +130,7 @@ class CourseDriver:
 
     def get_deadlines_file_path(
             self,
-    ) -> Path | None:
+    ) -> Path:
         if self.repo_type == 'public':
             raise BadConfig('Unable to find `deadlines` file in public repo')
 

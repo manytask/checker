@@ -41,7 +41,7 @@ def _get_enabled_files_and_dirs_private_to_public(
         })
 
     # Course tools
-    course_tools: dict[Path: Path] = dict()
+    course_tools: dict[Path, Path] = dict()
     if (private_course_driver.root_dir / 'tools').exists():
         course_tools = {
             i: public_course_driver.root_dir / 'tools' / i.name
@@ -50,32 +50,38 @@ def _get_enabled_files_and_dirs_private_to_public(
         }
 
     # Started tasks: copy template to public repo
-    started_tasks_templates_dirs: dict[Path: Path] = {
-        private_course_driver.get_task_template_dir(task): public_course_driver.get_task_solution_dir(task, check_exists=False)
+    started_tasks_templates_dirs: dict[Path, Path] = {
+        private_template_dir:
+            public_course_driver.get_task_solution_dir(task, check_exists=False)  # type: ignore
         for task in course_schedule.get_tasks(enabled=True, started=True)
+        if (private_template_dir := private_course_driver.get_task_template_dir(task, check_exists=True))
     }
-    started_tasks_public_tests_dirs: dict[Path: Path] = {
-        private_course_driver.get_task_public_test_dir(task): public_course_driver.get_task_public_test_dir(task, check_exists=False)
+    started_tasks_public_tests_dirs: dict[Path, Path] = {
+        private_public_tests_dir:
+            public_course_driver.get_task_public_test_dir(task, check_exists=False)  # type: ignore
         for task in course_schedule.get_tasks(enabled=True, started=True)
+        if (private_public_tests_dir := private_course_driver.get_task_public_test_dir(task, check_exists=True))
     }
-    started_tasks_common_files: dict[Path: Path] = {
-        i: public_course_driver.get_task_dir(task, check_exists=False) / i.name
+    started_tasks_common_files: dict[Path, Path] = {
+        i: public_course_driver.get_task_dir(task, check_exists=False) / i.name  # type: ignore
         for task in course_schedule.get_tasks(enabled=True, started=True)
-        for i in private_course_driver.get_task_dir(task).glob('*.*')
+        if (private_task_dir := private_course_driver.get_task_dir(task))
+        for i in private_task_dir.glob('*.*')
     }
 
     # Lectures for enabled groups (if any)
-    started_lectures_dirs: dict[Path: Path] = {
-        private_lecture_dir: public_course_driver.get_group_lecture_dir(group, check_exists=False)
+    started_lectures_dirs: dict[Path, Path] = {
+        private_lecture_dir: public_course_driver.get_group_lecture_dir(group, check_exists=False)  # type: ignore
         for group in course_schedule.get_groups(enabled=True, started=True)
-        if (private_lecture_dir := private_course_driver.get_group_lecture_dir(group)).exists()
+        if (private_lecture_dir := private_course_driver.get_group_lecture_dir(group, check_exists=True))
     }
 
     # Reviews for ended groups (if any)
-    ended_reviews_dirs: dict[Path: Path] = {
-        private_review_dir: public_course_driver.get_group_submissions_review_dir(group, check_exists=False)
+    ended_reviews_dirs: dict[Path, Path] = {
+        private_review_dir:
+            public_course_driver.get_group_submissions_review_dir(group, check_exists=False)  # type: ignore
         for group in course_schedule.get_groups(enabled=True, ended=True)
-        if (private_review_dir := private_course_driver.get_group_submissions_review_dir(group)).exists()
+        if (private_review_dir := private_course_driver.get_group_submissions_review_dir(group, check_exists=True))
     }
 
     return {
