@@ -9,6 +9,7 @@ from warnings import warn
 
 from ..exceptions import BadConfig
 from .schedule import Group, Task
+from ..utils import print_info
 
 
 class CourseDriver:
@@ -166,8 +167,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            lecture_dir = lecture_dir if lecture_dir and lecture_dir.exists() else None
+        if check_exists and lecture_dir and not lecture_dir.exists():
+            print_info(f'Lecture dir <{lecture_dir}> not exists, set to None.')
+            lecture_dir = None
 
         return lecture_dir
 
@@ -189,8 +191,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            review_dir = review_dir if review_dir and review_dir.exists() else None
+        if check_exists and review_dir and not review_dir.exists():
+            print_info(f'Review dir <{review_dir}> not exists, set to None.')
+            review_dir = None
 
         return review_dir
 
@@ -210,8 +213,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            group_root_dir = group_root_dir if group_root_dir and group_root_dir.exists() else None
+        if check_exists and group_root_dir and not group_root_dir.exists():
+            print_info(f'Group dir <{group_root_dir}> not exists, set to None.')
+            group_root_dir = None
 
         return group_root_dir
 
@@ -231,8 +235,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            task_root_dir = task_root_dir if task_root_dir and task_root_dir.exists() else None
+        if check_exists and task_root_dir and not task_root_dir.exists():
+            print_info(f'Task dir <{task_root_dir}> not exists, set to None.')
+            task_root_dir = None
 
         return task_root_dir
 
@@ -261,8 +266,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            task_solution_dir = task_solution_dir if task_solution_dir and task_solution_dir.exists() else None
+        if check_exists and task_solution_dir and not task_solution_dir.exists():
+            print_info(f'Task solution dir <{task_solution_dir}> not exists, set to None.')
+            task_solution_dir = None
 
         return task_solution_dir
 
@@ -287,8 +293,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            task_template_dir = task_template_dir if task_template_dir and task_template_dir.exists() else None
+        if check_exists and task_template_dir and not task_template_dir.exists():
+            print_info(f'Task template dir <{task_template_dir}> not exists, set to None.')
+            task_template_dir = None
 
         return task_template_dir
 
@@ -313,8 +320,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            public_tests_dir = public_tests_dir if public_tests_dir and public_tests_dir.exists() else None
+        if check_exists and public_tests_dir and not public_tests_dir.exists():
+            print_info(f'Task public tests dir <{public_tests_dir}> not exists, set to None.')
+            public_tests_dir = None
 
         return public_tests_dir
 
@@ -343,8 +351,9 @@ class CourseDriver:
         else:
             assert False, 'Not Reachable'  # pragma: no cover
 
-        if check_exists:
-            private_tests_dir = private_tests_dir if private_tests_dir and private_tests_dir.exists() else None
+        if check_exists and private_tests_dir and not private_tests_dir.exists():
+            print_info(f'Task private tests dir <{private_tests_dir}> not exists, set to None.')
+            private_tests_dir = None
 
         return private_tests_dir
 
