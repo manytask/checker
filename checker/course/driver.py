@@ -130,6 +130,7 @@ class CourseDriver:
 
     def get_deadlines_file_path(
             self,
+            raise_if_not_exists: bool = True,
     ) -> Path:
         if self.repo_type == 'public':
             raise BadConfig('Unable to find `deadlines` file in public repo')
@@ -142,9 +143,9 @@ class CourseDriver:
         elif self.layout == 'flat':
             deadlines_file_path = self.root_dir / 'tests' / '.deadlines.yml'
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
-        if not deadlines_file_path or not deadlines_file_path.exists():
+        if raise_if_not_exists and (not deadlines_file_path or not deadlines_file_path.exists()):
             raise BadConfig(f'Deadlines file <{deadlines_file_path}> not exists')
 
         return deadlines_file_path
@@ -163,7 +164,7 @@ class CourseDriver:
         elif self.layout == 'flat':
             lecture_dir = None
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             lecture_dir = lecture_dir if lecture_dir and lecture_dir.exists() else None
@@ -186,7 +187,7 @@ class CourseDriver:
         elif self.layout == 'flat':
             review_dir = None
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             review_dir = review_dir if review_dir and review_dir.exists() else None
@@ -202,12 +203,12 @@ class CourseDriver:
 
         if self.layout == 'lectures':
             group_root_dir = self.root_dir / group.name
-        if self.layout == 'groups':
+        elif self.layout == 'groups':
             group_root_dir = self.root_dir / group.name
         elif self.layout == 'flat':
             group_root_dir = None
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             group_root_dir = group_root_dir if group_root_dir and group_root_dir.exists() else None
@@ -228,7 +229,7 @@ class CourseDriver:
         elif self.layout == 'flat':
             task_root_dir = self.root_dir / task.name
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             task_root_dir = task_root_dir if task_root_dir and task_root_dir.exists() else None
@@ -258,7 +259,7 @@ class CourseDriver:
             else:
                 task_solution_dir = self.root_dir / task.name
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             task_solution_dir = task_solution_dir if task_solution_dir and task_solution_dir.exists() else None
@@ -284,7 +285,7 @@ class CourseDriver:
             # both public and private
             task_template_dir = self.root_dir / task.name
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             task_template_dir = task_template_dir if task_template_dir and task_template_dir.exists() else None
@@ -310,7 +311,7 @@ class CourseDriver:
             # both public and private
             public_tests_dir = self.root_dir / task.name
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             public_tests_dir = public_tests_dir if public_tests_dir and public_tests_dir.exists() else None
@@ -340,7 +341,7 @@ class CourseDriver:
             else:
                 private_tests_dir = None
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
 
         if check_exists:
             private_tests_dir = private_tests_dir if private_tests_dir and private_tests_dir.exists() else None
@@ -361,4 +362,4 @@ class CourseDriver:
         elif self.layout == 'flat':
             return path_split[0]
         else:
-            assert False, 'Not Reachable'
+            assert False, 'Not Reachable'  # pragma: no cover
