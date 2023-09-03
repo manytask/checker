@@ -11,64 +11,82 @@ from ..utils.print import print_info
 
 
 EXPORT_IGNORE_COMMON_FILE_PATTERNS = [
-    '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml',
+    '.git', '*.docker', '.releaser-ci.yml', '.deadlines.yml', '.course.yml', '.DS_Store', '.venv',
+    '.*_cache', '.github', '*.drawio',
 ]
 
 
-def _get_enabled_files_and_dirs(
+def _get_enabled_files_and_dirs_private_to_public(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
-        course_driver: CourseDriver,
-) -> set[Path]:
-    # Common staff; files only
-    common_files: set[Path] = {
-        i for i in course_driver.root_dir.glob('*.*')
+        public_course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
+) -> dict[Path, Path]:
+    # Common staff; files only, all from private repo except ignored
+    common_files: dict[Path, Path] = {
+        i: public_course_driver.root_dir / i.name
+        for i in private_course_driver.root_dir.glob('*.*')
         if i.is_file() and not filename_match_patterns(i, EXPORT_IGNORE_COMMON_FILE_PATTERNS)
     }
 
     # Course docs
-    course_docs: set[Path] = set()
-    if (course_driver.root_dir / 'docs').exists():
-        course_docs.update({course_driver.root_dir / 'docs'})
-    if (course_driver.root_dir / 'images').exists():
-        course_docs.update({course_driver.root_dir / 'images'})
+    course_docs: dict[Path, Path] = dict()
+    if (private_course_driver.root_dir / 'docs').exists():
+        course_docs.update({
+            private_course_driver.root_dir / 'docs': public_course_driver.root_dir / 'docs',
+        })
+    if (private_course_driver.root_dir / 'images').exists():
+        course_docs.update({
+            private_course_driver.root_dir / 'images': public_course_driver.root_dir / 'images',
+        })
 
     # Course tools
-    course_tools: set[Path] = set()
-    if (course_driver.root_dir / 'tools').exists():
+    course_tools: dict[Path: Path] = dict()
+    if (private_course_driver.root_dir / 'tools').exists():
         course_tools = {
-            i for i in (course_driver.root_dir / 'tools').glob('*')
+            i: public_course_driver.root_dir / 'tools' / i.name
+            for i in (private_course_driver.root_dir / 'tools').glob('*')
             if i.is_dir() or (i.is_file() and not filename_match_patterns(i, EXPORT_IGNORE_COMMON_FILE_PATTERNS))
         }
 
-    # Started tasks
-    started_tasks_dirs: set[Path] = {
-        source_dir
+    # Started tasks: copy template to public repo
+    started_tasks_templates_dirs: dict[Path: Path] = {
+        private_course_driver.get_task_template_dir(task): public_course_driver.get_task_solution_dir(task, check_exists=False)
         for task in course_schedule.get_tasks(enabled=True, started=True)
-        if (source_dir := course_driver.get_task_source_dir(task))
+    }
+    started_tasks_public_tests_dirs: dict[Path: Path] = {
+        private_course_driver.get_task_public_test_dir(task): public_course_driver.get_task_public_test_dir(task, check_exists=False)
+        for task in course_schedule.get_tasks(enabled=True, started=True)
+    }
+    started_tasks_common_files: dict[Path: Path] = {
+        i: public_course_driver.get_task_dir(task, check_exists=False) / i.name
+        for task in course_schedule.get_tasks(enabled=True, started=True)
+        for i in private_course_driver.get_task_dir(task).glob('*.*')
     }
 
     # Lectures for enabled groups (if any)
-    started_lectures_dirs: set[Path] = {
-        lecture_dir
+    started_lectures_dirs: dict[Path: Path] = {
+        private_lecture_dir: public_course_driver.get_group_lecture_dir(group, check_exists=False)
         for group in course_schedule.get_groups(enabled=True, started=True)
-        if (lecture_dir := course_driver.get_group_lecture_dir(group))
+        if (private_lecture_dir := private_course_driver.get_group_lecture_dir(group)).exists()
     }
 
     # Reviews for ended groups (if any)
-    ended_reviews_dirs: set[Path] = {
-        review_dir
+    ended_reviews_dirs: dict[Path: Path] = {
+        private_review_dir: public_course_driver.get_group_submissions_review_dir(group, check_exists=False)
         for group in course_schedule.get_groups(enabled=True, ended=True)
-        if (review_dir := course_driver.get_group_submissions_review_dir(group))
+        if (private_review_dir := private_course_driver.get_group_submissions_review_dir(group)).exists()
     }
 
     return {
-        *common_files,
-        *course_docs,
-        *course_tools,
-        *started_tasks_dirs,
-        *started_lectures_dirs,
-        *ended_reviews_dirs
+        **common_files,
+        **course_docs,
+        **course_tools,
+        **started_tasks_templates_dirs,
+        **started_tasks_public_tests_dirs,
+        **started_tasks_common_files,
+        **started_lectures_dirs,
+        **ended_reviews_dirs,
     }
 
 
@@ -98,7 +116,8 @@ def _get_disabled_files(
 def export_public_files(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
-        course_driver: CourseDriver,
+        public_course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         export_dir: Path,
         *,
         dry_run: bool = False,
@@ -106,35 +125,39 @@ def export_public_files(
     export_dir.mkdir(exist_ok=True, parents=True)
 
     if dry_run:
-        print_info(f'Copy {course_config.gitlab_url}/{course_config.public_repo} repo in {export_dir}')
-        print_info('copy files...')
-        files_and_dirs_to_add = _get_enabled_files_and_dirs(course_config, course_schedule, course_driver)
-        for f in sorted(files_and_dirs_to_add):
-            relative_filename = str(f.relative_to(course_driver.root_dir))
-            print_info(f'  {relative_filename}', color='grey')
-        return
+        print_info('Dry run. No repo setup, only copy in export_dir dir.', color='orange')
 
-    if not course_config.gitlab_service_token:
-        raise Exception('Unable to find service_token')  # TODO: set exception correct type
-
-    print_info('Setting up public repo...', color='orange')
-    print_info(
-        f'username {course_config.gitlab_service_username} \n'
-        f'name {course_config.gitlab_service_name} \n'
-        f'branch {course_config.default_branch} \n',
-        color='grey'
-    )
-    setup_repo_in_dir(
-        export_dir,
-        f'{course_config.gitlab_url}/{course_config.public_repo}',
-        service_username=course_config.gitlab_service_username,
-        service_token=course_config.gitlab_service_token,
-        git_user_email=course_config.gitlab_service_email,
-        git_user_name=course_config.gitlab_service_name,
-        branch=course_config.default_branch,
+    files_and_dirs_to_add_map: dict[Path, Path] = _get_enabled_files_and_dirs_private_to_public(
+        course_config,
+        course_schedule,
+        public_course_driver,
+        private_course_driver,
     )
 
-    # remove all files (to delete deleted files)
+    if not dry_run:
+        if not course_config.gitlab_service_token:
+            raise Exception('Unable to find service_token')  # TODO: set exception correct type
+
+        print_info('Setting up public repo...', color='orange')
+        print_info(f'  Copy {course_config.gitlab_url}/{course_config.public_repo} repo in {export_dir}')
+        print_info(
+            f'  username {course_config.gitlab_service_username} \n'
+            f'  name {course_config.gitlab_service_name} \n'
+            f'  branch {course_config.default_branch} \n',
+            color='grey'
+        )
+        setup_repo_in_dir(
+            export_dir,
+            f'{course_config.gitlab_url}/{course_config.public_repo}',
+            service_username=course_config.gitlab_service_username,
+            service_token=course_config.gitlab_service_token,
+            git_user_email=course_config.gitlab_service_email,
+            git_user_name=course_config.gitlab_service_name,
+            branch=course_config.default_branch,
+        )
+
+    # remove all files from export_dir (to delete deleted files)
+    print_info('Delete all files from old export_dir (keep .git)...', color='orange')
     deleted_files: set[str] = set()
     for path in export_dir.glob('*'):
         if path.name == '.git':
@@ -151,21 +174,21 @@ def export_public_files(
 
     # copy updated files
     print_info('Copy updated files...', color='orange')
-    files_and_dirs_to_add = _get_enabled_files_and_dirs(course_config, course_schedule, course_driver)
-    for f in sorted(files_and_dirs_to_add):
-        relative_filename = str(f.relative_to(course_driver.root_dir))
-        print_info(f'  {relative_filename}', color='grey')
-        if f.is_dir():
-            shutil.copytree(f, export_dir / relative_filename)
+    for filename_private, filename_public in sorted(files_and_dirs_to_add_map.items()):
+        relative_private_filename = str(filename_private.relative_to(private_course_driver.root_dir))
+        relative_public_filename = str(filename_public.relative_to(public_course_driver.root_dir))
+        print_info(f'  {relative_private_filename}', color='grey')
+        print_info(f'  \t-> {relative_public_filename}', color='grey')
+
+        if filename_private.is_dir():
+            shutil.copytree(filename_private, export_dir / relative_public_filename, dirs_exist_ok=True)
         else:
-            shutil.copy(f, export_dir / relative_filename)
+            (export_dir / relative_public_filename).parent.mkdir(exist_ok=True, parents=True)
+            shutil.copy(filename_private, export_dir / relative_public_filename)
 
-    added_files: set[str] = set()
-    for path in export_dir.glob('*'):
-        added_files.add(str(path.as_posix()))
-
-    # files for git add
-    commit_push_all_repo(
-        export_dir,
-        branch=course_config.default_branch,
-    )
+    if not dry_run:
+        # files for git add
+        commit_push_all_repo(
+            export_dir,
+            branch=course_config.default_branch,
+        )

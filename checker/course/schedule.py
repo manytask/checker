@@ -15,7 +15,8 @@ from ..exceptions import BadConfig, BadGroupConfig, BadTaskConfig
 
 
 RESERVED_TASK_NAMES = [
-    'task', 'tasks', 'solution', 'solutions', 'test', 'tests', 'lecture', 'lectures', 'template', 'templates'
+    'task', 'tasks', 'solution', 'solutions', 'test', 'tests', 'lecture', 'lectures', 'template',
+    'templates', 'private', 'privates', 'public', 'publics', 'review', 'reviews',
 ]
 
 
