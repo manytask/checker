@@ -22,7 +22,7 @@ BASIC_CHECKLIST_BANNED_TAGS = {CHECKLIST_TAG, REVIEWED_TAG}
 def grade_students_mrs_to_master(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
-        course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         gitlab_connection: GitlabConnection,
         *,
         dry_run: bool = False,
@@ -36,7 +36,7 @@ def grade_students_mrs_to_master(
     _grade_mrs(
         course_config,
         course_schedule,
-        course_driver,
+        private_course_driver,
         gitlab_connection,
         usernames,
         dry_run=dry_run,
@@ -167,7 +167,7 @@ def _get_tag_to_folder_dict(course_schedule: CourseSchedule, course_driver: Cour
     tag_to_folder: dict[str, str] = {}
     for task in course_schedule.get_tasks(enabled=True):
         if task.review:
-            source_dir = course_driver.get_task_source_dir(task)
+            source_dir = course_driver.get_task_dir(task)
             print_info(f'task "{task.name}" review=true with source_dir={source_dir}', color='grey')
             if source_dir is None:
                 print_info('  source_dir is None, skip it', color='grey')

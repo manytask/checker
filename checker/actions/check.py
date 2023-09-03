@@ -15,15 +15,16 @@ from ..utils.print import print_info, print_task_info
 def _check_single_task(
         task: Task,
         tester: Tester,
-        course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         verbose: bool = False,
         catch_output: bool = False,
 ) -> str | None:
-    source_dir = course_driver.get_task_source_dir(task)
-    public_tests_dir, private_tests_dir = course_driver.get_task_test_dirs(task)
-    assert source_dir, f'{source_dir=} have to exists'
-    assert public_tests_dir, f'{public_tests_dir=} have to exists'
-    assert private_tests_dir, f'{private_tests_dir=} have to exists'
+    reference_source_dir = private_course_driver.get_task_solution_dir(task)
+    reference_public_tests_dir = private_course_driver.get_task_public_test_dir(task)
+    reference_private_tests_dir = private_course_driver.get_task_private_test_dir(task)
+    assert reference_source_dir, f'{reference_source_dir=} have to exists'
+    assert reference_public_tests_dir, f'{reference_public_tests_dir=} have to exists'
+    assert reference_private_tests_dir, f'{reference_private_tests_dir=} have to exists'
 
     if catch_output:
         f = io.StringIO()
@@ -31,7 +32,7 @@ def _check_single_task(
             print_task_info(task.full_name)
             try:
                 tester.test_task(
-                    source_dir, public_tests_dir, private_tests_dir,
+                    reference_source_dir, reference_public_tests_dir, reference_private_tests_dir,
                     verbose=verbose, normalize_output=True
                 )
             except RunFailedError as e:
@@ -43,7 +44,7 @@ def _check_single_task(
     else:
         print_task_info(task.full_name)
         tester.test_task(
-            source_dir, public_tests_dir, private_tests_dir,
+            reference_source_dir, reference_public_tests_dir, reference_private_tests_dir,
             verbose=verbose, normalize_output=True
         )
         return None
@@ -52,7 +53,7 @@ def _check_single_task(
 def _check_tasks(
         tasks: list[Task],
         tester: Tester,
-        course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         parallelize: bool = False,
         num_processes: int | None = None,
         verbose: bool = True,
@@ -66,7 +67,7 @@ def _check_tasks(
         # with ThreadPoolExecutor(max_workers=num_cores) as e:
         with ProcessPoolExecutor(max_workers=_num_processes) as e:
             check_futures = {
-                e.submit(_check_single_task, task, tester, course_driver, verbose=verbose, catch_output=True)
+                e.submit(_check_single_task, task, tester, private_course_driver, verbose=verbose, catch_output=True)
                 for task in tasks
             }
 
@@ -85,7 +86,7 @@ def _check_tasks(
     else:
         for task in tasks:
             try:
-                _check_single_task(task, tester, course_driver, verbose=verbose, catch_output=False)
+                _check_single_task(task, tester, private_course_driver, verbose=verbose, catch_output=False)
             except RunFailedError:
                 return False
             except Exception as e:
@@ -97,7 +98,7 @@ def _check_tasks(
 
 def pre_release_check_tasks(
         course_schedule: CourseSchedule,
-        course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         tester: Tester,
         tasks: list[Task] | None = None,
         *,
@@ -123,7 +124,7 @@ def pre_release_check_tasks(
     success = _check_tasks(
         tasks,
         tester,
-        course_driver,
+        private_course_driver,
         parallelize=parallelize,
         num_processes=num_processes,
         verbose=not contributing,

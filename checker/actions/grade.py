@@ -149,21 +149,23 @@ def grade_single_task(
         task: Task,
         tester: Tester,
         course_config: CourseConfig,
-        course_driver: CourseDriver,
+        public_course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         user_id: int,
         send_time: datetime,
         inspect: bool = False
 ) -> bool:
     print_task_info(task.full_name)
-    source_dir = course_driver.get_task_source_dir(task)
-    public_tests_dir, private_tests_dir = course_driver.get_task_test_dirs(task)
+    source_dir = public_course_driver.get_task_solution_dir(task)
+    reference_public_tests_dir = private_course_driver.get_task_public_test_dir(task)
+    reference_private_tests_dir = private_course_driver.get_task_private_test_dir(task)
     assert source_dir, f'{source_dir=} have to exists'
-    assert public_tests_dir, f'{public_tests_dir=} have to exists'
-    assert private_tests_dir, f'{private_tests_dir=} have to exists'
+    assert reference_public_tests_dir, f'{reference_public_tests_dir=} have to exists'
+    assert reference_private_tests_dir, f'{reference_private_tests_dir=} have to exists'
 
     try:
         score_percentage = tester.test_task(
-            source_dir, public_tests_dir, private_tests_dir,
+            source_dir, reference_public_tests_dir, reference_private_tests_dir,
             verbose=inspect, normalize_output=inspect
         )
         score = round(score_percentage * task.max_score)
@@ -219,7 +221,8 @@ def grade_tasks(
         tasks: list[Task],
         tester: Tester,
         course_config: CourseConfig,
-        course_driver: CourseDriver,
+        public_course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         user_id: int,
         send_time: datetime,
         inspect: bool = False
@@ -230,7 +233,8 @@ def grade_tasks(
             task,
             tester,
             course_config,
-            course_driver,
+            public_course_driver,
+            private_course_driver,
             user_id,
             send_time,
             inspect=inspect
@@ -241,7 +245,8 @@ def grade_tasks(
 def grade_on_ci(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
-        course_driver: CourseDriver,
+        public_course_driver: CourseDriver,
+        private_course_driver: CourseDriver,
         tester: Tester,
         *,
         test_full_groups: bool = False,
@@ -289,7 +294,7 @@ def grade_on_ci(
     tasks: list[Task] = []
     groups: list[Group] = []
     for changed_file in changes:
-        changed_task_dir = course_driver.get_task_dir_name(changed_file)
+        changed_task_dir = public_course_driver.get_task_dir_name(changed_file)
         if changed_task_dir is None or changed_task_dir not in course_schedule.tasks:
             continue
 
@@ -326,7 +331,8 @@ def grade_on_ci(
             tasks,
             tester,
             course_config,
-            course_driver,
+            public_course_driver,
+            private_course_driver,
             user_id=user_id,
             send_time=send_time,
         )

@@ -85,14 +85,13 @@ def check(
     execution_folder: Path = context['execution_folder']
 
     root = root or execution_folder
-    course_driver = CourseDriver(
+    private_course_driver = CourseDriver(
         root_dir=root,
-        reference_root_dir=root,
+        repo_type='private',
         layout=course_config.layout,
-        use_reference_source=True,
     )
     course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
+        deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
     tester = Tester.create(
         system=course_config.system,
@@ -120,7 +119,7 @@ def check(
 
     pre_release_check_tasks(
         course_schedule,
-        course_driver,
+        private_course_driver,
         tester,
         tasks=tasks,
         parallelize=parallelize,
@@ -144,14 +143,18 @@ def grade(
     execution_folder: Path = context['execution_folder']
 
     reference_root = reference_root or execution_folder
-    course_driver = CourseDriver(
+    public_course_driver = CourseDriver(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
-        reference_root_dir=reference_root,
+        repo_type='public',
         layout=course_config.layout,
-        use_reference_tests=True,
+    )
+    private_course_driver = CourseDriver(
+        root_dir=reference_root,
+        repo_type='private',
+        layout=course_config.layout,
     )
     course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
+        deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
     tester = Tester.create(
         system=course_config.system,
@@ -160,7 +163,8 @@ def grade(
     grade_on_ci(
         course_config,
         course_schedule,
-        course_driver,
+        public_course_driver,
+        private_course_driver,
         tester,
         test_full_groups=test_full_groups,
     )
@@ -182,14 +186,18 @@ def grade_mrs(
     execution_folder: Path = context['execution_folder']
 
     reference_root = reference_root or execution_folder
-    course_driver = CourseDriver(
+    public_course_driver = CourseDriver(
         root_dir=Path(os.environ['CI_PROJECT_DIR']),
-        reference_root_dir=reference_root,
+        repo_type='public',
         layout=course_config.layout,
-        use_reference_tests=True,
+    )
+    private_course_driver = CourseDriver(
+        root_dir=reference_root,
+        repo_type='private',
+        layout=course_config.layout,
     )
     course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
+        deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
 
     username = os.environ['CI_PROJECT_NAME']
@@ -202,7 +210,7 @@ def grade_mrs(
     grade_student_mrs(
         course_config,
         course_schedule,
-        course_driver,
+        public_course_driver,
         gitlab_connection,
         username,
         dry_run=dry_run,
@@ -225,13 +233,13 @@ def grade_students_mrs(
     execution_folder: Path = context['execution_folder']
 
     root = root or execution_folder
-    course_driver = CourseDriver(
+    private_course_driver = CourseDriver(
         root_dir=root,
-        reference_root_dir=root,
+        repo_type='private',
         layout=course_config.layout,
     )
     course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
+        deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
 
     gitlab_connection = GitlabConnection(
@@ -242,7 +250,7 @@ def grade_students_mrs(
     grade_students_mrs_to_master(
         course_config,
         course_schedule,
-        course_driver,
+        private_course_driver,
         gitlab_connection,
         dry_run=dry_run,
     )
@@ -267,30 +275,39 @@ def export_public(
     execution_folder: Path = context['execution_folder']
 
     root = root or execution_folder
-    course_driver = CourseDriver(
-        root_dir=root,
-        reference_root_dir=root,
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=course_driver.get_deadlines_file_path(),
-    )
 
     export_dir = export_dir or Path(tempfile.mkdtemp())
     if not export_dir.exists():
         export_dir.mkdir(exist_ok=True, parents=True)
 
+    public_course_driver = CourseDriver(
+        root_dir=export_dir,
+        repo_type='public',
+        layout=course_config.layout,
+    )
+    private_course_driver = CourseDriver(
+        root_dir=root,
+        repo_type='private',
+        layout=course_config.layout,
+    )
+    course_schedule = CourseSchedule(
+        deadlines_config=private_course_driver.get_deadlines_file_path(),
+    )
+
     export_public_files(
         course_config,
         course_schedule,
-        course_driver,
+        public_course_driver,
+        private_course_driver,
         export_dir,
         dry_run=dry_run,
     )
 
-    if not no_cleanup:
+    if no_cleanup:
+        print_info(f'No cleanup flag. Exported files stored in {export_dir}.')
+    else:
+        print_info(f'Cleanup flag. Export dir {export_dir} removed.')
         shutil.rmtree(export_dir)
-        print_info(f'No cleanup flag. Exported files stored in {export_dir}')
 
 
 # @main.command()

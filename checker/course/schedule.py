@@ -14,6 +14,12 @@ import yaml
 from ..exceptions import BadConfig, BadGroupConfig, BadTaskConfig
 
 
+RESERVED_TASK_NAMES = [
+    'task', 'tasks', 'solution', 'solutions', 'test', 'tests', 'lecture', 'lectures', 'template',
+    'templates', 'private', 'privates', 'public', 'publics', 'review', 'reviews',
+]
+
+
 @dataclass
 class Task:
     group: 'Group'
@@ -28,6 +34,8 @@ class Task:
 
     def __post_init__(self) -> None:
         self.full_name = self.group.name + '/' + self.name
+
+        assert self.name not in RESERVED_TASK_NAMES, f'Can not use {self.name} as task name as it is reserved'
 
     @property
     def is_enabled(self) -> bool:

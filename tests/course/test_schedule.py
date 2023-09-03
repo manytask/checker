@@ -22,24 +22,16 @@ class TestTask:
             second_deadline=datetime(2100, 1, 1),
         )
 
-    def test_basics(self, sample_group: Group) -> None:
-        task_minimal = Task(
-            group=sample_group,
-            name='task_minimal',
-            max_score=10,
-        )
-        assert task_minimal.full_name == 'test_group/task_minimal'
-
-        task_max = Task(
-            group=sample_group,
-            name='task_max',
-            max_score=10,
-            enabled=True,
-            scoring_func='max',
-            review=True,
-            marked=True,
-        )
-        assert task_max.full_name == 'test_group/task_max'
+    @pytest.mark.parametrize('reserved_name', [
+        'task', 'test', 'solution', 'template',
+    ])
+    def test_reserved_task_name(self, sample_group: Group, reserved_name: str) -> None:
+        with pytest.raises(AssertionError, match=f'.*{reserved_name}.*reserved.*'):
+            Task(
+                group=sample_group,
+                name=reserved_name,
+                max_score=10,
+            )
 
 
 class TestGroup:
