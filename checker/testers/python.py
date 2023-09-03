@@ -58,8 +58,8 @@ class PythonTester(Tester):
             test_config: TaskTestConfig,
             build_dir: Path,
             source_dir: Path,
-            public_tests_dir: Path,
-            private_tests_dir: Path,
+            public_tests_dir: Path | None,
+            private_tests_dir: Path | None,
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,
@@ -136,22 +136,24 @@ class PythonTester(Tester):
                     print_info(output or '', end='')
 
         # Copy public test files
-        self._executor(
-            copy_files,
-            source=public_tests_dir,
-            target=build_dir,
-            patterns=test_config.public_test_files,
-            verbose=verbose,
-        )
+        if public_tests_dir is not None:
+            self._executor(
+                copy_files,
+                source=public_tests_dir,
+                target=build_dir,
+                patterns=test_config.public_test_files,
+                verbose=verbose,
+            )
 
         # Copy private test files
-        self._executor(
-            copy_files,
-            source=private_tests_dir,
-            target=build_dir,
-            patterns=test_config.private_test_files,
-            verbose=verbose,
-        )
+        if private_tests_dir is not None:
+            self._executor(
+                copy_files,
+                source=private_tests_dir,
+                target=build_dir,
+                patterns=test_config.private_test_files,
+                verbose=verbose,
+            )
 
     def _clean_build(  # type: ignore[override]
             self,

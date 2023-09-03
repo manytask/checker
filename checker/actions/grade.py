@@ -157,16 +157,21 @@ def grade_single_task(
 ) -> bool:
     print_task_info(task.full_name)
     source_dir = public_course_driver.get_task_solution_dir(task)
+    reference_config_dir = private_course_driver.get_task_config_dir(task)
     reference_public_tests_dir = private_course_driver.get_task_public_test_dir(task)
     reference_private_tests_dir = private_course_driver.get_task_private_test_dir(task)
     assert source_dir, f'{source_dir=} have to exists'
-    assert reference_public_tests_dir, f'{reference_public_tests_dir=} have to exists'
-    assert reference_private_tests_dir, f'{reference_private_tests_dir=} have to exists'
+    assert reference_config_dir, f'{reference_config_dir=} have to exists'
+    assert reference_public_tests_dir or reference_private_tests_dir, f'reference_public_tests_dir or reference_private_tests_dir have to exists'
 
     try:
         score_percentage = tester.test_task(
-            source_dir, reference_public_tests_dir, reference_private_tests_dir,
-            verbose=inspect, normalize_output=inspect
+            source_dir,
+            reference_config_dir,
+            reference_public_tests_dir,
+            reference_private_tests_dir,
+            verbose=inspect,
+            normalize_output=inspect,
         )
         score = round(score_percentage * task.max_score)
         if score_percentage == 1.:
