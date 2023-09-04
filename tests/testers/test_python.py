@@ -73,7 +73,7 @@ class TestPythonTester:
         """
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, PRIVATE_TESTS)
 
-        score = python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+        score = python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
         assert score == 1
 
         captures = capsys.readouterr()
@@ -98,7 +98,7 @@ class TestPythonTester:
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS)
 
         with pytest.raises(StylecheckFailedError):
-            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
 
     def test_disabled_mypy_error(
             self,
@@ -119,7 +119,7 @@ class TestPythonTester:
         """
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
-        python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+        python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
 
         captures = capsys.readouterr()
         assert 'Running mypy checks...' not in captures.err
@@ -143,7 +143,7 @@ class TestPythonTester:
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
         with pytest.raises(StylecheckFailedError):
-            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
 
     def test_ruff_error(
             self,
@@ -164,7 +164,7 @@ class TestPythonTester:
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
         with pytest.raises(StylecheckFailedError):
-            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
 
     def test_pytest_error(
             self,
@@ -185,7 +185,7 @@ class TestPythonTester:
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
         with pytest.raises(TestsFailedError) as ex:
-            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
 
     def test_pytest_error_no_duble_error(
             self,
@@ -208,7 +208,7 @@ class TestPythonTester:
             create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG)
 
         with pytest.raises(TestsFailedError) as ex:
-            python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+            python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
         captured = capsys.readouterr()
 
         assert captured.err.count('short test summary info ') == 1
@@ -237,7 +237,7 @@ class TestPythonTester:
         """
         create_single_file_task(tmp_path, CODE, PUBLIC_TESTS, tester_config=CONFIG, setup_file=SETUP)
 
-        score = python_tester.test_task(tmp_path, tmp_path, tmp_path, normalize_output=True)
+        score = python_tester.test_task(tmp_path, tmp_path, tmp_path, tmp_path, normalize_output=True)
         assert score == 1
 
         captures = capsys.readouterr()

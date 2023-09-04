@@ -38,7 +38,7 @@ def init_task(tmp_path: Path, code: str, **kwargs):
 
     format_path = reference_dir / 'run-clang-format.py'
     format_path.chmod(format_path.stat().st_mode | stat.S_IEXEC)
-    return source_dir, public_tests_dir, private_tests_dir
+    return source_dir, private_tests_dir, public_tests_dir, private_tests_dir
 
 
 STAGE_BUILD = 1
