@@ -45,7 +45,7 @@ def push_report(
 
     if response.status_code >= 500:
         response.raise_for_status()
-        assert False, 'Not Reachable'
+        assert False, 'Not Reachable'  # pragma: no cover
     elif response.status_code >= 400:
         # Client error often means early submission
         raise PushFailedError(f'{response.status_code}: {response.text}')
@@ -65,7 +65,7 @@ def get_score(
         tester_token: str,
         task_name: str,
         user_id: int,
-) -> None:
+) -> float | None:
     # Do not expose token in logs.
     data = {
         'token': tester_token,
@@ -82,12 +82,10 @@ def get_score(
 
     if response.status_code >= 500:
         response.raise_for_status()
-        assert False, 'Not Reachable'
-        # print_info(f'{response.status_code}: {response.text}', color='orange')
+        assert False, 'Not Reachable'  # pragma: no cover
     # Client error often means early submission
     elif response.status_code >= 400:
         raise GetFailedError(f'{response.status_code}: {response.text}')
-        # print_info(f'{response.status_code}: {response.text}', color='orange')
     else:
         try:
             result = response.json()

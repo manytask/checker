@@ -22,6 +22,19 @@ class TestTask:
             second_deadline=datetime(2100, 1, 1),
         )
 
+    def test_basics(self, sample_group: Group) -> None:
+        task_minimal = Task(
+            group=sample_group,
+            name='test_task',
+            max_score=10,
+            enabled=True,
+        )
+
+        assert task_minimal.is_enabled
+
+        assert task_minimal.is_started
+        assert not task_minimal.is_ended
+
     @pytest.mark.parametrize('reserved_name', [
         'task', 'test', 'solution', 'template',
     ])
