@@ -168,9 +168,12 @@ class TestDriver:
 
     @pytest.mark.parametrize('layout,raw,task_name', [
         ('flat', 'foo', None),
-        ('flat', 'foo/bar', 'foo'),
-        ('groups', 'foo/bar', 'bar'),
-        ('lectures', 'foo/bar', 'bar'),
+        ('flat', 'task0/main.c', 'task0'),
+        ('flat', 'task0/dir/main.c', 'task0'),
+        ('groups', 'group0/task0/main.c', 'task0'),
+        ('groups', 'group0/task0/dir/main.c', 'task0'),
+        ('lectures', 'group0/tasks/task0/main.c', 'task0'),
+        ('lectures', 'group0/tasks/task0/dir/main.c', 'task0'),
     ])
     def test_get_task_dir_name(self, layout: str, raw: str, task_name: str | None) -> None:
         driver = CourseDriver(Path(''), layout=layout)

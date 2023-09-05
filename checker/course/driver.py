@@ -393,11 +393,13 @@ class CourseDriver:
             self,
             path: str,
     ) -> str | None:
-        path_split = path.split(os.path.sep, maxsplit=2)
+        path_split = path.split(os.path.sep, maxsplit=3)
         if len(path_split) < 2:  # Changed file not in subdir
             return None
         if self.layout == 'lectures':
-            return path_split[1]
+            if len(path_split) < 3:
+                return None
+            return path_split[2]
         elif self.layout == 'groups':
             return path_split[1]
         elif self.layout == 'flat':
