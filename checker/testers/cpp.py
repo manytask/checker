@@ -56,7 +56,7 @@ class CppTester(Tester):
             patterns=test_config.allow_change,
             raise_on_found=True,
         )
-        reference_root = public_tests_dir.parent
+        reference_root = public_tests_dir.parent  # type: ignore
         task_name = source_dir.name
         task_dir = reference_root / task_name
         self._executor(

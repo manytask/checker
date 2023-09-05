@@ -8,8 +8,8 @@ from pathlib import Path
 from warnings import warn
 
 from ..exceptions import BadConfig
-from .schedule import Group, Task
 from ..utils import print_info
+from .schedule import Group, Task
 
 
 class CourseDriver:
@@ -78,10 +78,11 @@ class CourseDriver:
                     - .tester.json [optional]
                 - ...
         - ...
-    * lectures (private)
+    * lectures (public)
         - ...
         - group_1/
-            ...
+            lecture/ [optional]
+            review/ [optional]
             tasks/
                 - task_1/
                     - test_public.py

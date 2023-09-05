@@ -160,9 +160,10 @@ def grade_single_task(
     reference_config_dir = private_course_driver.get_task_config_dir(task)
     reference_public_tests_dir = private_course_driver.get_task_public_test_dir(task)
     reference_private_tests_dir = private_course_driver.get_task_private_test_dir(task)
-    assert source_dir, f'{source_dir=} have to exists'
-    assert reference_config_dir, f'{reference_config_dir=} have to exists'
-    assert reference_public_tests_dir or reference_private_tests_dir, f'reference_public_tests_dir or reference_private_tests_dir have to exists'
+    assert source_dir, 'source_dir have to exists'
+    assert reference_config_dir, 'reference_config_dir have to exists'
+    assert reference_public_tests_dir or reference_private_tests_dir, \
+        'reference_public_tests_dir or reference_private_tests_dir have to exists'
 
     try:
         score_percentage = tester.test_task(

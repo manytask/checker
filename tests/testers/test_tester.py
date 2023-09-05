@@ -6,6 +6,8 @@ from typing import Type
 import pytest
 
 from checker.exceptions import TaskTesterTestConfigException, TesterNotImplemented
+from checker.testers.cpp import CppTester
+from checker.testers.make import MakeTester
 from checker.testers.python import PythonTester
 from checker.testers.tester import Tester
 
@@ -13,14 +15,16 @@ from checker.testers.tester import Tester
 class TestTester:
     @pytest.mark.parametrize('tester_name,tester_class', [
         ('python', PythonTester),
+        ('cpp', CppTester),
+        ('make', MakeTester),
     ])
     def test_right_tester_created(self, tester_name: str, tester_class: Type[Tester]) -> None:
         tester = Tester.create(tester_name)
         assert isinstance(tester, tester_class)
 
-    def test_no_tester(self) -> None:
+    def test_wrong_tester(self) -> None:
         with pytest.raises(TesterNotImplemented):
-            Tester.create('deferentially-wrong-tester')
+            Tester.create('definitely-wrong-tester')
 
 
 @dataclass
