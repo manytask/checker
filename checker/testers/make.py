@@ -15,6 +15,7 @@ class MakeTester(Tester):
         test_timeout: int = 60  # seconds
 
         public_test_files: list[str] = field(default_factory=list)
+        private_test_files: list[str] = field(default_factory=list)
 
     def _gen_build(  # type: ignore[override]
             self,
@@ -35,13 +36,23 @@ class MakeTester(Tester):
             verbose=verbose,
         )
 
-        self._executor(
-            copy_files,
-            source=public_tests_dir,
-            target=build_dir,
-            patterns=test_config.public_test_files,
-            verbose=verbose,
-        )
+        if public_tests_dir is not None:
+            self._executor(
+                copy_files,
+                source=public_tests_dir,
+                target=build_dir,
+                patterns=test_config.public_test_files,
+                verbose=verbose,
+            )
+
+        if private_tests_dir is not None:
+            self._executor(
+                copy_files,
+                source=private_tests_dir,
+                target=build_dir,
+                patterns=test_config.private_test_files,
+                verbose=verbose,
+            )
 
     def _clean_build(  # type: ignore[override]
             self,
