@@ -107,6 +107,7 @@ class Tester:
             source_dir: Path,
             public_tests_dir: Path | None,
             private_tests_dir: Path | None,
+            tests_root_dir: Path,
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,
@@ -167,6 +168,7 @@ class Tester:
             config_dir: Path,
             public_tests_dir: Path | None,
             private_tests_dir: Path | None,
+            tests_root_dir: Path,
             verbose: bool = False,
             normalize_output: bool = False,
     ) -> float:
@@ -198,6 +200,7 @@ class Tester:
                 source_dir,
                 public_tests_dir,
                 private_tests_dir,
+                tests_root_dir,
                 sandbox=True,
                 verbose=verbose,
                 normalize_output=normalize_output,

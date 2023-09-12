@@ -24,6 +24,7 @@ class MakeTester(Tester):
             source_dir: Path,
             public_tests_dir: Path | None,
             private_tests_dir: Path | None,
+            tests_root_dir: Path,
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,

@@ -46,6 +46,7 @@ class CppTester(Tester):
             source_dir: Path,
             public_tests_dir: Path | None,
             private_tests_dir: Path | None,
+            tests_root_dir: Path,
             sandbox: bool = True,
             verbose: bool = False,
             normalize_output: bool = False,
@@ -56,9 +57,7 @@ class CppTester(Tester):
             patterns=test_config.allow_change,
             raise_on_found=True,
         )
-        reference_root = public_tests_dir.parent  # type: ignore
-        task_name = source_dir.name
-        task_dir = reference_root / task_name
+        task_dir = public_tests_dir
         self._executor(
             copy_files,
             source=source_dir,
@@ -77,7 +76,7 @@ class CppTester(Tester):
         try:
             print_info('Running cmake...', color='orange')
             self._executor(
-                ['cmake', '-G', 'Ninja', str(reference_root),
+                ['cmake', '-G', 'Ninja', str(tests_root_dir),
                  '-DGRADER=YES', '-DENABLE_PRIVATE_TESTS=YES',
                  f'-DCMAKE_BUILD_TYPE={test_config.build_type}'],
                 cwd=build_dir,
@@ -104,7 +103,7 @@ class CppTester(Tester):
 
         try:
             print_info('Running clang format...', color='orange')
-            format_path = reference_root / 'run-clang-format.py'
+            format_path = tests_root_dir / 'run-clang-format.py'
             self._executor(
                 [str(format_path), '-r', str(task_dir)],
                 cwd=build_dir,

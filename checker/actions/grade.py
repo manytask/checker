@@ -160,6 +160,7 @@ def grade_single_task(
     reference_config_dir = private_course_driver.get_task_config_dir(task)
     reference_public_tests_dir = private_course_driver.get_task_public_test_dir(task)
     reference_private_tests_dir = private_course_driver.get_task_private_test_dir(task)
+    reference_tests_root_dir = private_course_driver.root_dir
     assert source_dir, 'source_dir have to exists'
     assert reference_config_dir, 'reference_config_dir have to exists'
     assert reference_public_tests_dir or reference_private_tests_dir, \
@@ -171,6 +172,7 @@ def grade_single_task(
             reference_config_dir,
             reference_public_tests_dir,
             reference_private_tests_dir,
+            reference_tests_root_dir,
             verbose=inspect,
             normalize_output=inspect,
         )
