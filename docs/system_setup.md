@@ -210,6 +210,5 @@ So you need to select in private repo CI/CD Settings `.releaser-ci.yml` as ci fi
 
 * In gitlab.manytask.org -> [course_group]  
   Set variables for checker and gitlab runner to operate   
-  * DOCKER_AUTH_CONFIG (none),  
   * TESTER_TOKEN (masked),  
   * GITLAB_SERVICE_TOKEN (masked) 
