@@ -259,7 +259,10 @@ def _get_changes_using_real_folders(
         current_folder: str,
         old_hash: str,
         current_repo_gitlab_path: str,
+        gitlab_token: str,
 ) -> list[str]:
+    gitlab_url_with_token = course_config.gitlab_url.replace('://', f'://gitlab-ci-token:${gitlab_token}@')
+
     with tempfile.TemporaryDirectory() as public_dir:
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
@@ -296,10 +299,10 @@ def _get_changes_using_real_folders(
 
 
             # download old repo by hash, minimal
-            print_info(f'Cloning {course_config.public_repo} to get {old_hash}...', color='white')
+            print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
             print_info('git clone:', color='grey')
             r = subprocess.run(
-                f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{current_repo_gitlab_path}.git {old_dir}',
+                f'git clone --depth=1 --branch={course_config.default_branch} {gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -397,6 +400,8 @@ def grade_on_ci(
     print_info(f'CI_COMMIT_SHA {current_commit_sha}', color='grey')
     print_info(f'CI_COMMIT_BEFORE_SHA {prev_commit_sha}', color='grey')
 
+    gitlab_job_token = os.environ.get('CI_JOB_TOKEN', None)
+
     # Get changes using real files difference
     try:
         current_repo_gitlab_path = os.environ['CI_PROJECT_PATH']
@@ -404,7 +409,8 @@ def grade_on_ci(
             course_config,
             current_folder=solution_root,
             old_hash=prev_commit_sha,
-            current_repo_gitlab_path=current_repo_gitlab_path,  # repo name
+            current_repo_gitlab_path=current_repo_gitlab_path,
+            gitlab_token=gitlab_job_token,
         )
         raise Exception('Not implemented')
     except Exception as e:
