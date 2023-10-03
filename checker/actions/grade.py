@@ -10,7 +10,7 @@ from pathlib import Path
 from ..course import CourseConfig, CourseDriver, CourseSchedule, Group, Task
 from ..exceptions import RunFailedError
 from ..testers import Tester
-from ..utils import get_folders_diff_except_public
+from ..utils import get_folders_diff_except_public, get_tracked_files_list
 from ..utils.manytask import PushFailedError, push_report
 from ..utils.print import print_info, print_task_info
 
@@ -262,7 +262,7 @@ def _get_changes_using_real_folders(
     with tempfile.TemporaryDirectory() as public_dir:
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
-            print_info(f'Cloning {course_config.public_repo}...', color='grey')
+            print_info(f'Cloning {course_config.public_repo}...', color='white')
             subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
                 encoding='utf-8',
@@ -278,9 +278,18 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
+            output = subprocess.run(
+                f'ls -lah {old_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            ).stdout
+            print_info(output, color='grey')
+
 
             # download old repo by hash, minimal
-            print_info(f'Cloning {course_config.public_repo} to get {old_hash}...', color='grey')
+            print_info(f'Cloning {course_config.public_repo} to get {old_hash}...', color='white')
             subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {old_dir}',
                 encoding='utf-8',
@@ -304,16 +313,32 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
+            output = subprocess.run(
+                f'ls -lah {old_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            ).stdout
+            print_info(output, color='grey')
 
             # get diff
-            print_info(f'Detected changes (filtering by public repo)', color='grey')
+            print_info(f'Detected changes (filtering by public repo)', color='white')
             changes = get_folders_diff_except_public(
                 Path(public_dir),
                 Path(old_dir),
                 Path(current_folder),
             )
+            print_info(f'  -> [{changes[0]}...]', color='gray')
+
+            # filter by tracked by git
+            print_info(f'and filtering by git tracked files', color='white')
+            git_tracked_files = get_tracked_files_list(Path(current_folder))
+            print_info(f'  -> [{git_tracked_files[0]}...]', color='gray')
+            changes = [f for f in changes if f in git_tracked_files]
+
             for change in changes:
-                print_info(f'  -{change}', color='grey')
+                print_info(f'  - {change}', color='grey')
 
             return changes
 
@@ -351,6 +376,9 @@ def grade_on_ci(
     author_name = os.environ.get('CI_COMMIT_AUTHOR', None)
     current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
     prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
+    print_info(f'CI_COMMIT_AUTHOR {author_name}', color='grey')
+    print_info(f'CI_COMMIT_SHA {current_commit_sha}', color='grey')
+    print_info(f'CI_COMMIT_BEFORE_SHA {prev_commit_sha}', color='grey')
 
     # Get changes using real files difference
     try:

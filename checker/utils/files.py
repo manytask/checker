@@ -147,7 +147,7 @@ def get_folders_diff(
         old_folder: Path,
         new_folder: Path,
         skip_binary: bool = True,
-        exclude_patterns: list[str] = None,
+        exclude_patterns: list[str] | None = None,
 ) -> list[str]:
     """
     Return diff files between 2 folders
@@ -203,17 +203,43 @@ def get_folders_diff(
     return [str(i) for i in changed]
 
 
-def get_folders_diff_except_public(public_folder: Path, old_folder: Path, new_folder: Path) -> list[str]:
+def get_folders_diff_except_public(
+        public_folder: Path,
+        old_folder: Path,
+        new_folder: Path,
+        skip_binary: bool = True,
+        exclude_patterns: list[str] | None = None,
+) -> list[str]:
     """
     Return diff files between 2 folders except files that are equal to public folder files
     @param public_folder: Public folder
     @param old_folder: Old folder
     @param new_folder: New folder with some changes files, based on old folder
+    @param skip_binary: Skip binary files
+    @param exclude_patterns: Exclude files that match pattern
     @return: list of changed files as strings
     """
 
-    changed_files_old_new = get_folders_diff(old_folder, new_folder)
-    changed_files_public_new = get_folders_diff(public_folder, new_folder)
+    changed_files_old_new = get_folders_diff(
+        old_folder,
+        new_folder,
+        skip_binary=skip_binary,
+        exclude_patterns=exclude_patterns,
+    )
+    changed_files_public_new = get_folders_diff(
+        public_folder,
+        new_folder,
+        skip_binary=skip_binary,
+        exclude_patterns=exclude_patterns,
+    )
+
+    # TODO: Remove logging
+    print_info(f'\nchanged_files_old_new:', color='grey')
+    for i in changed_files_old_new:
+        print_info(f'  {i}', color='grey')
+    print_info(f'\nchanged_files_public_new:', color='grey')
+    for i in changed_files_public_new:
+        print_info(f'  {i}', color='grey')
 
     return [
         str(i)
