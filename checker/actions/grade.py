@@ -258,6 +258,7 @@ def _get_changes_using_real_folders(
         course_config: CourseConfig,
         current_folder: str,
         old_hash: str,
+        current_repo_gitlab_path: str,
 ) -> list[str]:
     with tempfile.TemporaryDirectory() as public_dir:
         with tempfile.TemporaryDirectory() as old_dir:
@@ -298,7 +299,7 @@ def _get_changes_using_real_folders(
             print_info(f'Cloning {course_config.public_repo} to get {old_hash}...', color='white')
             print_info('git clone:', color='grey')
             r = subprocess.run(
-                f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {old_dir}',
+                f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{current_repo_gitlab_path}.git {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -398,10 +399,12 @@ def grade_on_ci(
 
     # Get changes using real files difference
     try:
+        current_repo_gitlab_path = os.environ['CI_PROJECT_PATH']
         changes = _get_changes_using_real_folders(
             course_config,
             current_folder=solution_root,
             old_hash=prev_commit_sha,
+            current_repo_gitlab_path=current_repo_gitlab_path,  # repo name
         )
         raise Exception('Not implemented')
     except Exception as e:
