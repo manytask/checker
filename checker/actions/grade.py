@@ -284,7 +284,6 @@ def _get_changes_using_real_folders(
             )
             # print_info(r.stdout, color='grey')
 
-
             # download old repo by hash, minimal
             print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
             # print_info('git clone:', color='grey')
@@ -329,8 +328,9 @@ def _get_changes_using_real_folders(
             git_tracked_files = get_tracked_files_list(Path(current_folder))
             changes = [f for f in changes if f in git_tracked_files]
 
+            print_info(f'\nchanged_files:', color='white')
             for change in changes:
-                print_info(f'  ->> {change}', color='grey')
+                print_info(f'  ->> {change}', color='white')
 
             return changes
 
