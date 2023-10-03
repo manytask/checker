@@ -305,9 +305,10 @@ def _get_changes_using_real_folders(
                 shell=True,
             )
             print_info(r.stdout, color='grey')
-            print_info('git checkout:', color='grey')
+            print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
             r = subprocess.run(
-                f'git fetch --unshallow && git checkout {old_hash}',
+                # f'git fetch --unshallow && git checkout {old_hash}',
+                f'git fetch origin {old_hash} && git checkout FETCH_HEAD',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
