@@ -300,15 +300,24 @@ def _get_changes_using_real_folders(
 
             # download old repo by hash, minimal
             print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
-            print_info('git clone:', color='grey')
+            print_info('just copy current repo directory:')
             r = subprocess.run(
-                f'git clone --depth=1 --branch={course_config.default_branch} {gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
+                f'cp -r {current_folder} {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
             print_info(r.stdout, color='grey')
+            # print_info('git clone:', color='grey')
+            # r = subprocess.run(
+            #     f'git clone --depth=1 --branch={course_config.default_branch} {gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
+            #     encoding='utf-8',
+            #     stdout=subprocess.PIPE,
+            #     stderr=subprocess.STDOUT,
+            #     shell=True,
+            # )
+            # print_info(r.stdout, color='grey')
             print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
             r = subprocess.run(
                 # f'git fetch --unshallow && git checkout {old_hash}',
