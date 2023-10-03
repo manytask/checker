@@ -262,13 +262,22 @@ def _get_changes_using_real_folders(
     with tempfile.TemporaryDirectory() as public_dir:
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
-            print_info(f'Cloning {course_config.public_repo}...', color='white')
-            subprocess.run(
+            print_info(f'Cloning {course_config.gitlab_url}/{course_config.public_repo}...', color='white')
+            output = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
+            ).stdout
+            print_info('git clone\n', output, color='grey')
+            subprocess.run(
+                f'git checkout {course_config.default_branch}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                cwd=public_dir,
             )
             # remove .git folder
             subprocess.run(
@@ -328,6 +337,7 @@ def _get_changes_using_real_folders(
                 Path(public_dir),
                 Path(old_dir),
                 Path(current_folder),
+                exclude_patterns=['.git'],
             )
             print_info(f'  -> [{changes[0]}...]', color='gray')
 
