@@ -262,7 +262,7 @@ def _get_changes_using_real_folders(
     with tempfile.TemporaryDirectory() as public_dir:
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
-            print_info(f'Cloning {course_config.gitlab_url}/{course_config.public_repo}...', color='white')
+            print_info(f'Cloning {course_config.public_repo} of {course_config.default_branch}...', color='white')
             print_info('git clone:', color='grey')
             r = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
@@ -270,16 +270,6 @@ def _get_changes_using_real_folders(
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
-            )
-            print_info(r.stdout, color='grey')
-            print_info('git checkout:', color='grey')
-            r = subprocess.run(
-                f'git checkout {course_config.default_branch}',
-                encoding='utf-8',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                shell=True,
-                cwd=public_dir,
             )
             print_info(r.stdout, color='grey')
             # remove .git folder
@@ -317,7 +307,7 @@ def _get_changes_using_real_folders(
             print_info(r.stdout, color='grey')
             print_info('git checkout:', color='grey')
             r = subprocess.run(
-                f'git checkout {old_hash}',
+                f'git fetch --unshallow && git checkout {old_hash}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
