@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -9,7 +10,7 @@ from checker.utils.files import (
     check_files_contains_regexp,
     check_folder_contains_regexp,
     copy_files,
-    filename_match_patterns,
+    filename_match_patterns, get_folders_diff, get_folders_diff_except_public,
 )
 
 
@@ -157,3 +158,204 @@ class TestFileRegexpSearch:
             f1.write('123')
             f2.write('321')
         assert check_files_contains_regexp(tmp_path, regexps, regexps_for_files) == contains
+
+
+class TestFolderDiff:
+    @pytest.fixture(scope='function')
+    def public_folder(self, tmp_path: Path) -> Path:
+        public_folder = tmp_path / 'public'
+        public_folder.mkdir()
+        return public_folder
+
+    @pytest.fixture(scope='function')
+    def old_folder(self, tmp_path: Path) -> Path:
+        old_folder = tmp_path / 'old'
+        old_folder.mkdir()
+        return old_folder
+
+    @pytest.fixture(scope='function')
+    def new_folder(self, tmp_path: Path) -> Path:
+        new_folder = tmp_path / 'new'
+        new_folder.mkdir()
+        return new_folder
+
+    @staticmethod
+    def fill_folder(folder: Path, files: list[str], content: str) -> None:
+        folder.mkdir(parents=True, exist_ok=True)
+        for file in files:
+            with open(folder / file, 'w') as f:
+                f.write(content)
+
+    @staticmethod
+    def fill_folder_binary_files(folder: Path, files: list[str], content: bytes) -> None:
+        folder.mkdir(parents=True, exist_ok=True)
+        for file in files:
+            with open(folder / file, 'wb') as f:
+                f.write(content)
+
+    def test_flat_folders(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # completely different files
+        different_files = ['a.py', 'b.cpp', 'c.go']
+        self.fill_folder(old_folder, different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder, different_files, '4\n5\n6\n'*16)
+
+        changed_files = get_folders_diff(old_folder, new_folder)
+        assert sorted(changed_files) == sorted(different_files)
+
+    # def test_flat_folders_spaces_diff(self, old_folder: Path, new_folder: Path) -> None:
+    #     # same files
+    #     for i in range(10):
+    #         self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+    #         self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+    #
+    #     # completely different files
+    #     space_different_files = ['a.py', 'b.cpp', 'c.go']
+    #     self.fill_folder(old_folder, space_different_files, 'Here lyeth  muche  rychnesse in lytell space.--  John Heywood$')
+    #     self.fill_folder(new_folder, space_different_files, '  He relyeth much erychnes  seinly tells pace.  --John Heywood   ^M$')
+    #
+    #     changed_files = get_folders_diff(old_folder, new_folder)
+    #     assert len(changed_files) == 0
+
+    def test_flat_folders_only_same_files(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        changed_files = get_folders_diff(old_folder, new_folder)
+        assert len(changed_files) == 0
+
+    def test_flat_folders_new_and_deleted_files(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # deleted files
+        deleted_files = ['to_be_deleted_a.py', 'to_be_deleted_b.cpp', 'to_be_deleted_c.go']
+        self.fill_folder(old_folder, deleted_files, '1\n2\n3\n'*16)
+        # new files
+        new_files = ['new_file_a.py', 'new_file_.cpp', 'new_file_.go']
+        self.fill_folder(new_folder, new_files, '1\n2\n3\n'*16)
+
+        changed_files = get_folders_diff(old_folder, new_folder)
+        assert sorted(changed_files) == sorted(deleted_files + new_files)
+
+    # def test_flat_folders_spaces_in_filename(self, old_folder: Path, new_folder: Path) -> None:
+    #     # same files
+    #     for i in range(10):
+    #         self.fill_folder(old_folder, [f'{i} some {i}.py', f'{i} some {i}.cpp', f'{i} some {i}.go'], '1\n2\n3\n'*16)
+    #         self.fill_folder(new_folder, [f'{i} some {i}.py', f'{i} some {i}.cpp', f'{i} some {i}.go'], '1\n2\n3\n'*16)
+    #
+    #     # completely different files
+    #     different_files = ['a some a.py', 'b some b.cpp', 'c some c.go']
+    #     self.fill_folder(old_folder, different_files, '1\n2\n3\n'*16)
+    #     self.fill_folder(new_folder, different_files, '4\n5\n6\n'*16)
+    #
+    #     changed_files = get_folders_diff(old_folder, new_folder)
+    #     assert sorted(changed_files) == sorted(different_files)
+
+    def test_flat_folders_skip_binary_files(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # completely different files
+        different_files = ['a.py', 'b.cpp', 'c.go']
+        self.fill_folder_binary_files(old_folder, different_files, b'\x00'+os.urandom(4)+b'\x00')
+        self.fill_folder_binary_files(new_folder, different_files, b'\x00'+os.urandom(4)+b'\x00')
+
+        changed_files = get_folders_diff(old_folder, new_folder, skip_binary=False)
+        assert sorted(changed_files) == sorted(different_files)
+
+        changed_files = get_folders_diff(old_folder, new_folder)
+        assert len(changed_files) == 0
+        changed_files = get_folders_diff(old_folder, new_folder, skip_binary=True)
+        assert len(changed_files) == 0
+
+    def test_deep_structure(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # changed files in top folder
+        different_files = ['a.py', 'b.cpp', 'c.go']
+        self.fill_folder(old_folder, different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder, different_files, '4\n3\n2\n'*16)
+
+        # changed files in inner folders
+        inner_folder_different_files = ['o.py', 'p.cpp', 'q.go']
+        self.fill_folder(old_folder / 'inner-folder', inner_folder_different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder / 'inner-folder', inner_folder_different_files, '4\n3\n2\n'*16)
+
+        # new inner folder
+        new_inner_folder_files = ['t.py', 'r.cpp', 'n.go']
+        self.fill_folder(new_folder / 'new-inner-folder', new_inner_folder_files, '1\n2\n3\n'*16)
+
+        changed_files = get_folders_diff(old_folder, new_folder)
+        assert len(changed_files) == len(different_files + inner_folder_different_files + new_inner_folder_files)
+        assert all(file in changed_files for file in different_files)
+        assert all(f'inner-folder/{file}' in changed_files for file in inner_folder_different_files)
+        assert all(f'new-inner-folder/{file}' in changed_files for file in new_inner_folder_files)
+
+    def test_deep_structure_skip_folders(self, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # changed files in inner folders
+        inner_folder_different_files = ['o.py', 'p.cpp', 'q.go']
+        self.fill_folder(old_folder / 'inner-folder', inner_folder_different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder / 'inner-folder', inner_folder_different_files, '4\n3\n2\n'*16)
+
+        # changed files in inner folders
+        skip_inner_folder_different_files = ['a.py', 'b.cpp', 'c.go']
+        self.fill_folder(old_folder / 'skip-inner-folder', skip_inner_folder_different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder / 'skip-inner-folder', skip_inner_folder_different_files, '4\n3\n2\n'*16)
+
+        # changed files in inner folders
+        git_folder_different_files = ['aa.py', 'bb.cpp', 'cc.go']
+        self.fill_folder(old_folder / '.git', git_folder_different_files, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder / '.git', git_folder_different_files, '4\n3\n2\n'*16)
+
+        changed_files = get_folders_diff(old_folder, new_folder, exclude_patterns=['.git', 'skip-inner-folder'])
+        assert sorted(changed_files) == sorted([f'inner-folder/{i}' for i in inner_folder_different_files])
+
+    def test_flat_public_folder_filtering(self, public_folder: Path, old_folder: Path, new_folder: Path) -> None:
+        # same files
+        for i in range(10):
+            self.fill_folder(old_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(new_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+            self.fill_folder(public_folder, [f'{i}.py', f'{i}.cpp', f'{i}.go'], '1\n2\n3\n'*16)
+
+        # new files in public not in old/new
+        new_files_in_public = ['new_in_public_a.py', 'new_in_public_b.cpp', 'new_in_public_c.go']
+        self.fill_folder(public_folder, new_files_in_public, '1\n2\n3\n'*16)
+
+        # totally new files in new
+        new_files_in_new = ['new_in_new_a.py', 'new_in_new_b.cpp', 'new_in_new_c.go']
+        self.fill_folder(new_folder, new_files_in_new, '1\n2\n3\n'*16)
+
+        # new in public and transfer in new
+        new_files_in_public_and_new = ['new_in_public_and_new_a.py', 'new_in_public_and_new_b.cpp', 'new_in_public_and_new_c.go']
+        self.fill_folder(public_folder, new_files_in_public_and_new, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder, new_files_in_public_and_new, '1\n2\n3\n'*16)
+
+        # new in public than changes in new
+        new_files_in_public_and_new_changed = ['new_in_public_and_new_changed_a.py', 'new_in_public_and_new_changed_b.cpp', 'new_in_public_and_new_changed_c.go']
+        self.fill_folder(public_folder, new_files_in_public_and_new_changed, '1\n2\n3\n'*16)
+        self.fill_folder(new_folder, new_files_in_public_and_new_changed, '4\n3\n2\n'*16)
+
+        changed_files = get_folders_diff_except_public(public_folder, old_folder, new_folder)
+        print('\nchanged_files')
+        for i in changed_files:
+            print('-', i)
+        assert sorted(changed_files) == sorted(new_files_in_new + new_files_in_public_and_new_changed)

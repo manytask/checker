@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import shutil
 from pathlib import Path
+import subprocess
 
 from .print import print_info
 
@@ -140,3 +141,81 @@ def check_files_contains_regexp(
                     raise AssertionError(f'File <{source_path}> contains one of <{regexps}>')
                 return True
     return False
+
+
+def get_folders_diff(
+        old_folder: Path,
+        new_folder: Path,
+        skip_binary: bool = True,
+        exclude_patterns: list[str] = None,
+) -> list[str]:
+    """
+    Return diff files between 2 folders
+    @param old_folder: Old folder
+    @param new_folder: New folder with some changes files, based on old folder
+    @param skip_binary: Skip binary files
+    @param exclude_patterns: Exclude files that match pattern
+    @return: list of changed files as strings
+    """
+    # diff docs https://www.gnu.org/software/diffutils/manual/html_node/diff-Options.html
+    # -N/--new-file - If one file is missing, treat it as present but empty
+    # -w/--ignore-all-space - ignore all spaces and tabs  e.g. if ( a == b)  is equal to if(a==b)
+    # -r/--recursive - recursively compare any subdirectories found
+    # -q/--brief - report only when files differ
+    # --strip-trailing-cr - strip trailing carriage return on input
+    # -x/--exclude [pattern] - exclude files that match pattern
+
+    # TODO: check format options to work, or --left-column options
+    exclude_args = [f'--exclude={pattern}' for pattern in exclude_patterns] if exclude_patterns else []
+    # exclude_args = []
+    result = subprocess.run(
+        [
+            'diff',
+            '--brief',
+            '--recursive',
+            '--ignore-all-space',
+            '--new-file',
+            '--strip-trailing-cr',
+            *exclude_args,
+            old_folder.absolute(),
+            new_folder.absolute()
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    output = result.stdout.decode()
+
+    # TODO: make it work with whitespace in filenames
+
+    changed = []
+    for line in output.split('\n'):
+        if line.startswith('Only in'):
+            assert False, 'Will be treated as change due to --new-file option'
+        elif line.startswith('Files'):
+            _, file1, _, file2, _ = line.split()
+            changed.append(Path(file2).relative_to(new_folder))
+        elif line.startswith('Binary files'):
+            if skip_binary:
+                continue
+            _, _, file1, _, file2, _ = line.split()
+            changed.append(Path(file2).relative_to(new_folder))
+
+    return [str(i) for i in changed]
+
+
+def get_folders_diff_except_public(public_folder: Path, old_folder: Path, new_folder: Path) -> list[str]:
+    """
+    Return diff files between 2 folders except files that are equal to public folder files
+    @param public_folder: Public folder
+    @param old_folder: Old folder
+    @param new_folder: New folder with some changes files, based on old folder
+    @return: list of changed files as strings
+    """
+
+    changed_files_old_new = get_folders_diff(old_folder, new_folder)
+    changed_files_public_new = get_folders_diff(public_folder, new_folder)
+
+    return [
+        str(i)
+        for i in set(changed_files_old_new) & set(changed_files_public_new)
+    ]
