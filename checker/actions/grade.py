@@ -115,6 +115,7 @@ def _get_git_changes(
 
             result = subprocess.run(
                 f'cd {solution_root} && '
+                f'git fetch --unshallow &&'
                 f'(git remote rm upstream | true) &&'
                 f'git remote add upstream {public_repo_url}.git &&'
                 f'git fetch upstream',
