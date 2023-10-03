@@ -45,8 +45,6 @@ def _get_git_changes(
         print_info(f'CI_COMMIT_SHA: {current_commit_sha}, CI_COMMIT_BEFORE_SHA: {prev_commit_sha}!')
         git_changes_type = 'diff_last'
 
-    print_info('Loading changes...', color='orange')
-
     changes = []
     if git_changes_type.startswith('diff'):
         if git_changes_type == 'diff_between':
@@ -267,7 +265,7 @@ def _get_changes_using_real_folders(
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
             print_info(f'Cloning {course_config.public_repo} of {course_config.default_branch}...', color='white')
-            print_info('git clone:', color='grey')
+            # print_info('git clone:', color='grey')
             r = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
                 encoding='utf-8',
@@ -275,19 +273,8 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            print_info(r.stdout, color='grey')
-            # remove .git folder
-            print_info('remove .git:', color='grey')
-            r = subprocess.run(
-                f'rm -rf .git',
-                encoding='utf-8',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                shell=True,
-                cwd=public_dir,
-            )
-            print_info(r.stdout, color='grey')
-            print_info(f'ls -lah {public_dir}', color='grey')
+            # print_info(r.stdout, color='grey')
+            # print_info(f'ls -lah {public_dir}', color='grey')
             r = subprocess.run(
                 f'ls -lah {public_dir}',
                 encoding='utf-8',
@@ -295,21 +282,12 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            print_info(r.stdout, color='grey')
+            # print_info(r.stdout, color='grey')
 
 
             # download old repo by hash, minimal
             print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
-            # print_info('just copy current repo directory:')
-            # r = subprocess.run(
-            #     f'cp -r {current_folder} {public_dir}',
-            #     encoding='utf-8',
-            #     stdout=subprocess.PIPE,
-            #     stderr=subprocess.STDOUT,
-            #     shell=True,
-            # )
-            # print_info(r.stdout, color='grey')
-            print_info('git clone:', color='grey')
+            # print_info('git clone:', color='grey')
             r = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
                 encoding='utf-8',
@@ -317,10 +295,9 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            print_info(r.stdout, color='grey')
-            print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
+            # print_info(r.stdout, color='grey')
+            # print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
             r = subprocess.run(
-                # f'git fetch --unshallow && git checkout {old_hash}',
                 f'git fetch origin {old_hash} && git checkout FETCH_HEAD',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -328,19 +305,8 @@ def _get_changes_using_real_folders(
                 shell=True,
                 cwd=old_dir,
             )
-            print_info(r.stdout, color='grey')
-            # remove .git folder
-            print_info('remove .git:', color='grey')
-            r = subprocess.run(
-                f'rm -rf .git',
-                encoding='utf-8',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                shell=True,
-                cwd=old_dir,
-            )
-            print_info(r.stdout, color='grey')
-            print_info(f'ls -lah {old_dir}', color='grey')
+            # print_info(r.stdout, color='grey')
+            # print_info(f'ls -lah {old_dir}', color='grey')
             r = subprocess.run(
                 f'ls -lah {old_dir}',
                 encoding='utf-8',
@@ -348,22 +314,19 @@ def _get_changes_using_real_folders(
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            print_info(r.stdout, color='grey')
+            # print_info(r.stdout, color='grey')
 
             # get diff
-            print_info(f'Detected changes (filtering by public repo)', color='white')
+            print_info(f'Detected changes (filtering by public repo and git tracked files)', color='white')
+            print_info(f'and filtering by git tracked files', color='white')
             changes = get_folders_diff_except_public(
                 Path(public_dir),
                 Path(old_dir),
                 Path(current_folder),
                 exclude_patterns=['.git'],
             )
-            print_info(f'  raw changes: [{changes[0]}, ...]', color='gray')
-
             # filter by tracked by git
-            print_info(f'and filtering by git tracked files', color='white')
             git_tracked_files = get_tracked_files_list(Path(current_folder))
-            print_info(f'  git tracked files: [{git_tracked_files[0]}, ...]', color='gray')
             changes = [f for f in changes if f in git_tracked_files]
 
             for change in changes:
@@ -411,6 +374,7 @@ def grade_on_ci(
 
     gitlab_job_token = os.environ.get('CI_JOB_TOKEN', None)
 
+    print_info('Loading changes...', color='orange')
     # Get changes using real files difference
     try:
         current_repo_gitlab_path = os.environ['CI_PROJECT_PATH']
@@ -421,12 +385,11 @@ def grade_on_ci(
             current_repo_gitlab_path=current_repo_gitlab_path,
             gitlab_token=gitlab_job_token,
         )
-        raise Exception('Not implemented')
     except Exception as e:
         print_info('Ooops... Loading changes failed', color='red')
         print_info(e)
 
-        print_info('Trying with git diff instead')
+        print_info('Trying with git diff instead\n')
         # Get changed files via git
         try:
             changes = _get_git_changes(
