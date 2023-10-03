@@ -263,15 +263,17 @@ def _get_changes_using_real_folders(
         with tempfile.TemporaryDirectory() as old_dir:
             # download public repo, minimal
             print_info(f'Cloning {course_config.gitlab_url}/{course_config.public_repo}...', color='white')
-            output = subprocess.run(
+            print_info('git clone:', color='grey')
+            r = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
-            ).stdout
-            print_info('git clone\n', output, color='grey')
-            subprocess.run(
+            )
+            print_info(r.stdout, color='grey')
+            print_info('git checkout:', color='grey')
+            r = subprocess.run(
                 f'git checkout {course_config.default_branch}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -279,34 +281,42 @@ def _get_changes_using_real_folders(
                 shell=True,
                 cwd=public_dir,
             )
+            print_info(r.stdout, color='grey')
             # remove .git folder
-            subprocess.run(
-                f'rm -rf {public_dir}/.git',
+            print_info('remove .git:', color='grey')
+            r = subprocess.run(
+                f'rm -rf .git',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                cwd=public_dir,
+            )
+            print_info(r.stdout, color='grey')
+            print_info(f'ls -lah {public_dir}', color='grey')
+            r = subprocess.run(
+                f'ls -lah {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            output = subprocess.run(
-                f'ls -lah {old_dir}',
-                encoding='utf-8',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                shell=True,
-            ).stdout
-            print_info(output, color='grey')
+            print_info(r.stdout, color='grey')
 
 
             # download old repo by hash, minimal
             print_info(f'Cloning {course_config.public_repo} to get {old_hash}...', color='white')
-            subprocess.run(
+            print_info('git clone:', color='grey')
+            r = subprocess.run(
                 f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
             )
-            subprocess.run(
+            print_info(r.stdout, color='grey')
+            print_info('git checkout:', color='grey')
+            r = subprocess.run(
                 f'git checkout {old_hash}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -314,22 +324,27 @@ def _get_changes_using_real_folders(
                 shell=True,
                 cwd=old_dir,
             )
+            print_info(r.stdout, color='grey')
             # remove .git folder
-            subprocess.run(
-                f'rm -rf {old_dir}/.git',
+            print_info('remove .git:', color='grey')
+            r = subprocess.run(
+                f'rm -rf .git',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
+                cwd=old_dir,
             )
-            output = subprocess.run(
+            print_info(r.stdout, color='grey')
+            print_info(f'ls -lah {old_dir}', color='grey')
+            r = subprocess.run(
                 f'ls -lah {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 shell=True,
-            ).stdout
-            print_info(output, color='grey')
+            )
+            print_info(r.stdout, color='grey')
 
             # get diff
             print_info(f'Detected changes (filtering by public repo)', color='white')
@@ -339,16 +354,16 @@ def _get_changes_using_real_folders(
                 Path(current_folder),
                 exclude_patterns=['.git'],
             )
-            print_info(f'  -> [{changes[0]}...]', color='gray')
+            print_info(f'  raw changes: [{changes[0]}, ...]', color='gray')
 
             # filter by tracked by git
             print_info(f'and filtering by git tracked files', color='white')
             git_tracked_files = get_tracked_files_list(Path(current_folder))
-            print_info(f'  -> [{git_tracked_files[0]}...]', color='gray')
+            print_info(f'  git tracked files: [{git_tracked_files[0]}, ...]', color='gray')
             changes = [f for f in changes if f in git_tracked_files]
 
             for change in changes:
-                print_info(f'  - {change}', color='grey')
+                print_info(f'  ->> {change}', color='grey')
 
             return changes
 
@@ -397,10 +412,10 @@ def grade_on_ci(
             current_folder=solution_root,
             old_hash=prev_commit_sha,
         )
+        raise Exception('Not implemented')
     except Exception as e:
         print_info('Ooops... Loading changes failed', color='red')
         print_info(e)
-
 
         print_info('Trying with git diff instead')
         # Get changed files via git
