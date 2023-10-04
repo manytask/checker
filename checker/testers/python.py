@@ -172,7 +172,6 @@ class PythonTester(Tester):
     def _parse_summary_score(
             output: str,
     ) -> float:
-        print_info('_parse_summary_score', color='red')
         score = 0.0
         for line in output.splitlines():
             if 'Summary score percentage is: ' in line:
