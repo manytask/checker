@@ -53,7 +53,7 @@ jobs:
       - name: Run tests
         run: python -m pytest --python --cpp --cov-report=xml tests/
       - name: Upload coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # not required for public repos
           files: coverage.xml
