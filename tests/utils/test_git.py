@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from checker.utils import get_tracked_files_list

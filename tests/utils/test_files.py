@@ -270,8 +270,8 @@ class TestFolderDiff:
 
         # completely different files
         different_files = ['a.py', 'b.cpp', 'c.go']
-        self.fill_folder_binary_files(old_folder, different_files, b'\x00'+os.urandom(4)+b'\x00')
-        self.fill_folder_binary_files(new_folder, different_files, b'\x00'+os.urandom(4)+b'\x00')
+        self.fill_folder_binary_files(old_folder, different_files, b'\x00'+os.urandom(64)+b'\x00')
+        self.fill_folder_binary_files(new_folder, different_files, b'\x00'+os.urandom(64)+b'\x00')
 
         changed_files = get_folders_diff(old_folder, new_folder, skip_binary=False)
         assert sorted(changed_files) == sorted(different_files)
