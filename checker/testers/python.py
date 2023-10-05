@@ -342,6 +342,7 @@ class PythonTester(Tester):
 
         # Check tests
         tests_err = None
+        tests_output = ''
         try:
             print_info('Running tests...', color='orange')
             output = self._executor(
@@ -356,13 +357,11 @@ class PythonTester(Tester):
                 print_info(output, end='')
             print_info('OK', color='green')
         except ExecutionFailedError as e:
-            if not test_config.partially_scored:
-                # Reraise only if all tests should pass
-                tests_err = e
-            output = e.output
+            tests_err = e
+            tests_output = e.output or ''
 
             if normalize_output or test_config.partially_scored:
-                print_info(output, end='')
+                print_info(e.output, end='')
                 e.output = ''
                 output = ''
 
@@ -374,7 +373,7 @@ class PythonTester(Tester):
         if import_err is not None:
             raise RunFailedError('Import error', output=import_err.output) from import_err
 
-        if tests_err is not None:
+        if tests_err is not None and not test_config.partially_scored:  # Reraise only if all tests should pass
             raise TestsFailedError('Public or private tests error', output=tests_err.output) from tests_err
 
         if styles_err is not None:
@@ -384,7 +383,7 @@ class PythonTester(Tester):
             raise StylecheckFailedError('Typing error', output=typing_err.output) from typing_err
 
         if test_config.partially_scored:
-            output = output or ''  # for mypy only
-            return self._parse_summary_score(output)
+            tests_output = tests_output or ''  # for mypy only
+            return self._parse_summary_score(tests_output)
         else:
             return 1.

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from checker.utils import print_info, print_task_info

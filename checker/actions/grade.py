@@ -3,11 +3,14 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 from ..course import CourseConfig, CourseDriver, CourseSchedule, Group, Task
 from ..exceptions import RunFailedError
 from ..testers import Tester
+from ..utils import get_folders_diff_except_public, get_tracked_files_list
 from ..utils.manytask import PushFailedError, push_report
 from ..utils.print import print_info, print_task_info
 
@@ -41,8 +44,6 @@ def _get_git_changes(
                    'Using std `git show`')
         print_info(f'CI_COMMIT_SHA: {current_commit_sha}, CI_COMMIT_BEFORE_SHA: {prev_commit_sha}!')
         git_changes_type = 'diff_last'
-
-    print_info('Loading changes...', color='orange')
 
     changes = []
     if git_changes_type.startswith('diff'):
@@ -112,6 +113,7 @@ def _get_git_changes(
 
             result = subprocess.run(
                 f'cd {solution_root} && '
+                f'git fetch --unshallow &&'
                 f'(git remote rm upstream | true) &&'
                 f'git remote add upstream {public_repo_url}.git &&'
                 f'git fetch upstream',
@@ -250,6 +252,91 @@ def grade_tasks(
     return success
 
 
+def _get_changes_using_real_folders(
+        course_config: CourseConfig,
+        current_folder: str,
+        old_hash: str,
+        current_repo_gitlab_path: str,
+        gitlab_token: str,
+) -> list[str]:
+    gitlab_url_with_token = course_config.gitlab_url.replace('://', f'://gitlab-ci-token:{gitlab_token}@')
+
+    with tempfile.TemporaryDirectory() as public_dir:
+        with tempfile.TemporaryDirectory() as old_dir:
+            # download public repo, minimal
+            print_info(f'Cloning {course_config.public_repo} of {course_config.default_branch}...', color='white')
+            # print_info('git clone:', color='grey')
+            subprocess.run(
+                f'git clone --depth=1 --branch={course_config.default_branch} '
+                f'{course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            # print_info(r.stdout, color='grey')
+            # print_info(f'ls -lah {public_dir}', color='grey')
+            subprocess.run(
+                f'ls -lah {public_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            # print_info(r.stdout, color='grey')
+
+            # download old repo by hash, minimal
+            print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
+            # print_info('git clone:', color='grey')
+            subprocess.run(
+                f'git clone --depth=1 --branch={course_config.default_branch} '
+                f'{gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            # print_info(r.stdout, color='grey')
+            # print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
+            subprocess.run(
+                f'git fetch origin {old_hash} && git checkout FETCH_HEAD',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                cwd=old_dir,
+            )
+            # print_info(r.stdout, color='grey')
+            # print_info(f'ls -lah {old_dir}', color='grey')
+            subprocess.run(
+                f'ls -lah {old_dir}',
+                encoding='utf-8',
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            # print_info(r.stdout, color='grey')
+
+            # get diff
+            print_info('Detected changes (filtering by public repo and git tracked files)', color='white')
+            print_info('and filtering by git tracked files', color='white')
+            changes = get_folders_diff_except_public(
+                Path(public_dir),
+                Path(old_dir),
+                Path(current_folder),
+                exclude_patterns=['.git'],
+            )
+            # filter by tracked by git
+            git_tracked_files = get_tracked_files_list(Path(current_folder))
+            changes = [f for f in changes if f in git_tracked_files]
+
+            print_info('\nchanged_files:', color='white')
+            for change in changes:
+                print_info(f'  ->> {change}', color='white')
+
+            return changes
+
+
 def grade_on_ci(
         course_config: CourseConfig,
         course_schedule: CourseSchedule,
@@ -280,23 +367,44 @@ def grade_on_ci(
     print_info(f'-> job_start_time {job_start_time}', color='grey')
     print_info(f'= using send_time {send_time}', color='grey')
 
-    # Get changed files via git
-    try:
-        author_name = os.environ.get('CI_COMMIT_AUTHOR', None)
-        current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
-        prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
+    author_name = os.environ.get('CI_COMMIT_AUTHOR', None)
+    current_commit_sha = os.environ.get('CI_COMMIT_SHA', None)
+    prev_commit_sha = os.environ.get('CI_COMMIT_BEFORE_SHA', None)
+    print_info(f'CI_COMMIT_AUTHOR {author_name}', color='grey')
+    print_info(f'CI_COMMIT_SHA {current_commit_sha}', color='grey')
+    print_info(f'CI_COMMIT_BEFORE_SHA {prev_commit_sha}', color='grey')
 
-        changes = _get_git_changes(
-            solution_root,
-            course_config.gitlab_url + '/' + course_config.public_repo,
-            author_name=author_name,
-            current_commit_sha=current_commit_sha,
-            prev_commit_sha=prev_commit_sha,
+    gitlab_job_token = os.environ.get('CI_JOB_TOKEN') or ''
+
+    print_info('Loading changes...', color='orange')
+    # Get changes using real files difference
+    try:
+        current_repo_gitlab_path = os.environ['CI_PROJECT_PATH']
+        changes = _get_changes_using_real_folders(
+            course_config,
+            current_folder=solution_root,
+            old_hash=prev_commit_sha or course_config.default_branch,
+            current_repo_gitlab_path=current_repo_gitlab_path,
+            gitlab_token=gitlab_job_token,
         )
-    except GitException as e:
+    except Exception as e:
         print_info('Ooops... Loading changes failed', color='red')
         print_info(e)
-        sys.exit(1)
+
+        print_info('Trying with git diff instead\n')
+        # Get changed files via git
+        try:
+            changes = _get_git_changes(
+                solution_root,
+                course_config.gitlab_url + '/' + course_config.public_repo,
+                author_name=author_name,
+                current_commit_sha=current_commit_sha,
+                prev_commit_sha=prev_commit_sha,
+            )
+        except GitException as e:
+            print_info('Ooops... Loading changes failed', color='red')
+            print_info(e)
+            sys.exit(1)
 
     # Process Changed files to Changed tasks
     tasks: list[Task] = []

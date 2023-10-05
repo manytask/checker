@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import shutil
 import subprocess
 from pathlib import Path
@@ -6,6 +8,21 @@ from .print import print_info
 
 
 DEFAULT_BRANCH = 'main'
+
+
+def get_tracked_files_list(
+        repo_dir: Path,
+) -> list[str]:
+    r = subprocess.run(
+        'git ls-files',
+        encoding='utf-8',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+        check=True,
+        cwd=repo_dir,
+    )
+    return r.stdout.splitlines()
 
 
 def setup_repo_in_dir(
