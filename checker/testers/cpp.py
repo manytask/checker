@@ -117,7 +117,7 @@ class CppTester(Tester):
 
         try:
             print_info('Running clang tidy...', color='orange')
-            files = [str(file) for file in task_dir.rglob('*.cpp')]
+            files = [str(file) for file in task_dir.rglob('*.cpp')]  # type: ignore
             self._executor(
                 ['clang-tidy', '-p', '.', *files],
                 cwd=build_dir,

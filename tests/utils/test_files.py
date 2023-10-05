@@ -10,7 +10,9 @@ from checker.utils.files import (
     check_files_contains_regexp,
     check_folder_contains_regexp,
     copy_files,
-    filename_match_patterns, get_folders_diff, get_folders_diff_except_public,
+    filename_match_patterns,
+    get_folders_diff,
+    get_folders_diff_except_public,
 )
 
 

@@ -266,8 +266,9 @@ def _get_changes_using_real_folders(
             # download public repo, minimal
             print_info(f'Cloning {course_config.public_repo} of {course_config.default_branch}...', color='white')
             # print_info('git clone:', color='grey')
-            r = subprocess.run(
-                f'git clone --depth=1 --branch={course_config.default_branch} {course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
+            subprocess.run(
+                f'git clone --depth=1 --branch={course_config.default_branch} '
+                f'{course_config.gitlab_url}/{course_config.public_repo}.git {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -275,7 +276,7 @@ def _get_changes_using_real_folders(
             )
             # print_info(r.stdout, color='grey')
             # print_info(f'ls -lah {public_dir}', color='grey')
-            r = subprocess.run(
+            subprocess.run(
                 f'ls -lah {public_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -287,8 +288,9 @@ def _get_changes_using_real_folders(
             # download old repo by hash, minimal
             print_info(f'Cloning {current_repo_gitlab_path} to get {old_hash}...', color='white')
             # print_info('git clone:', color='grey')
-            r = subprocess.run(
-                f'git clone --depth=1 --branch={course_config.default_branch} {gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
+            subprocess.run(
+                f'git clone --depth=1 --branch={course_config.default_branch} '
+                f'{gitlab_url_with_token}/{current_repo_gitlab_path}.git {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -296,7 +298,7 @@ def _get_changes_using_real_folders(
             )
             # print_info(r.stdout, color='grey')
             # print_info(f'git fetch origin {old_hash} && git checkout FETCH_HEAD:', color='grey')
-            r = subprocess.run(
+            subprocess.run(
                 f'git fetch origin {old_hash} && git checkout FETCH_HEAD',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -306,7 +308,7 @@ def _get_changes_using_real_folders(
             )
             # print_info(r.stdout, color='grey')
             # print_info(f'ls -lah {old_dir}', color='grey')
-            r = subprocess.run(
+            subprocess.run(
                 f'ls -lah {old_dir}',
                 encoding='utf-8',
                 stdout=subprocess.PIPE,
@@ -316,8 +318,8 @@ def _get_changes_using_real_folders(
             # print_info(r.stdout, color='grey')
 
             # get diff
-            print_info(f'Detected changes (filtering by public repo and git tracked files)', color='white')
-            print_info(f'and filtering by git tracked files', color='white')
+            print_info('Detected changes (filtering by public repo and git tracked files)', color='white')
+            print_info('and filtering by git tracked files', color='white')
             changes = get_folders_diff_except_public(
                 Path(public_dir),
                 Path(old_dir),
@@ -328,7 +330,7 @@ def _get_changes_using_real_folders(
             git_tracked_files = get_tracked_files_list(Path(current_folder))
             changes = [f for f in changes if f in git_tracked_files]
 
-            print_info(f'\nchanged_files:', color='white')
+            print_info('\nchanged_files:', color='white')
             for change in changes:
                 print_info(f'  ->> {change}', color='white')
 
@@ -372,7 +374,7 @@ def grade_on_ci(
     print_info(f'CI_COMMIT_SHA {current_commit_sha}', color='grey')
     print_info(f'CI_COMMIT_BEFORE_SHA {prev_commit_sha}', color='grey')
 
-    gitlab_job_token = os.environ.get('CI_JOB_TOKEN', None)
+    gitlab_job_token = os.environ.get('CI_JOB_TOKEN') or ''
 
     print_info('Loading changes...', color='orange')
     # Get changes using real files difference
@@ -381,7 +383,7 @@ def grade_on_ci(
         changes = _get_changes_using_real_folders(
             course_config,
             current_folder=solution_root,
-            old_hash=prev_commit_sha,
+            old_hash=prev_commit_sha or course_config.default_branch,
             current_repo_gitlab_path=current_repo_gitlab_path,
             gitlab_token=gitlab_job_token,
         )

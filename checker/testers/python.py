@@ -358,7 +358,7 @@ class PythonTester(Tester):
             print_info('OK', color='green')
         except ExecutionFailedError as e:
             tests_err = e
-            tests_output = e.output
+            tests_output = e.output or ''
 
             if normalize_output or test_config.partially_scored:
                 print_info(e.output, end='')

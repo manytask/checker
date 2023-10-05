@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 import shutil
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 from .print import print_info
 
@@ -234,10 +234,10 @@ def get_folders_diff_except_public(
     )
 
     # TODO: Remove logging
-    print_info(f'\nchanged_files_old_new:', color='grey')
+    print_info('\nchanged_files_old_new:', color='grey')
     for i in changed_files_old_new:
         print_info(f'  {i}', color='grey')
-    print_info(f'\nchanged_files_public_new:', color='grey')
+    print_info('\nchanged_files_public_new:', color='grey')
     for i in changed_files_public_new:
         print_info(f'  {i}', color='grey')
 
