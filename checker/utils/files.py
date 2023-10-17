@@ -173,7 +173,6 @@ def get_folders_diff(
             'diff',
             '--brief',
             '--recursive',
-            '--ignore-all-space',
             '--new-file',
             '--strip-trailing-cr',
             *exclude_args,
