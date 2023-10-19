@@ -25,7 +25,7 @@ def _get_enabled_files_and_dirs_private_to_public(
     # Common staff; files only, all from private repo except ignored
     common_files: dict[Path, Path] = {
         i: public_course_driver.root_dir / i.name
-        for i in private_course_driver.root_dir.glob('*.*')
+        for i in private_course_driver.root_dir.glob('*')
         if i.is_file() and not filename_match_patterns(i, EXPORT_IGNORE_COMMON_FILE_PATTERNS)
     }
 
