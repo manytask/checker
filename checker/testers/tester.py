@@ -5,7 +5,7 @@ import tempfile
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 from ..course import CourseConfig
 from ..exceptions import RunFailedError, TaskTesterTestConfigException, TesterNotImplemented
@@ -13,8 +13,8 @@ from ..executors.sandbox import Sandbox
 from ..utils.print import print_info
 
 
-def _create_external_tester(tester_path: Path, dry_run: bool, cleanup: bool):
-    globls = {}
+def _create_external_tester(tester_path: Path, dry_run: bool, cleanup: bool) -> Tester:
+    globls: Dict[str, Any] = {}
     with open(tester_path) as f:
         tester_code = compile(f.read(), tester_path.absolute(), 'exec')
         exec(tester_code, globls)
