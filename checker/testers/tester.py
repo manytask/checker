@@ -114,7 +114,7 @@ class Tester:
         elif system == 'external':
             path = course_config.tester_path
             if path is None:
-                raise TesterNotImplemented(f'tester_path is not specified in course config')
+                raise TesterNotImplemented('tester_path is not specified in course config')
             return _create_external_tester(root / path, cleanup=cleanup, dry_run=dry_run)
         else:
             raise TesterNotImplemented(f'Tester for <{system}> are not supported right now')
