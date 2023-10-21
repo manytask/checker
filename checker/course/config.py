@@ -48,6 +48,7 @@ class CourseConfig:
     # checker default
     layout: str = 'groups'
     executor: str = 'sandbox'
+    tester_path: str | None = None
 
     # info
     links: dict[str, str] | None = None

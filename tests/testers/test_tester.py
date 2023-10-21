@@ -10,6 +10,27 @@ from checker.testers.cpp import CppTester
 from checker.testers.make import MakeTester
 from checker.testers.python import PythonTester
 from checker.testers.tester import Tester
+from checker.course import CourseConfig
+
+
+def create_test_course_config(**kwargs) -> CourseConfig:
+    return CourseConfig(
+        name='test',
+        deadlines='',
+        templates='',
+        manytask_url='',
+        course_group='',
+        public_repo='',
+        students_group='',
+        **kwargs,
+    )
+
+def write_tester_to_file(path: Path, content: str) -> Path:
+    filename = path / 'tester.py'
+    content = inspect.cleandoc(content)
+    with open(filename, 'w') as f:
+        f.write(content)
+    return filename
 
 
 class TestTester:
@@ -19,12 +40,45 @@ class TestTester:
         ('make', MakeTester),
     ])
     def test_right_tester_created(self, tester_name: str, tester_class: Type[Tester]) -> None:
-        tester = Tester.create(tester_name)
+        course_config = create_test_course_config(system=tester_name)
+        tester = Tester.create(root=Path(), course_config=course_config)
         assert isinstance(tester, tester_class)
 
-    def test_wrong_tester(self) -> None:
+    def test_external_tester(self, tmp_path: Path):
+        TESTER = """
+        from checker.testers import Tester
+        class CustomTester(Tester):
+            definitely_external_tester = 'Yes!'
+        """
+        course_config = create_test_course_config(system='external', tester_path='tester.py')
+        write_tester_to_file(tmp_path, TESTER)
+        tester = Tester.create(root=tmp_path, course_config=course_config)
+        assert hasattr(tester, 'definitely_external_tester')
+
+    NOT_A_TESTER = """
+        class NotATester:
+            definitely_external_tester = 'Yes!'
+        """
+
+    NOT_INHERITED_TESTER = """
+        class CustomTester:
+            definitely_external_tester = 'Yes!'
+        """
+
+    @pytest.mark.parametrize('tester_content', [
+        NOT_A_TESTER,
+        NOT_INHERITED_TESTER,
+    ])
+    def test_invalid_external_tester(self, tmp_path: Path, tester_content):
+        course_config = create_test_course_config(system='external', tester_path='tester.py')
+        write_tester_to_file(tmp_path, tester_content)
         with pytest.raises(TesterNotImplemented):
-            Tester.create('definitely-wrong-tester')
+            Tester.create(root=tmp_path, course_config=course_config)
+
+    def test_wrong_tester(self) -> None:
+        course_config = create_test_course_config(system='definitely-wrong-tester')
+        with pytest.raises(TesterNotImplemented):
+            Tester.create(root=Path(), course_config=course_config)
 
 
 @dataclass

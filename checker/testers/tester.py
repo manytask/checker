@@ -7,9 +7,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ..course import CourseConfig
 from ..exceptions import RunFailedError, TaskTesterTestConfigException, TesterNotImplemented
 from ..executors.sandbox import Sandbox
 from ..utils.print import print_info
+
+
+def _create_external_tester(tester_path: Path, dry_run: bool, cleanup: bool):
+    globls = {}
+    with open(tester_path) as f:
+        tester_code = compile(f.read(), tester_path.absolute(), 'exec')
+        exec(tester_code, globls)
+    tester_cls = globls.get('CustomTester')
+    if tester_cls is None:
+        raise TesterNotImplemented(f'class CustomTester not found in file {tester_path}')
+    if not issubclass(tester_cls, Tester):
+        raise TesterNotImplemented(f'class CustomTester in {tester_path} is not inherited from testers.Tester')
+    return tester_cls(dry_run=dry_run, cleanup=cleanup)
 
 
 class Tester:
@@ -27,7 +41,6 @@ class Tester:
         """Task Tests Config
         Configure how task will copy files, check, execute and so on
         """
-        pass
 
         @classmethod
         def from_json(
@@ -75,7 +88,8 @@ class Tester:
     @classmethod
     def create(
             cls,
-            system: str,
+            root: Path,
+            course_config: CourseConfig,
             cleanup: bool = True,
             dry_run: bool = False,
     ) -> 'Tester':
@@ -87,6 +101,7 @@ class Tester:
         @param dry_run: Setup dry run mode (really executes nothing)
         @return: Configured Tester object (python, cpp, etc.)
         """
+        system = course_config.system
         if system == 'python':
             from . import python
             return python.PythonTester(cleanup=cleanup, dry_run=dry_run)
@@ -96,6 +111,11 @@ class Tester:
         elif system == 'cpp':
             from . import cpp
             return cpp.CppTester(cleanup=cleanup, dry_run=dry_run)
+        elif system == 'external':
+            path = course_config.tester_path
+            if path is None:
+                raise TesterNotImplemented(f'tester_path is not specified in course config')
+            return _create_external_tester(root / path, cleanup=cleanup, dry_run=dry_run)
         else:
             raise TesterNotImplemented(f'Tester for <{system}> are not supported right now')
 

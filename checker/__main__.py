@@ -94,7 +94,8 @@ def check(
         deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
     tester = Tester.create(
-        system=course_config.system,
+        root=root,
+        course_config=course_config,
         cleanup=not no_clean,
         dry_run=dry_run,
     )
@@ -157,7 +158,8 @@ def grade(
         deadlines_config=private_course_driver.get_deadlines_file_path(),
     )
     tester = Tester.create(
-        system=course_config.system,
+        root=execution_folder,
+        course_config=course_config,
     )
 
     grade_on_ci(
