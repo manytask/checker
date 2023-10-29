@@ -45,6 +45,11 @@ jobs:
   release-python-package:
     needs: update-version-and-changelog-files
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/manytask-checker
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
@@ -60,9 +65,6 @@ jobs:
         python -m pip wheel . --no-deps --wheel-dir dist
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_TOKEN }}
-        packages_dir: dist
 
 #  release-github-pages:
 #    runs-on: ubuntu-latest
