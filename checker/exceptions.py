@@ -53,15 +53,3 @@ class ExecutionFailedError(TestingError):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.message}"
-
-
-class ExecutionTimeoutError(ExecutionFailedError):
-    """Execution timeout exception"""
-
-    pass
-
-
-class RunFailedError(ExecutionFailedError):
-    """Execution run failed exception (return code != 0)"""
-
-    pass

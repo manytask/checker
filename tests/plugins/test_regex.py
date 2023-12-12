@@ -89,9 +89,9 @@ class TestCheckRegexpsPlugin:
         args = CheckRegexpsPlugin.Args(origin=str(origin), patterns=patterns, regexps=regexps)
 
         if expected_exception:
-            with pytest.raises(expected_exception) as e:
+            with pytest.raises(expected_exception) as exc_info:
                 plugin._run(args)
-            assert "matches regexp" in str(e.value)
+            assert "matches regexp" in str(exc_info.value)
         else:
             assert plugin._run(args) == "No forbidden regexps found"
             assert plugin._run(args, verbose=True) == "No forbidden regexps found"
@@ -101,6 +101,6 @@ class TestCheckRegexpsPlugin:
         plugin = CheckRegexpsPlugin()
         args = CheckRegexpsPlugin.Args(origin="/tmp/non_existent", patterns=["*.txt"], regexps=["forbidden"])
 
-        with pytest.raises(ExecutionFailedError) as e:
+        with pytest.raises(ExecutionFailedError) as exc_info:
             plugin._run(args)
-        assert "does not exist" in str(e.value)
+        assert "does not exist" in str(exc_info.value)

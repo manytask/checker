@@ -51,9 +51,9 @@ class TestAggregatePlugin:
         plugin = AggregatePlugin()
         args = AggregatePlugin.Args(scores=scores, weights=weights)
 
-        with pytest.raises(ExecutionFailedError) as e:
+        with pytest.raises(ExecutionFailedError) as exc_info:
             plugin._run(args)
-        assert "Length of scores" in str(e.value)
+        assert "Length of scores" in str(exc_info.value)
 
     def test_default_weights(self) -> None:
         plugin = AggregatePlugin()

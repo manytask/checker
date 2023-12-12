@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic import Field
 
 from .base import PluginABC
-from ..exceptions import ExecutionFailedError, ExecutionTimeoutError, RunFailedError
+from ..exceptions import ExecutionFailedError
 
 
 class RunScriptPlugin(PluginABC):
@@ -40,15 +40,16 @@ class RunScriptPlugin(PluginABC):
                 preexec_fn=set_up_env_sandbox,
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            output = e.output if isinstance(e.output, str) else e.output.decode('utf-8')
+            output = e.output or ""
+            output = output if isinstance(output, str) else output.decode('utf-8')
 
             if isinstance(e, subprocess.TimeoutExpired):
-                raise ExecutionTimeoutError(
+                raise ExecutionFailedError(
                     f"Script timed out after {e.timeout}s ({args.timeout}s limit)",
                     output=output,
                 ) from e
             else:
-                raise RunFailedError(
+                raise ExecutionFailedError(
                     f"Script failed with exit code {e.returncode}",
                     output=output,
                 ) from e
