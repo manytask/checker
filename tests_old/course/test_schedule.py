@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from checker.course.schedule import CourseSchedule, Group, Task
-from checker.exceptions import BadConfig
+from checker_old.course.schedule import CourseSchedule, Group, Task
+from checker_old.exceptions import BadConfig
 
 
 DATA_FOLDER = Path(__file__).parents[1] / 'data' / 'schedule'

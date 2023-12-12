@@ -15,14 +15,22 @@ class AggregatePlugin(PluginABC):
         scores: list[float]
         weights: list[float] | None = None
         strategy: Literal["mean", "sum", "min", "max", "product"] = "mean"
+        # TODO: validate for weights: len weights should be equal to len scores
+        # TODO: validate not empty scores
 
     def _run(self, args: Args, *, verbose: bool = False) -> str:
-        weights = args.weights or [1.0] * len(args.scores)
+        weights = args.weights or ([1.0] * len(args.scores))
 
-        if len(args.scores) != len(args.weights):
+        if len(args.scores) != len(weights):
             raise ExecutionFailedError(
                 f"Length of scores ({len(args.scores)}) and weights ({len(weights)}) does not match",
                 output=f"Length of scores ({len(args.scores)}) and weights ({len(weights)}) does not match",
+            )
+
+        if len(args.scores) == 0 or len(weights) == 0:
+            raise ExecutionFailedError(
+                f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
+                output=f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
             )
 
         weighted_scores = [score * weight for score, weight in zip(args.scores, weights)]

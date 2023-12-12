@@ -7,12 +7,12 @@ from typing import Type
 
 import pytest
 
-from checker.exceptions import TaskTesterTestConfigException, TesterNotImplemented
-from checker.testers.cpp import CppTester
-from checker.testers.make import MakeTester
-from checker.testers.python import PythonTester
-from checker.testers.tester import Tester
-from checker.course import CourseConfig
+from checker_old.exceptions import TaskTesterTestConfigException, TesterNotImplemented
+from checker_old.testers.cpp import CppTester
+from checker_old.testers.make import MakeTester
+from checker_old.testers.python import PythonTester
+from checker_old.testers.tester import Tester
+from checker_old.course import CourseConfig
 
 
 def create_test_course_config(**kwargs) -> CourseConfig:
@@ -48,7 +48,7 @@ class TestTester:
 
     def test_external_tester(self, tmp_path: Path):
         TESTER = """
-        from checker.testers import Tester
+        from checker_old.testers import Tester
         class CustomTester(Tester):
             definitely_external_tester = 'Yes!'
         """

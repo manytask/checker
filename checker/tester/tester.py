@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Generator
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +19,7 @@ class Tester:
     1. Create temporary directory
     2. Execute global pipeline
     3. Execute task pipeline for each task
-    4. Collect results and return them
+    4. Collect results and push to them
     5. Remove temporary directory
     """
     __test__ = False  # do not collect this class for pytest

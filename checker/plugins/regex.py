@@ -11,14 +11,17 @@ class CheckRegexpsPlugin(PluginABC):
         origin: str
         patterns: list[str]
         regexps: list[str]
+        # TODO: Add validation for patterns and regexps
 
     def _run(self, args: Args, *, verbose: bool = False) -> str:
+        # TODO: add verbose output with files list
         import re
         from pathlib import Path
 
+        # TODO: move to Args validation
         if not Path(args.origin).exists():
             raise ExecutionFailedError(
-                f"Origin {args.origin} does not exist",
+                f"Origin '{args.origin}' does not exist",
                 output=f"Origin {args.origin} does not exist",
             )
 
@@ -31,7 +34,7 @@ class CheckRegexpsPlugin(PluginABC):
                     for regexp in args.regexps:
                         if re.search(regexp, file_content, re.MULTILINE):
                             raise ExecutionFailedError(
-                                f"File {file} matches regexp {regexp}",
-                                output=f"File {file} matches regexp {regexp}",
+                                f"File '{file.name}' matches regexp '{regexp}'",
+                                output=f"File '{file}' matches regexp '{regexp}'",
                             )
         return "No forbidden regexps found"

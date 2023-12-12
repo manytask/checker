@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from checker.course import Group, Task
-from checker.course.driver import CourseDriver
-from checker.exceptions import BadConfig
+from checker_old.course import Group, Task
+from checker_old.course.driver import CourseDriver
+from checker_old.exceptions import BadConfig
 
 
 DATA_FOLDER = Path(__file__).parents[1] / 'data' / 'driver'

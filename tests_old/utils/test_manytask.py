@@ -5,8 +5,8 @@ import datetime
 import pytest
 from pytest_mock import MockFixture
 
-from checker.exceptions import GetFailedError, PushFailedError
-from checker.utils import get_score, push_report
+from checker_old.exceptions import GetFailedError, PushFailedError
+from checker_old.utils import get_score, push_report
 
 
 BASE_URL = 'https://test.manytask.org'

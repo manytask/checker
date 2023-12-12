@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from checker.exceptions import StylecheckFailedError, TestsFailedError
-from checker.testers.python import PythonTester
+from checker_old.exceptions import StylecheckFailedError, TestsFailedError
+from checker_old.testers.python import PythonTester
 
 
 py_tests = pytest.mark.skipif("not config.getoption('python')")

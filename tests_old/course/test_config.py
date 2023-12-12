@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from checker.course.config import CourseConfig
-from checker.exceptions import BadConfig
+from checker_old.course.config import CourseConfig
+from checker_old.exceptions import BadConfig
 
 
 DATA_FOLDER = Path(__file__).parents[1] / 'data' / 'config'

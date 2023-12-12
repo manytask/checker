@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from checker.exceptions import ExecutionFailedError
+from checker_old.exceptions import ExecutionFailedError
 
 
 try:
@@ -14,7 +14,7 @@ try:
 except ImportError:
     unshare = None
 
-from checker.executors.sandbox import Sandbox
+from checker_old.executors.sandbox import Sandbox
 
 
 skip_without_unshare = pytest.mark.skipif(

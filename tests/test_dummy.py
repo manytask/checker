@@ -1,4 +1,4 @@
 
 
-def dummy_test():
+def test_dummy():
     assert True

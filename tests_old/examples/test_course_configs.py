@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from checker.course.config import CourseConfig
-from checker.course.schedule import CourseSchedule
+from checker_old.course.config import CourseConfig
+from checker_old.course.schedule import CourseSchedule
 
 
 EXAMPLES_FOLDER = Path(__file__).parents[2] / 'examples'

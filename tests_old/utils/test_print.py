@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from checker.utils import print_info, print_task_info
+from checker_old.utils import print_info, print_task_info
 
 
 class TestPrint:

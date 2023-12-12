@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from checker.utils import get_tracked_files_list
+from checker_old.utils import get_tracked_files_list
 
 
 ROOT_DIR = Path(__file__).parent.parent.parent

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from checker.exceptions import BuildFailedError, StylecheckFailedError, TestsFailedError
-from checker.testers.cpp import CppTester
-from checker.utils import copy_files
+from checker_old.exceptions import BuildFailedError, StylecheckFailedError, TestsFailedError
+from checker_old.testers.cpp import CppTester
+from checker_old.utils import copy_files
 
 
 cpp_tests = pytest.mark.skipif("not config.getoption('cpp')")

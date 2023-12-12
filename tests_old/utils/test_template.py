@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from checker.utils import create_template_from_gold_solution, cut_marked_code_from_string
+from checker_old.utils import create_template_from_gold_solution, cut_marked_code_from_string
 
 
 def create_file(filename: Path, content: str) -> None:

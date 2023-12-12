@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from checker.utils.files import (
+from checker_old.utils.files import (
     check_file_contains_regexp,
     check_files_contains_regexp,
     check_folder_contains_regexp,
