@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any, Type
 
@@ -35,6 +36,7 @@ class PipelineStageResult:
     failed: bool
     skipped: bool
     percentage: float = 0.0
+    elapsed_time: float | None = None
     output: str = ''
 
     def __str__(self) -> str:
@@ -135,7 +137,7 @@ class PipelineRunner:
             resolved_args = parameters_resolver.resolve(pipeline_stage.args, extra_context=extra_context)
             resolved_run_if = parameters_resolver.resolve_single_string(pipeline_stage.run_if, extra_context=extra_context) if pipeline_stage.run_if else None
 
-            print_info(f'-> Running "{pipeline_stage.name}" stage:', color='orange')
+            print_info(f'--> Running "{pipeline_stage.name}" stage:', color='orange')
             if self.verbose:
                 print_info(f'    run_if: {pipeline_stage.run_if}', color='grey')
                 print_info(f'    resolved_run_if: {resolved_run_if}', color='grey')
@@ -182,9 +184,12 @@ class PipelineRunner:
                 continue
 
             # run the plugin with executor
+            _start_time = time.perf_counter()
             try:
                 output = plugin.run(resolved_args, verbose=self.verbose)
+                _end_time = time.perf_counter()
                 print_info(output or '[empty output]')
+                print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
                 print_info('ok!', color='green')
                 pipeline_stage_results.append(PipelineStageResult(
                     name=pipeline_stage.name,
@@ -192,9 +197,12 @@ class PipelineRunner:
                     skipped=False,
                     output=output,
                     percentage=1.0,  # TODO: get percentage from plugin
+                    elapsed_time=_end_time-_start_time,
                 ))
             except ExecutionFailedError as e:
+                _end_time = time.perf_counter()
                 print_info(e.output or '[empty output]')
+                print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
                 print_info('error!', color='red')
                 pipeline_stage_results.append(PipelineStageResult(
                     name=pipeline_stage.name,
@@ -202,6 +210,7 @@ class PipelineRunner:
                     skipped=False,
                     output=e.output or '',
                     percentage=0.0,  # TODO: get percentage from plugin
+                    elapsed_time=_end_time-_start_time,
                 ))
                 if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
                     skip_the_rest = True

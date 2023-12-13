@@ -7,7 +7,7 @@ from typing import Any
 from ..configs import CheckerTestingConfig
 from ..configs.checker import CheckerStructureConfig, CheckerConfig
 from ..course import Course, FileSystemTask
-from ..exceptions import ExecutionFailedError, ExecutionTimeoutError, RunFailedError, TestingError
+from ..exceptions import ExecutionFailedError, TestingError
 from .pipeline import PipelineRunner, GlobalPipelineVariables, TaskPipelineVariables, PipelineResult
 from ..plugins import load_plugins
 from ..utils import print_info, print_header_info, print_separator
