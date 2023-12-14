@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from checker.exceptions import BadConfig
-from checker.tester.pipeline import ParametersResolver
+from checker.pipeline import ParametersResolver
 
 
 class TestParametersResolver:

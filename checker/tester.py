@@ -6,16 +6,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ..configs import CheckerTestingConfig
-from ..configs.checker import (
+from .configs import CheckerTestingConfig
+from .configs.checker import (
     CheckerConfig,
     CheckerParametersConfig,
     CheckerStructureConfig,
 )
-from ..course import Course, FileSystemTask
-from ..exceptions import PluginExecutionFailed, TestingError
-from ..plugins import load_plugins
-from ..utils import print_header_info, print_info, print_separator
+from .course import Course, FileSystemTask
+from .exceptions import PluginExecutionFailed, TestingError
+from .plugins import load_plugins
+from .utils import print_header_info, print_info, print_separator
 from .pipeline import PipelineResult, PipelineRunner, PipelineStageResult
 
 

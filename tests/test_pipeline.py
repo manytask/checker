@@ -9,7 +9,7 @@ from checker.configs import PipelineStageConfig
 from checker.exceptions import BadConfig, PluginExecutionFailed
 from checker.plugins import PluginABC
 from checker.plugins.base import PluginOutput
-from checker.tester.pipeline import PipelineRunner
+from checker.pipeline import PipelineRunner
 
 
 class _FailPlugin(PluginABC):

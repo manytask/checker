@@ -6,10 +6,10 @@ from typing import Any, Type
 
 import jinja2.nativetypes
 
-from ..configs import PipelineStageConfig
-from ..exceptions import BadConfig, PluginExecutionFailed
-from ..plugins import PluginABC
-from ..utils import print_info
+from .configs import PipelineStageConfig
+from .exceptions import BadConfig, PluginExecutionFailed
+from .plugins import PluginABC
+from .utils import print_info
 
 
 @dataclass
