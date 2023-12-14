@@ -20,7 +20,7 @@ class CheckerStructureConfig(CustomBaseModel):
     # TODO: add check "**" is not allowed
 
 
-class CheckerParametersConfig(RootModel):
+class CheckerParametersConfig(RootModel[dict[str, ParamType]]):
     root: dict[str, ParamType]
 
     def __getitem__(self, item: str) -> ParamType:
@@ -40,11 +40,6 @@ class CheckerExportConfig(CustomBaseModel):
     default_branch: str = "main"
     commit_message: str = "chore(auto): export new tasks"
     templates: TemplateType = TemplateType.SEARCH
-
-
-class CheckerManytaskConfig(CustomBaseModel):
-    url: AnyUrl
-    course: str
 
 
 class PipelineStageConfig(CustomBaseModel):
@@ -81,7 +76,7 @@ class CheckerTestingConfig(CustomBaseModel):
     report_pipeline: list[PipelineStageConfig] = Field(default_factory=list)
 
 
-class CheckerConfig(CustomBaseModel, YamlLoaderMixin):
+class CheckerConfig(CustomBaseModel, YamlLoaderMixin['CheckerConfig']):
     """
     Checker configuration.
     :ivar version: config version
@@ -98,7 +93,6 @@ class CheckerConfig(CustomBaseModel, YamlLoaderMixin):
 
     structure: CheckerStructureConfig
     export: CheckerExportConfig
-    manytask: CheckerManytaskConfig
     testing: CheckerTestingConfig
 
     @field_validator("version")

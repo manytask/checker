@@ -2,7 +2,6 @@ from .checker import CheckerTestingConfig  # noqa: F401
 from .checker import (
     CheckerConfig,
     CheckerExportConfig,
-    CheckerManytaskConfig,
     PipelineStageConfig,
 )
 from .deadlines import (

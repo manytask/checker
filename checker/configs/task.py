@@ -10,7 +10,7 @@ from .checker import (
 from .utils import CustomBaseModel, YamlLoaderMixin
 
 
-class TaskConfig(CustomBaseModel, YamlLoaderMixin):
+class TaskConfig(CustomBaseModel, YamlLoaderMixin['TaskConfig']):
     """Task configuration file."""
 
     version: int  # if config exists, version is always present

@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timedelta
 from enum import Enum
-
+from typing import cast
 
 if sys.version_info < (3, 8):
     from pytz import (
@@ -101,12 +101,12 @@ class DeadlinesGroupConfig(CustomBaseModel):
         last_step_date_or_delta = self.start
         for _, date_or_delta in self.steps.items():
             step_date = (
-                self.start + date_or_delta
+                self.start + cast(timedelta, date_or_delta)
                 if isinstance(date_or_delta, timedelta)
                 else date_or_delta
             )
             last_step_date = (
-                self.start + last_step_date_or_delta
+                self.start + cast(timedelta, last_step_date_or_delta)
                 if isinstance(last_step_date_or_delta, timedelta)
                 else last_step_date_or_delta
             )
@@ -127,7 +127,7 @@ class DeadlinesGroupConfig(CustomBaseModel):
         return self
 
 
-class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin):
+class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin['DeadlinesConfig']):
     """Deadlines configuration."""
 
     version: int

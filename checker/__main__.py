@@ -5,8 +5,6 @@ import sys
 from pathlib import Path
 
 import click
-import yaml
-from pydantic import ValidationError
 
 from checker.course import Course, FileSystemTask
 from checker.tester import Tester
@@ -14,8 +12,6 @@ from checker.utils import print_info
 
 from .configs import CheckerConfig, DeadlinesConfig
 from .exceptions import BadConfig, TestingError
-from .plugins import load_plugins
-from .tester.pipeline import PipelineRunner
 
 
 ClickReadableFile = click.Path(

@@ -22,3 +22,34 @@ class CheckGitlabMergeRequestPlugin(PluginABC):
         return PluginOutput(
             output="",
         )
+
+
+
+class CollectScoreGitlabMergeRequestPlugin(PluginABC):
+    """Plugin for collecting score from gitlab merge request."""
+
+    name = "collect_score_gitlab_merge_request"
+
+    class Args(PluginABC.Args):
+        token: str
+        task_dir: str
+        repo_url: AnyUrl
+        requre_approval: bool = False
+        search_for_score: bool = False
+
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+        # TODO: implement
+        assert NotImplementedError()
+
+        # TODO: implement arithmetical operations in score comment
+        # e.g 0.3 + 2*0.7 - 0.2
+        # TODO: auto detect percentage or 0-1 score
+        # e.g. valid:
+        # 0.3 + 2*0.7 - 0.2 = 0.8
+        # 30% + 70% - 20% = 80% (return as 0.8)
+        # 30 + 70 - 20 = 80 (return as 0.8)
+
+        return PluginOutput(
+            output="",
+            points=1.0,
+        )

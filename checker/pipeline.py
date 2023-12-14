@@ -40,7 +40,7 @@ class PipelineResult:
 
 
 class ParametersResolver:
-    def __init__(self):
+    def __init__(self) -> None:
         self.template_env = jinja2.nativetypes.NativeEnvironment(
             loader=jinja2.BaseLoader(),
             variable_start_string="${{",
@@ -81,7 +81,7 @@ class PipelineRunner:
     def __init__(
         self,
         pipeline: list[PipelineStageConfig],
-        plugins: dict[str, Type[PluginABC]],
+        plugins: dict[str, type[PluginABC]],
         *,
         verbose: bool = False,
     ):

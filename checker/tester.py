@@ -129,7 +129,7 @@ class Tester:
             "global": global_variables,
             "task": task_variables,
             "outputs": outputs,
-            "parameters": default_parameters.__dict__ | (task_parameters or {}),
+            "parameters": default_parameters.__dict__ | (task_parameters.__dict__ if task_parameters else {}),
             "env": os.environ.__dict__,
         }
 
@@ -160,7 +160,7 @@ class Tester:
                 task_variables,
                 outputs,
                 self.default_params,
-                task.config.parameters,
+                task.config.parameters if task.config else None,
             )
 
             # check task parameter are
@@ -211,7 +211,7 @@ class Tester:
                 task_variables,
                 outputs,
                 self.default_params,
-                task.config.parameters,
+                task.config.parameters if task.config else None,
             )
 
             # TODO: read pipeline from task config if any

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shutil
-from collections.abc import Iterable
+from collections.abc import Iterable, Generator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -79,7 +79,7 @@ class Course:
         copy_patterns: Iterable[str],
         ignore_patterns: Iterable[str],
         sub_rules: dict[Path, tuple[Iterable[str], Iterable[str]]],
-    ):
+    ) -> None:
         """
         Copy files as usual, if face some folder from `sub_rules`, apply patterns from `sub_rules[folder]`.
         :param root: Copy files from this directory
@@ -198,8 +198,7 @@ class Course:
                 *self.checker.structure.ignore_patterns,
             ],
             sub_rules={
-                self.reference_root
-                / task.relative_path: (
+                self.reference_root / task.relative_path: (
                     [
                         *(
                             task_public
@@ -229,7 +228,7 @@ class Course:
         )
         import os
 
-        def list_files(startpath):
+        def list_files(startpath: str) -> None:
             for root, dirs, files in sorted(os.walk(startpath)):
                 level = root.replace(startpath, "").count(os.sep)
                 indent = " " * 4 * (level)
@@ -301,11 +300,11 @@ class Course:
             )
         return potential_groups
 
-    def _search_for_tasks_by_configs(self, root: Path) -> list[FileSystemTask]:
+    def _search_for_tasks_by_configs(self, root: Path) -> Generator[FileSystemTask, Any, None]:
         for task_config_path in root.glob(f"**/.task.yml"):
             task_config = TaskConfig.from_yaml(task_config_path)
             yield FileSystemTask(
-                name=task_config.name,
+                name=task_config_path.parent.name,
                 relative_path=str(task_config_path.parent.relative_to(root)),
                 config=task_config,
             )
@@ -320,7 +319,8 @@ class Course:
         # filter with tasks specific configs
         task_files = [
             file
-            for task in self.repository_tasks
+            for task in self.potential_tasks.values()
             for pattern in task.config.structure.public_patterns
             for file in (root / task.relative_path).glob(pattern)
         ]
+        return global_files + task_files
