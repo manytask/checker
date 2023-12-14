@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tempfile
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -129,6 +130,7 @@ class Tester:
             "task": task_variables,
             "outputs": outputs,
             "parameters": default_parameters.__dict__ | (task_parameters or {}),
+            "env": os.environ.__dict__,
         }
 
     def validate(self) -> None:
