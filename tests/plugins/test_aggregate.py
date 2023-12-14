@@ -62,6 +62,10 @@ class TestAggregatePlugin:
         assert expected == result.percentage
         assert f"Score: {expected:.2f}" in result.output
 
+    def test_wrong_strategy(self) -> None:
+        with pytest.raises(ValidationError) as exc_info:
+            args = AggregatePlugin.Args(scores=[1, 2, 3], strategy="invalid_strategy")
+
     @pytest.mark.parametrize(
         "scores, weights",
         [

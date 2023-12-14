@@ -47,13 +47,9 @@ class AggregatePlugin(PluginABC):
             score = max(weighted_scores)
         elif args.strategy == "product":
             from functools import reduce
-
             score = reduce(lambda x, y: x * y, weighted_scores)
-        else:
-            raise PluginExecutionFailed(
-                f"Unknown strategy {args.strategy}",
-                output=f"Unknown strategy {args.strategy}",
-            )
+        else:  # pragma: no cover
+            assert False, "Not reachable"
 
         return PluginOutput(
             output=(
