@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from checker.plugins.aggregate import AggregatePlugin
-from checker.exceptions import ExecutionFailedError
+from checker.exceptions import PluginExecutionFailed
 
 
 class TestAggregatePlugin:
@@ -28,18 +28,19 @@ class TestAggregatePlugin:
             AggregatePlugin.Args(**parameters)
 
     @pytest.mark.parametrize("scores, weights, strategy, expected", [
-        ([10, 20, 30], None, "mean", "Score: 20.00"),
-        ([1, 2, 3], [0.5, 0.5, 0.5], "sum", "Score: 3.00"),
-        ([2, 4, 6], [1, 2, 3], "min", "Score: 2.00"),
-        ([5, 10, 15], [1, 1, 1], "max", "Score: 15.00"),
-        ([3, 3, 3], [1, 1, 1], "product", "Score: 27.00"),
+        ([10, 20, 30], None, "mean", 20.0),
+        ([1, 2, 3], [0.5, 0.5, 0.5], "sum", 3.0),
+        ([2, 4, 6], [1, 2, 3], "min", 2.0),
+        ([5, 10, 15], [1, 1, 1], "max", 15.0),
+        ([3, 3, 3], [1, 1, 1], "product", 27.0),
     ])
-    def test_aggregate_strategies(self, scores, weights, strategy, expected):
+    def test_aggregate_strategies(self, scores: list[float], weights: list[float] | None, strategy: str, expected: float) -> None:
         plugin = AggregatePlugin()
         args = AggregatePlugin.Args(scores=scores, weights=weights, strategy=strategy)
 
         result = plugin._run(args)
-        assert expected in result  # TODO: test float output when implemented
+        assert expected == result.percentage
+        assert f"Score: {expected:.2f}" in result.output
 
     @pytest.mark.parametrize("scores, weights", [
         ([1, 2, 3], [1, 2]),
@@ -51,7 +52,7 @@ class TestAggregatePlugin:
         plugin = AggregatePlugin()
         args = AggregatePlugin.Args(scores=scores, weights=weights)
 
-        with pytest.raises(ExecutionFailedError) as exc_info:
+        with pytest.raises(PluginExecutionFailed) as exc_info:
             plugin._run(args)
         assert "Length of scores" in str(exc_info.value)
 
@@ -60,4 +61,4 @@ class TestAggregatePlugin:
         args = AggregatePlugin.Args(scores=[10, 20, 30], strategy="mean")
 
         result = plugin._run(args)
-        assert "Score: 20.00" in result  # TODO: test float output when implemented
+        assert result.percentage == 20.0

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any, Union
 
 from pydantic import AnyUrl, Field, RootModel, ValidationError, field_validator
 
 from .utils import CustomBaseModel, YamlLoaderMixin
 
-ParamType = bool | int | float | str | list[int | float | str | None] | None
+
+# Note: old Union style in definition for backward compatibility
+ParamType = Union[bool, int, float, str, list[Union[int, float, str, None]], None]
+TTemplate = Union[str, list[Union[ParamType, str]], dict[str, Union[ParamType, str]]]
 
 
 class CheckerStructureConfig(CustomBaseModel):
@@ -44,6 +48,7 @@ class CheckerManytaskConfig(CustomBaseModel):
 
 
 class PipelineStageConfig(CustomBaseModel):
+
     class FailType(Enum):
         FAST = "fast"
         AFTER_ALL = "after_all"
@@ -52,13 +57,13 @@ class PipelineStageConfig(CustomBaseModel):
     name: str
     run: str
 
-    args: dict[str, ParamType] = Field(default_factory=dict)
+    args: dict[str, ParamType | TTemplate] = Field(default_factory=dict)
 
-    run_if: str | None = None
+    run_if: bool | TTemplate | None = None
     fail: FailType = FailType.FAST
 
-    # save a score to the context with the name `register_score`
-    register_score: str | None = None
+    # save pipline stage result to context under this key
+    register_output: str | None = None
 
 
 class CheckerTestingConfig(CustomBaseModel):
@@ -81,7 +86,7 @@ class CheckerConfig(CustomBaseModel, YamlLoaderMixin):
     """
     Checker configuration.
     :ivar version: config version
-    :ivar default_params: default parameters for task pipeline
+    :ivar default_parameters: default parameters for task pipeline
     :ivar structure: describe the structure of the repo - private/public and allowed for change files
     :ivar export: describe export (publishing to public repo)
     :ivar manytask: describe connection to manytask
@@ -90,7 +95,7 @@ class CheckerConfig(CustomBaseModel, YamlLoaderMixin):
 
     version: int
 
-    default_params: CheckerParametersConfig = Field(default_factory=dict)
+    default_parameters: CheckerParametersConfig = Field(default_factory=dict)
 
     structure: CheckerStructureConfig
     export: CheckerExportConfig

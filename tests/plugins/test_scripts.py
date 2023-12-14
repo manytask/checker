@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from pydantic import ValidationError
 
 from checker.plugins.scripts import RunScriptPlugin
-from checker.exceptions import ExecutionFailedError
+from checker.exceptions import PluginExecutionFailed
 
 
 class TestRunScriptPlugin:
@@ -35,8 +35,8 @@ class TestRunScriptPlugin:
         ("echo Hello", "Hello", None),
         ("sleep 0.1", "", None),
         ("true", "", None),
-        ("false", "", ExecutionFailedError),
-        ("echo Hello && false", "Hello", ExecutionFailedError),
+        ("false", "", PluginExecutionFailed),
+        ("echo Hello && false", "Hello", PluginExecutionFailed),
     ])
     def test_simple_cases(self, script: str, output: str, expected_exception: Exception | None) -> None:
         plugin = RunScriptPlugin()
@@ -47,14 +47,14 @@ class TestRunScriptPlugin:
                 plugin._run(args)
             assert output in exc_info.value.output
         else:
-            res = plugin._run(args)
-            assert res.strip() == output
+            result = plugin._run(args)
+            assert result.output.strip() == output
 
     @pytest.mark.parametrize("script, timeout, expected_exception", [
         ("echo Hello", 10, None),
         ("sleep 0.5", 1, None),
-        ("sleep 1", None, None),
-        ("sleep 2", 1, ExecutionFailedError),
+        ("sleep 0.5", None, None),
+        ("sleep 1", 0.5, PluginExecutionFailed),
     ])
     def test_timeout(self, script: str, timeout: float, expected_exception: Exception | None) -> None:
         # TODO: check if timeout float
@@ -76,8 +76,8 @@ class TestRunScriptPlugin:
         args = RunScriptPlugin.Args(origin="/tmp", script=script, env_whitelist=env_whitelist)
         
         with patch.dict('os.environ', mocked_env, clear=True):
-            output = plugin._run(args)
-        assert "CUSTOM_VAR" in output
-        assert mocked_env["CUSTOM_VAR"] in output
-        assert "FILTERED_ONE" not in output
+            result = plugin._run(args)
+        assert "CUSTOM_VAR" in result.output
+        assert mocked_env["CUSTOM_VAR"] in result.output
+        assert "FILTERED_ONE" not in result.output
     

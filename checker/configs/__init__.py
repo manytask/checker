@@ -7,4 +7,3 @@ from .checker import (
 )
 from .deadlines import DeadlinesConfig, DeadlinesGroupConfig, DeadlinesSettingsConfig, DeadlinesTaskConfig  # noqa: F401
 from .task import TaskConfig  # noqa: F401
-from .utils import ParametersResolver  # noqa: F401

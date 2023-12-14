@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .base import PluginABC
+from .base import PluginABC, PluginOutput
 
 
 class AggregatePlugin(PluginABC):
@@ -15,6 +15,10 @@ class AggregatePlugin(PluginABC):
         task_name: str
         score: float  # TODO: validate score is in [0, 1] (bonus score?)
 
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: report score to the manytask
-        return f"DRY_RUN: Report score {args.score} for task '{args.task_name}' for user '{args.username}'"
+        assert NotImplementedError()
+
+        return PluginOutput(
+            output=f"Report score {args.score} for task '{args.task_name}' for user '{args.username}'"
+        )

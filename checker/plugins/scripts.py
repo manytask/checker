@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from .base import PluginABC
-from ..exceptions import ExecutionFailedError
+from .base import PluginABC, PluginOutput
+from ..exceptions import PluginExecutionFailed
 
 
 class RunScriptPlugin(PluginABC):
@@ -14,11 +14,11 @@ class RunScriptPlugin(PluginABC):
     class Args(PluginABC.Args):
         origin: str
         script: str | list[str]
-        timeout: int | None = None
+        timeout: float | None = None
         isolate: bool = False
         env_whitelist: list[str] = Field(default_factory=lambda: ['PATH'])
 
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         import subprocess
 
         def set_up_env_sandbox() -> None:  # pragma: nocover
@@ -44,14 +44,16 @@ class RunScriptPlugin(PluginABC):
             output = output if isinstance(output, str) else output.decode('utf-8')
 
             if isinstance(e, subprocess.TimeoutExpired):
-                raise ExecutionFailedError(
+                raise PluginExecutionFailed(
                     f"Script timed out after {e.timeout}s ({args.timeout}s limit)",
                     output=output,
                 ) from e
             else:
-                raise ExecutionFailedError(
+                raise PluginExecutionFailed(
                     f"Script failed with exit code {e.returncode}",
                     output=output,
                 ) from e
 
-        return result.stdout.decode('utf-8')
+        return PluginOutput(
+            output=result.stdout.decode('utf-8'),
+        )

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from .base import PluginABC
-from ..exceptions import ExecutionFailedError
+from .base import PluginABC, PluginOutput
+from ..exceptions import PluginExecutionFailed
 
 
 class AggregatePlugin(PluginABC):
@@ -18,17 +18,17 @@ class AggregatePlugin(PluginABC):
         # TODO: validate for weights: len weights should be equal to len scores
         # TODO: validate not empty scores
 
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         weights = args.weights or ([1.0] * len(args.scores))
 
         if len(args.scores) != len(weights):
-            raise ExecutionFailedError(
+            raise PluginExecutionFailed(
                 f"Length of scores ({len(args.scores)}) and weights ({len(weights)}) does not match",
                 output=f"Length of scores ({len(args.scores)}) and weights ({len(weights)}) does not match",
             )
 
         if len(args.scores) == 0 or len(weights) == 0:
-            raise ExecutionFailedError(
+            raise PluginExecutionFailed(
                 f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
                 output=f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
             )
@@ -47,14 +47,17 @@ class AggregatePlugin(PluginABC):
             from functools import reduce
             score = reduce(lambda x, y: x * y, weighted_scores)
         else:
-            raise ExecutionFailedError(
+            raise PluginExecutionFailed(
                 f"Unknown strategy {args.strategy}",
                 output=f"Unknown strategy {args.strategy}",
             )
 
-        return (
-            f"Get scores:  {args.scores}\n"
-            f"Get weights: {args.weights}\n"
-            f"Aggregate weighted scores {weighted_scores} with strategy {args.strategy}\n"
-            f"Score: {score:.2f}"
+        return PluginOutput(
+            output=(
+                f"Get scores:  {args.scores}\n"
+                f"Get weights: {args.weights}\n"
+                f"Aggregate weighted scores {weighted_scores} with strategy {args.strategy}\n"
+                f"Score: {score:.2f}"
+            ),
+            percentage=score,
         )

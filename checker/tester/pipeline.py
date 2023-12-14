@@ -4,30 +4,12 @@ import time
 from dataclasses import dataclass
 from typing import Any, Type
 
-from ..configs import ParametersResolver, PipelineStageConfig
-from ..exceptions import BadConfig, ExecutionFailedError
+import jinja2.nativetypes
+
+from ..configs import PipelineStageConfig
+from ..exceptions import BadConfig, PluginExecutionFailed
 from ..plugins import PluginABC
 from ..utils import print_info
-
-
-@dataclass
-class GlobalPipelineVariables:
-    """Base variables passed in pipeline stages."""
-
-    REF_DIR: str
-    REPO_DIR: str
-    TEMP_DIR: str
-    USERNAME: str
-    TASK_NAMES: list[str]
-    TASK_SUB_PATHS: list[str]
-
-
-@dataclass
-class TaskPipelineVariables:
-    """Variables passed in pipeline stages for each task."""
-
-    TASK_NAME: str
-    TASK_SUB_PATH: str
 
 
 @dataclass
@@ -39,7 +21,7 @@ class PipelineStageResult:
     elapsed_time: float | None = None
     output: str = ''
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"PipelineStageResult: failed={int(self.failed)}, skipped={int(self.skipped)}, percentage={self.percentage:.2f}, name='{self.name}'"
 
 
@@ -51,8 +33,42 @@ class PipelineResult:
     def __bool__(self) -> bool:
         return not self.failed
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f'PipelineResult: failed={int(self.failed)}\n' + '\n'.join([f'  {stage_result}' for stage_result in self.stage_results])
+
+
+class ParametersResolver:
+    def __init__(self):
+        self.template_env = jinja2.nativetypes.NativeEnvironment(
+            loader=jinja2.BaseLoader(),
+            variable_start_string="${{",
+            variable_end_string="}}",
+        )
+
+    def resolve(self, template: str | list[str] | Any, context: dict[str, Any]) -> Any:
+        """
+        Resolve the template with context.
+        * If template is a string, resolve it with jinja2
+        * If template is a list, resolve each element of the list
+        * If template is a dict, resolve each value of the dict
+        * Otherwise, return the template as is
+        :param template: template string to resolve, following jinja2 syntax.
+        :param context: context to use for resolving.
+        :return: resolved template of Any type.
+        :raises BadConfig: if template is invalid.
+        """
+        if isinstance(template, str):
+            try:
+                template_obj = self.template_env.from_string(template.strip())
+                return template_obj.render(**context)
+            except jinja2.TemplateError as e:
+                raise BadConfig(f"Invalid template {template}") from e
+        elif isinstance(template, list):
+            return [self.resolve(item, context) for item in template]
+        elif isinstance(template, dict):
+            return {key: self.resolve(value, context) for key, value in template.items()}
+        else:
+            return template
 
 
 class PipelineRunner:
@@ -77,24 +93,20 @@ class PipelineRunner:
 
         self.verbose = verbose
 
-        self.validate(validate_placeholders=False)
+        self.parameters_resolver = ParametersResolver()
+
+        self.validate({}, validate_placeholders=False)
 
     def validate(
             self,
-            parameters: dict[str, Any] | None = None,
-            extra_context: dict[str, Any] | None = None,
+            context: dict[str, Any],
             validate_placeholders: bool = True,
     ) -> None:
         """
         Validate the pipeline configuration.
-        :param parameters: parameters for placeholders (if None - no placeholders are checked)
-        :param extra_context: context for placeholders (if None - no placeholders are checked)
+        :param context: context to use for resolving placeholders
         :param validate_placeholders: if True, validate placeholders in pipeline stages
         """
-        parameters = parameters or {}
-        extra_context = extra_context if extra_context is not None else {}  # to avoid copying {} when using or
-
-        parameters_resolver = ParametersResolver(parameters)
 
         for pipeline_stage in self.pipeline:
             # validate plugin exists
@@ -104,38 +116,39 @@ class PipelineRunner:
 
             # validate args of the plugin (first resolve placeholders)
             if validate_placeholders:
-                resolved_args = parameters_resolver.resolve(pipeline_stage.args, extra_context=extra_context)
+                resolved_args = self.parameters_resolver.resolve(pipeline_stage.args, context)
                 plugin_class.validate(resolved_args)
 
             # validate run_if condition
             if validate_placeholders and pipeline_stage.run_if:
-                resolved_run_if = parameters_resolver.resolve_single_string(pipeline_stage.run_if, extra_context=extra_context)
+                resolved_run_if = self.parameters_resolver.resolve(pipeline_stage.run_if, context)
                 if not isinstance(resolved_run_if, bool):
                     raise BadConfig(
                         f"Invalid run_if condition {pipeline_stage.run_if} in pipeline stage {pipeline_stage.name}"
                     )
 
-            # add register_score to context if any
-            if pipeline_stage.register_score:
-                extra_context[pipeline_stage.register_score] = 0.0
+            # add output to context if set register parameter
+            if pipeline_stage.register_output:
+                context.setdefault('outputs', {})[pipeline_stage.register_output] = PipelineStageResult(
+                    name=pipeline_stage.name,
+                    failed=False,
+                    skipped=True,
+                )
 
     def run(
             self,
-            parameters: dict[str, Any],
-            extra_context: dict[str, Any] | None = None,
+            context: dict[str, Any],
             *,
             dry_run: bool = False,
     ) -> PipelineResult:
-        extra_context = extra_context if extra_context is not None else {}  # to avoid copying {} when using or
-        parameters_resolver = ParametersResolver(parameters)
 
         pipeline_stage_results = []
         pipeline_passed = True
         skip_the_rest = False
         for pipeline_stage in self.pipeline:
             # resolve placeholders in arguments
-            resolved_args = parameters_resolver.resolve(pipeline_stage.args, extra_context=extra_context)
-            resolved_run_if = parameters_resolver.resolve_single_string(pipeline_stage.run_if, extra_context=extra_context) if pipeline_stage.run_if else None
+            resolved_args = self.parameters_resolver.resolve(pipeline_stage.args, context=context)
+            resolved_run_if = self.parameters_resolver.resolve(pipeline_stage.run_if, context=context) if pipeline_stage.run_if else None
 
             print_info(f'--> Running "{pipeline_stage.name}" stage:', color='orange')
             if self.verbose:
@@ -186,20 +199,20 @@ class PipelineRunner:
             # run the plugin with executor
             _start_time = time.perf_counter()
             try:
-                output = plugin.run(resolved_args, verbose=self.verbose)
+                result = plugin.run(resolved_args, verbose=self.verbose)
                 _end_time = time.perf_counter()
-                print_info(output or '[empty output]')
+                print_info(result.output or '[empty output]')
                 print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
                 print_info('ok!', color='green')
                 pipeline_stage_results.append(PipelineStageResult(
                     name=pipeline_stage.name,
                     failed=False,
                     skipped=False,
-                    output=output,
+                    output=result.output,
                     percentage=1.0,  # TODO: get percentage from plugin
                     elapsed_time=_end_time-_start_time,
                 ))
-            except ExecutionFailedError as e:
+            except PluginExecutionFailed as e:
                 _end_time = time.perf_counter()
                 print_info(e.output or '[empty output]')
                 print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
@@ -209,7 +222,7 @@ class PipelineRunner:
                     failed=True,
                     skipped=False,
                     output=e.output or '',
-                    percentage=0.0,  # TODO: get percentage from plugin
+                    percentage=e.percentage,
                     elapsed_time=_end_time-_start_time,
                 ))
                 if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
@@ -222,9 +235,9 @@ class PipelineRunner:
                 else:
                     assert False, f"Unknown fail type {pipeline_stage.fail}"
 
-            # register score is any
-            if pipeline_stage.register_score:
-                extra_context[pipeline_stage.register_score] = pipeline_stage_results[-1].percentage
+            # register output if required
+            if pipeline_stage.register_output:
+                context.setdefault('outputs', {})[pipeline_stage.register_output] = pipeline_stage_results[-1]
 
         return PipelineResult(
             failed=not pipeline_passed,

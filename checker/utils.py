@@ -40,6 +40,7 @@ def print_separator(
 ) -> None:
     print_info(symbol * string_length, color=color)
 
+
 def print_header_info(
         header_string: str,
         file: Any = None,

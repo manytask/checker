@@ -12,6 +12,6 @@ class TaskConfig(CustomBaseModel, YamlLoaderMixin):
     version: int  # if config exists, version is always present
 
     structure: CheckerStructureConfig | None = None
-    params: CheckerParametersConfig | None = None
+    parameters: CheckerParametersConfig | None = None
     task_pipeline: list[PipelineStageConfig] | None = None
     report_pipeline: list[PipelineStageConfig] | None = None

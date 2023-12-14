@@ -1,5 +1,5 @@
-from .base import PluginABC
-from ..exceptions import ExecutionFailedError
+from .base import PluginABC, PluginOutput
+from ..exceptions import PluginExecutionFailed
 
 
 class CheckRegexpsPlugin(PluginABC):
@@ -13,14 +13,14 @@ class CheckRegexpsPlugin(PluginABC):
         regexps: list[str]
         # TODO: Add validation for patterns and regexps
 
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: add verbose output with files list
         import re
         from pathlib import Path
 
         # TODO: move to Args validation
         if not Path(args.origin).exists():
-            raise ExecutionFailedError(
+            raise PluginExecutionFailed(
                 f"Origin '{args.origin}' does not exist",
                 output=f"Origin {args.origin} does not exist",
             )
@@ -33,8 +33,10 @@ class CheckRegexpsPlugin(PluginABC):
 
                     for regexp in args.regexps:
                         if re.search(regexp, file_content, re.MULTILINE):
-                            raise ExecutionFailedError(
+                            raise PluginExecutionFailed(
                                 f"File '{file.name}' matches regexp '{regexp}'",
                                 output=f"File '{file}' matches regexp '{regexp}'",
                             )
-        return "No forbidden regexps found"
+        return PluginOutput(
+            output="No forbidden regexps found",
+        )

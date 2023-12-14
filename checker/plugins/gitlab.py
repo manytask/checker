@@ -1,6 +1,6 @@
 from pydantic import AnyUrl
 
-from .base import PluginABC
+from .base import PluginABC, PluginOutput
 
 
 class CheckGitlabMergeRequestPlugin(PluginABC):
@@ -15,6 +15,10 @@ class CheckGitlabMergeRequestPlugin(PluginABC):
         requre_approval: bool = False
         search_for_score: bool = False
 
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: implement
-        print("TODO: implement")
+        assert NotImplementedError()
+
+        return PluginOutput(
+            output="",
+        )

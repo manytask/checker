@@ -206,6 +206,7 @@ def grade(
     except Exception as e:
         print_info("UNEXPECTED ERROR", color='red')
         print_info(e)
+        raise e
         exit(1)
     print_info("TESTING PASSED", color='green')
 

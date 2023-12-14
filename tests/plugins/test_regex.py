@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from checker.plugins.regex import CheckRegexpsPlugin
-from checker.exceptions import ExecutionFailedError
+from checker.exceptions import PluginExecutionFailed
 
 
 class TestCheckRegexpsPlugin:
@@ -40,12 +40,12 @@ class TestCheckRegexpsPlugin:
             CheckRegexpsPlugin.Args(**parameters)
 
     @pytest.mark.parametrize("patterns, expected_exception", [
-        (["*.txt"], ExecutionFailedError),
+        (["*.txt"], PluginExecutionFailed),
         (["test2.txt", "*cpp"], None),
-        (["*"], ExecutionFailedError),
-        (["*.md"], ExecutionFailedError),
-        (["test?.txt"], ExecutionFailedError),
-        (["test2.txt", "test1.txt"], ExecutionFailedError),
+        (["*"], PluginExecutionFailed),
+        (["*.md"], PluginExecutionFailed),
+        (["test?.txt"], PluginExecutionFailed),
+        (["test2.txt", "test1.txt"], PluginExecutionFailed),
     ])
     def test_pattern_matching(self, create_test_files: T_CREATE_TEST_FILES, patterns: list[str], expected_exception: Exception | None) -> None:
         files_content = {
@@ -65,14 +65,14 @@ class TestCheckRegexpsPlugin:
             with pytest.raises(expected_exception):
                 plugin._run(args)
         else:
-            assert plugin._run(args) == "No forbidden regexps found"
+            assert plugin._run(args).output == "No forbidden regexps found"
 
     @pytest.mark.parametrize("regexps, expected_exception", [
         (["not_found"], None),
-        (["forbidden"], ExecutionFailedError),
-        (["fo.*en"], ExecutionFailedError),
-        (["not_found", "fo.?bi.?den"], ExecutionFailedError),
-        (["fo.?bi.?den", "not_found"], ExecutionFailedError),
+        (["forbidden"], PluginExecutionFailed),
+        (["fo.*en"], PluginExecutionFailed),
+        (["not_found", "fo.?bi.?den"], PluginExecutionFailed),
+        (["fo.?bi.?den", "not_found"], PluginExecutionFailed),
     ])
     def test_check_regexps(self, create_test_files: T_CREATE_TEST_FILES, regexps: list[str], expected_exception: Exception | None) -> None:
         files_content = {
@@ -93,14 +93,14 @@ class TestCheckRegexpsPlugin:
                 plugin._run(args)
             assert "matches regexp" in str(exc_info.value)
         else:
-            assert plugin._run(args) == "No forbidden regexps found"
-            assert plugin._run(args, verbose=True) == "No forbidden regexps found"
-            assert plugin._run(args, verbose=False) == "No forbidden regexps found"
+            assert plugin._run(args).output == "No forbidden regexps found"
+            assert plugin._run(args, verbose=True).output == "No forbidden regexps found"
+            assert plugin._run(args, verbose=False).output == "No forbidden regexps found"
 
     def test_non_existent_origin(self) -> None:
         plugin = CheckRegexpsPlugin()
         args = CheckRegexpsPlugin.Args(origin="/tmp/non_existent", patterns=["*.txt"], regexps=["forbidden"])
 
-        with pytest.raises(ExecutionFailedError) as exc_info:
+        with pytest.raises(PluginExecutionFailed) as exc_info:
             plugin._run(args)
         assert "does not exist" in str(exc_info.value)
