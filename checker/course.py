@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .configs import TaskConfig, DeadlinesConfig
-from .configs.checker import CheckerParametersConfig, CheckerConfig
+from .configs import DeadlinesConfig, TaskConfig
+from .configs.checker import CheckerConfig, CheckerParametersConfig
 from .exceptions import BadConfig
 
 
@@ -47,8 +47,15 @@ class Course:
 
         self.username = username or "unknown"
 
-        self.potential_groups = {group.name: group for group in self._search_potential_groups(self.repository_root)}
-        self.potential_tasks = {task.name: task for group in self.potential_groups.values() for task in group.tasks}
+        self.potential_groups = {
+            group.name: group
+            for group in self._search_potential_groups(self.repository_root)
+        }
+        self.potential_tasks = {
+            task.name: task
+            for group in self.potential_groups.values()
+            for task in group.tasks
+        }
 
     def validate(self) -> None:
         # check all groups and tasks mentioned in deadlines exists
@@ -60,16 +67,18 @@ class Course:
         deadlines_tasks = self.deadlines.get_tasks(enabled=True)
         for deadlines_task in deadlines_tasks:
             if deadlines_task.name not in self.potential_tasks:
-                raise BadConfig(f"Task {deadlines_task.name} of not found in repository")
+                raise BadConfig(
+                    f"Task {deadlines_task.name} of not found in repository"
+                )
 
     def _copy_files_accounting_sub_rules(
-            self,
-            root: Path,
-            destination: Path,
-            search_pattern: str,
-            copy_patterns: Iterable[str],
-            ignore_patterns: Iterable[str],
-            sub_rules: dict[Path, tuple[Iterable[str], Iterable[str]]],
+        self,
+        root: Path,
+        destination: Path,
+        search_pattern: str,
+        copy_patterns: Iterable[str],
+        ignore_patterns: Iterable[str],
+        sub_rules: dict[Path, tuple[Iterable[str], Iterable[str]]],
     ):
         """
         Copy files as usual, if face some folder from `sub_rules`, apply patterns from `sub_rules[folder]`.
@@ -92,28 +101,34 @@ class Course:
             relative_filename = str(path.relative_to(root))
             if path.is_dir():
                 if path in sub_rules:
-                    print(f"    - Check Dir {path} to {destination / relative_filename} with sub rules (rec)")
+                    print(
+                        f"    - Check Dir {path} to {destination / relative_filename} with sub rules (rec)"
+                    )
                     self._copy_files_accounting_sub_rules(
                         path,
                         destination / relative_filename,
-                        search_pattern='*',
+                        search_pattern="*",
                         copy_patterns=sub_rules[path][0],
                         ignore_patterns=sub_rules[path][1],
                         sub_rules=sub_rules,
                     )
                 else:
-                    print(f"    - Check Dir {path} to {destination / relative_filename} (rec)")
+                    print(
+                        f"    - Check Dir {path} to {destination / relative_filename} (rec)"
+                    )
                     self._copy_files_accounting_sub_rules(
                         path,
                         destination / relative_filename,
-                        search_pattern='*',
+                        search_pattern="*",
                         copy_patterns=copy_patterns,
                         ignore_patterns=ignore_patterns,
                         sub_rules=sub_rules,
                     )
             else:
                 if any(path.match(copy_pattern) for copy_pattern in copy_patterns):
-                    print(f"    - Copy File {path} to {destination / relative_filename}")
+                    print(
+                        f"    - Copy File {path} to {destination / relative_filename}"
+                    )
                     destination.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(
                         path,
@@ -127,25 +142,41 @@ class Course:
         global_public_patterns = self.checker.structure.public_patterns or []
         global_private_patterns = self.checker.structure.private_patterns or []
 
-        print('REPO')
+        print("REPO")
         print(f"Copy files from {self.repository_root} to {destination}")
         self._copy_files_accounting_sub_rules(
             self.repository_root,
             destination,
-            search_pattern='*',
-            copy_patterns=['*'],
+            search_pattern="*",
+            copy_patterns=["*"],
             ignore_patterns=[
                 *global_ignore_patterns,
                 *global_public_patterns,
                 *global_private_patterns,
             ],
             sub_rules={
-                self.repository_root / task.relative_path: (
-                    ['*'],
+                self.repository_root
+                / task.relative_path: (
+                    ["*"],
                     [
-                        *(task_ignore if (task_ignore := task.config.structure.ignore_patterns) is not None else global_ignore_patterns),
-                        *(task_public if (task_public := task.config.structure.public_patterns) is not None else global_public_patterns),
-                        *(task_private if (task_private := task.config.structure.private_patterns) is not None else global_private_patterns),
+                        *(
+                            task_ignore
+                            if (task_ignore := task.config.structure.ignore_patterns)
+                            is not None
+                            else global_ignore_patterns
+                        ),
+                        *(
+                            task_public
+                            if (task_public := task.config.structure.public_patterns)
+                            is not None
+                            else global_public_patterns
+                        ),
+                        *(
+                            task_private
+                            if (task_private := task.config.structure.private_patterns)
+                            is not None
+                            else global_private_patterns
+                        ),
                     ],
                 )
                 for task in tasks
@@ -153,12 +184,12 @@ class Course:
             },
         )
 
-        print('REFERECNE')
+        print("REFERECNE")
         print(f"Copy files from {self.reference_root} to {destination}")
         self._copy_files_accounting_sub_rules(
             self.reference_root,
             destination,
-            search_pattern='*',
+            search_pattern="*",
             copy_patterns=[
                 *global_public_patterns,
                 *global_private_patterns,
@@ -167,13 +198,29 @@ class Course:
                 *self.checker.structure.ignore_patterns,
             ],
             sub_rules={
-                self.reference_root / task.relative_path: (
+                self.reference_root
+                / task.relative_path: (
                     [
-                        *(task_public if (task_public := task.config.structure.public_patterns) is not None else global_public_patterns),
-                        *(task_private if (task_private := task.config.structure.private_patterns) is not None else global_private_patterns),
+                        *(
+                            task_public
+                            if (task_public := task.config.structure.public_patterns)
+                            is not None
+                            else global_public_patterns
+                        ),
+                        *(
+                            task_private
+                            if (task_private := task.config.structure.private_patterns)
+                            is not None
+                            else global_private_patterns
+                        ),
                     ],
                     [
-                        *(task_ignore if (task_ignore := task.config.structure.ignore_patterns) is not None else global_ignore_patterns),
+                        *(
+                            task_ignore
+                            if (task_ignore := task.config.structure.ignore_patterns)
+                            is not None
+                            else global_ignore_patterns
+                        ),
                     ],
                 )
                 for task in tasks
@@ -184,18 +231,18 @@ class Course:
 
         def list_files(startpath):
             for root, dirs, files in sorted(os.walk(startpath)):
-                level = root.replace(startpath, '').count(os.sep)
-                indent = ' ' * 4 * (level)
-                print('{}{}/'.format(indent, os.path.basename(root)))
-                subindent = ' ' * 4 * (level + 1)
+                level = root.replace(startpath, "").count(os.sep)
+                indent = " " * 4 * (level)
+                print("{}{}/".format(indent, os.path.basename(root)))
+                subindent = " " * 4 * (level + 1)
                 for f in files:
-                    print('{}{}'.format(subindent, f))
+                    print("{}{}".format(subindent, f))
 
         list_files(str(destination))
 
     def get_groups(
-            self,
-            enabled: bool | None = None,
+        self,
+        enabled: bool | None = None,
     ) -> list[FileSystemGroup]:
         return [
             self.potential_groups[deadline_group.name]
@@ -204,8 +251,8 @@ class Course:
         ]
 
     def get_tasks(
-            self,
-            enabled: bool | None = None,
+        self,
+        enabled: bool | None = None,
     ) -> list[FileSystemTask]:
         return [
             self.potential_tasks[deadline_task.name]
@@ -233,7 +280,9 @@ class Course:
                     try:
                         task_config = TaskConfig.from_yaml(task_config_path)
                     except BadConfig as e:
-                        raise BadConfig(f"Task config {task_config_path} is invalid:\n{e}")
+                        raise BadConfig(
+                            f"Task config {task_config_path} is invalid:\n{e}"
+                        )
 
                 potential_tasks.append(
                     FileSystemTask(
@@ -264,7 +313,9 @@ class Course:
     def list_all_public_files(self, root: Path) -> list[Path]:
         # read global files
         glob_patterns = self.checker.structure.public_patterns
-        global_files = [file for pattern in glob_patterns for file in root.glob(pattern)]
+        global_files = [
+            file for pattern in glob_patterns for file in root.glob(pattern)
+        ]
         # remove all task directories, wi
         # filter with tasks specific configs
         task_files = [
@@ -273,4 +324,3 @@ class Course:
             for pattern in task.config.structure.public_patterns
             for file in (root / task.relative_path).glob(pattern)
         ]
-

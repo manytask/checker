@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from .base import PluginABC, PluginOutput
 from ..exceptions import PluginExecutionFailed
+from .base import PluginABC, PluginOutput
 
 
 class RunScriptPlugin(PluginABC):
@@ -16,13 +16,14 @@ class RunScriptPlugin(PluginABC):
         script: str | list[str]
         timeout: float | None = None
         isolate: bool = False
-        env_whitelist: list[str] = Field(default_factory=lambda: ['PATH'])
+        env_whitelist: list[str] = Field(default_factory=lambda: ["PATH"])
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         import subprocess
 
         def set_up_env_sandbox() -> None:  # pragma: nocover
             import os
+
             env = os.environ.copy()
             os.environ.clear()
             for variable in args.env_whitelist:
@@ -41,7 +42,7 @@ class RunScriptPlugin(PluginABC):
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             output = e.output or ""
-            output = output if isinstance(output, str) else output.decode('utf-8')
+            output = output if isinstance(output, str) else output.decode("utf-8")
 
             if isinstance(e, subprocess.TimeoutExpired):
                 raise PluginExecutionFailed(
@@ -55,5 +56,5 @@ class RunScriptPlugin(PluginABC):
                 ) from e
 
         return PluginOutput(
-            output=result.stdout.decode('utf-8'),
+            output=result.stdout.decode("utf-8"),
         )

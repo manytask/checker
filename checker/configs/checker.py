@@ -48,7 +48,6 @@ class CheckerManytaskConfig(CustomBaseModel):
 
 
 class PipelineStageConfig(CustomBaseModel):
-
     class FailType(Enum):
         FAST = "fast"
         AFTER_ALL = "after_all"

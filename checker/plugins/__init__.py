@@ -9,6 +9,7 @@ from typing import Type
 
 from .base import PluginABC  # noqa: F401
 
+
 __all__ = [
     "PluginABC",
     "load_plugins",
@@ -16,7 +17,9 @@ __all__ = [
 
 
 def get_all_subclasses(cls: Type[PluginABC]) -> set[Type[PluginABC]]:
-    return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in get_all_subclasses(c)])
+    return set(cls.__subclasses__()).union(
+        [s for c in cls.__subclasses__() for s in get_all_subclasses(c)]
+    )
 
 
 def load_plugins(
@@ -30,7 +33,9 @@ def load_plugins(
     :param verbose: verbose output
     """
     search_directories = search_directories or []
-    search_directories = [Path(__file__).parent] + search_directories  # add local plugins first
+    search_directories = [
+        Path(__file__).parent
+    ] + search_directories  # add local plugins first
 
     # force load plugins
     print("Loading plugins...")

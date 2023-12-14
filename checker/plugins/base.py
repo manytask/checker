@@ -31,6 +31,7 @@ class PluginABC(ABC):
         """Base class for plugin arguments.
         You have to subclass this class in your plugin.
         """
+
         pass
 
     def run(self, args: dict[str, Any], *, verbose: bool = False) -> PluginOutput:

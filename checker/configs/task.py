@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pydantic import Field, model_validator
 
-from .checker import CheckerParametersConfig, CheckerStructureConfig, PipelineStageConfig
+from .checker import (
+    CheckerParametersConfig,
+    CheckerStructureConfig,
+    PipelineStageConfig,
+)
 from .utils import CustomBaseModel, YamlLoaderMixin
 
 

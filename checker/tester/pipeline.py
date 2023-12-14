@@ -19,7 +19,7 @@ class PipelineStageResult:
     skipped: bool
     percentage: float = 0.0
     elapsed_time: float | None = None
-    output: str = ''
+    output: str = ""
 
     def __str__(self) -> str:  # pragma: no cover
         return f"PipelineStageResult: failed={int(self.failed)}, skipped={int(self.skipped)}, percentage={self.percentage:.2f}, name='{self.name}'"
@@ -34,7 +34,9 @@ class PipelineResult:
         return not self.failed
 
     def __str__(self) -> str:  # pragma: no cover
-        return f'PipelineResult: failed={int(self.failed)}\n' + '\n'.join([f'  {stage_result}' for stage_result in self.stage_results])
+        return f"PipelineResult: failed={int(self.failed)}\n" + "\n".join(
+            [f"  {stage_result}" for stage_result in self.stage_results]
+        )
 
 
 class ParametersResolver:
@@ -66,7 +68,9 @@ class ParametersResolver:
         elif isinstance(template, list):
             return [self.resolve(item, context) for item in template]
         elif isinstance(template, dict):
-            return {key: self.resolve(value, context) for key, value in template.items()}
+            return {
+                key: self.resolve(value, context) for key, value in template.items()
+            }
         else:
             return template
 
@@ -98,9 +102,9 @@ class PipelineRunner:
         self.validate({}, validate_placeholders=False)
 
     def validate(
-            self,
-            context: dict[str, Any],
-            validate_placeholders: bool = True,
+        self,
+        context: dict[str, Any],
+        validate_placeholders: bool = True,
     ) -> None:
         """
         Validate the pipeline configuration.
@@ -111,17 +115,23 @@ class PipelineRunner:
         for pipeline_stage in self.pipeline:
             # validate plugin exists
             if pipeline_stage.run not in self.plugins:
-                raise BadConfig(f"Unknown plugin {pipeline_stage.run} in pipeline stage {pipeline_stage.name}")
+                raise BadConfig(
+                    f"Unknown plugin {pipeline_stage.run} in pipeline stage {pipeline_stage.name}"
+                )
             plugin_class = self.plugins[pipeline_stage.run]
 
             # validate args of the plugin (first resolve placeholders)
             if validate_placeholders:
-                resolved_args = self.parameters_resolver.resolve(pipeline_stage.args, context)
+                resolved_args = self.parameters_resolver.resolve(
+                    pipeline_stage.args, context
+                )
                 plugin_class.validate(resolved_args)
 
             # validate run_if condition
             if validate_placeholders and pipeline_stage.run_if:
-                resolved_run_if = self.parameters_resolver.resolve(pipeline_stage.run_if, context)
+                resolved_run_if = self.parameters_resolver.resolve(
+                    pipeline_stage.run_if, context
+                )
                 if not isinstance(resolved_run_if, bool):
                     raise BadConfig(
                         f"Invalid run_if condition {pipeline_stage.run_if} in pipeline stage {pipeline_stage.name}"
@@ -129,55 +139,66 @@ class PipelineRunner:
 
             # add output to context if set register parameter
             if pipeline_stage.register_output:
-                context.setdefault('outputs', {})[pipeline_stage.register_output] = PipelineStageResult(
+                context.setdefault("outputs", {})[
+                    pipeline_stage.register_output
+                ] = PipelineStageResult(
                     name=pipeline_stage.name,
                     failed=False,
                     skipped=True,
                 )
 
     def run(
-            self,
-            context: dict[str, Any],
-            *,
-            dry_run: bool = False,
+        self,
+        context: dict[str, Any],
+        *,
+        dry_run: bool = False,
     ) -> PipelineResult:
-
         pipeline_stage_results = []
         pipeline_passed = True
         skip_the_rest = False
         for pipeline_stage in self.pipeline:
             # resolve placeholders in arguments
-            resolved_args = self.parameters_resolver.resolve(pipeline_stage.args, context=context)
-            resolved_run_if = self.parameters_resolver.resolve(pipeline_stage.run_if, context=context) if pipeline_stage.run_if else None
+            resolved_args = self.parameters_resolver.resolve(
+                pipeline_stage.args, context=context
+            )
+            resolved_run_if = (
+                self.parameters_resolver.resolve(pipeline_stage.run_if, context=context)
+                if pipeline_stage.run_if
+                else None
+            )
 
-            print_info(f'--> Running "{pipeline_stage.name}" stage:', color='orange')
+            print_info(f'--> Running "{pipeline_stage.name}" stage:', color="orange")
             if self.verbose:
-                print_info(f'    run_if: {pipeline_stage.run_if}', color='grey')
-                print_info(f'    resolved_run_if: {resolved_run_if}', color='grey')
-                print_info(f'    fail: {pipeline_stage.fail}', color='grey')
-                print_info(f'    run: {pipeline_stage.run}', color='grey')
-                print_info(f'    args: {pipeline_stage.args}', color='grey')
-                print_info(f'    resolved_args: {resolved_args}', color='grey')
+                print_info(f"    run_if: {pipeline_stage.run_if}", color="grey")
+                print_info(f"    resolved_run_if: {resolved_run_if}", color="grey")
+                print_info(f"    fail: {pipeline_stage.fail}", color="grey")
+                print_info(f"    run: {pipeline_stage.run}", color="grey")
+                print_info(f"    args: {pipeline_stage.args}", color="grey")
+                print_info(f"    resolved_args: {resolved_args}", color="grey")
 
             # skip the rest of stages if failed before
             if skip_the_rest:
-                print_info('skipped! (got error above)', color='blue')
-                pipeline_stage_results.append(PipelineStageResult(
-                    name=pipeline_stage.name,
-                    failed=False,
-                    skipped=True,
-                ))
+                print_info("skipped! (got error above)", color="blue")
+                pipeline_stage_results.append(
+                    PipelineStageResult(
+                        name=pipeline_stage.name,
+                        failed=False,
+                        skipped=True,
+                    )
+                )
                 continue
 
             # resolve run condition if any; skip if run_if=False
             if pipeline_stage.run_if:
                 if not resolved_run_if:
-                    print_info(f'skipped! (run_if={resolved_run_if})', color='blue')
-                    pipeline_stage_results.append(PipelineStageResult(
-                        name=pipeline_stage.name,
-                        failed=False,
-                        skipped=True,
-                    ))
+                    print_info(f"skipped! (run_if={resolved_run_if})", color="blue")
+                    pipeline_stage_results.append(
+                        PipelineStageResult(
+                            name=pipeline_stage.name,
+                            failed=False,
+                            skipped=True,
+                        )
+                    )
                     continue
 
             # select the plugin to run
@@ -186,14 +207,16 @@ class PipelineRunner:
 
             # skip if dry run
             if dry_run:
-                print_info('[output here]')
-                print_info('dry run!', color='blue')
-                pipeline_stage_results.append(PipelineStageResult(
-                    name=pipeline_stage.name,
-                    failed=False,
-                    skipped=False,
-                    percentage=1.0,
-                ))
+                print_info("[output here]")
+                print_info("dry run!", color="blue")
+                pipeline_stage_results.append(
+                    PipelineStageResult(
+                        name=pipeline_stage.name,
+                        failed=False,
+                        skipped=False,
+                        percentage=1.0,
+                    )
+                )
                 continue
 
             # run the plugin with executor
@@ -201,30 +224,38 @@ class PipelineRunner:
             try:
                 result = plugin.run(resolved_args, verbose=self.verbose)
                 _end_time = time.perf_counter()
-                print_info(result.output or '[empty output]')
-                print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
-                print_info('ok!', color='green')
-                pipeline_stage_results.append(PipelineStageResult(
-                    name=pipeline_stage.name,
-                    failed=False,
-                    skipped=False,
-                    output=result.output,
-                    percentage=1.0,  # TODO: get percentage from plugin
-                    elapsed_time=_end_time-_start_time,
-                ))
+                print_info(result.output or "[empty output]")
+                print_info(
+                    f"> elapsed time: {_end_time-_start_time:.2f}s", color="grey"
+                )
+                print_info("ok!", color="green")
+                pipeline_stage_results.append(
+                    PipelineStageResult(
+                        name=pipeline_stage.name,
+                        failed=False,
+                        skipped=False,
+                        output=result.output,
+                        percentage=1.0,  # TODO: get percentage from plugin
+                        elapsed_time=_end_time - _start_time,
+                    )
+                )
             except PluginExecutionFailed as e:
                 _end_time = time.perf_counter()
-                print_info(e.output or '[empty output]')
-                print_info(f'> elapsed time: {_end_time-_start_time:.2f}s', color='grey')
-                print_info('error!', color='red')
-                pipeline_stage_results.append(PipelineStageResult(
-                    name=pipeline_stage.name,
-                    failed=True,
-                    skipped=False,
-                    output=e.output or '',
-                    percentage=e.percentage,
-                    elapsed_time=_end_time-_start_time,
-                ))
+                print_info(e.output or "[empty output]")
+                print_info(
+                    f"> elapsed time: {_end_time-_start_time:.2f}s", color="grey"
+                )
+                print_info("error!", color="red")
+                pipeline_stage_results.append(
+                    PipelineStageResult(
+                        name=pipeline_stage.name,
+                        failed=True,
+                        skipped=False,
+                        output=e.output or "",
+                        percentage=e.percentage,
+                        elapsed_time=_end_time - _start_time,
+                    )
+                )
                 if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
                     skip_the_rest = True
                     pipeline_passed = False
@@ -237,7 +268,9 @@ class PipelineRunner:
 
             # register output if required
             if pipeline_stage.register_output:
-                context.setdefault('outputs', {})[pipeline_stage.register_output] = pipeline_stage_results[-1]
+                context.setdefault("outputs", {})[
+                    pipeline_stage.register_output
+                ] = pipeline_stage_results[-1]
 
         return PipelineResult(
             failed=not pipeline_passed,

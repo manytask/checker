@@ -1,5 +1,5 @@
-from .base import PluginABC, PluginOutput
 from ..exceptions import PluginExecutionFailed
+from .base import PluginABC, PluginOutput
 
 
 class CheckRegexpsPlugin(PluginABC):

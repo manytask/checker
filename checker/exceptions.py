@@ -18,26 +18,31 @@ class CheckerValidationError(CheckerException):
 
 class BadConfig(CheckerValidationError):
     """All configs exceptions: deadlines, checker and tasks configs"""
+
     pass
 
 
 class BadStructure(CheckerValidationError):
     """Course structure exception: some files are missing, etc."""
+
     pass
 
 
 class ExportError(CheckerException):
     """Export stage exception"""
+
     pass
 
 
 class ReportError(CheckerException):
     """Report stage exception"""
+
     pass
 
 
 class TestingError(CheckerException):
     """All testers exceptions can occur during testing stage"""
+
     pass
 
 

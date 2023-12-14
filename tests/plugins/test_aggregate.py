@@ -5,36 +5,56 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from checker.plugins.aggregate import AggregatePlugin
 from checker.exceptions import PluginExecutionFailed
+from checker.plugins.aggregate import AggregatePlugin
 
 
 class TestAggregatePlugin:
-
-    @pytest.mark.parametrize("parameters, expected_exception", [
-        ({'scores': [0.5, 1.0, 1], 'weights': [1, 2, 3], 'strategy': 'mean'}, None),
-        ({'scores': [0.5, 1.0, 1], 'weights': [1, 2, 3]}, None),
-        ({'scores': [0.5, 1.0, 1], 'weights': None}, None),
-        ({'scores': [0.5, 1.0, 1], 'strategy': 'mean'}, None),
-        ({'scores': [0.5, 1.0, 1]}, None),
-        ({'scores': [0.5, 1.0, 1], 'weights': [1, 2, 3], 'strategy': 'invalid_strategy'}, ValidationError),
-        ({}, ValidationError),
-    ])
-    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Exception | None) -> None:
+    @pytest.mark.parametrize(
+        "parameters, expected_exception",
+        [
+            ({"scores": [0.5, 1.0, 1], "weights": [1, 2, 3], "strategy": "mean"}, None),
+            ({"scores": [0.5, 1.0, 1], "weights": [1, 2, 3]}, None),
+            ({"scores": [0.5, 1.0, 1], "weights": None}, None),
+            ({"scores": [0.5, 1.0, 1], "strategy": "mean"}, None),
+            ({"scores": [0.5, 1.0, 1]}, None),
+            (
+                {
+                    "scores": [0.5, 1.0, 1],
+                    "weights": [1, 2, 3],
+                    "strategy": "invalid_strategy",
+                },
+                ValidationError,
+            ),
+            ({}, ValidationError),
+        ],
+    )
+    def test_plugin_args(
+        self, parameters: dict[str, Any], expected_exception: Exception | None
+    ) -> None:
         if expected_exception:
             with pytest.raises(expected_exception):
                 AggregatePlugin.Args(**parameters)
         else:
             AggregatePlugin.Args(**parameters)
 
-    @pytest.mark.parametrize("scores, weights, strategy, expected", [
-        ([10, 20, 30], None, "mean", 20.0),
-        ([1, 2, 3], [0.5, 0.5, 0.5], "sum", 3.0),
-        ([2, 4, 6], [1, 2, 3], "min", 2.0),
-        ([5, 10, 15], [1, 1, 1], "max", 15.0),
-        ([3, 3, 3], [1, 1, 1], "product", 27.0),
-    ])
-    def test_aggregate_strategies(self, scores: list[float], weights: list[float] | None, strategy: str, expected: float) -> None:
+    @pytest.mark.parametrize(
+        "scores, weights, strategy, expected",
+        [
+            ([10, 20, 30], None, "mean", 20.0),
+            ([1, 2, 3], [0.5, 0.5, 0.5], "sum", 3.0),
+            ([2, 4, 6], [1, 2, 3], "min", 2.0),
+            ([5, 10, 15], [1, 1, 1], "max", 15.0),
+            ([3, 3, 3], [1, 1, 1], "product", 27.0),
+        ],
+    )
+    def test_aggregate_strategies(
+        self,
+        scores: list[float],
+        weights: list[float] | None,
+        strategy: str,
+        expected: float,
+    ) -> None:
         plugin = AggregatePlugin()
         args = AggregatePlugin.Args(scores=scores, weights=weights, strategy=strategy)
 
@@ -42,11 +62,14 @@ class TestAggregatePlugin:
         assert expected == result.percentage
         assert f"Score: {expected:.2f}" in result.output
 
-    @pytest.mark.parametrize("scores, weights", [
-        ([1, 2, 3], [1, 2]),
-        ([1], [1, 2]),
-        ([], []),
-    ])
+    @pytest.mark.parametrize(
+        "scores, weights",
+        [
+            ([1, 2, 3], [1, 2]),
+            ([1], [1, 2]),
+            ([], []),
+        ],
+    )
     def test_length_mismatch(self, scores: list[float], weights: list[float]) -> None:
         # TODO: move to args validation
         plugin = AggregatePlugin()

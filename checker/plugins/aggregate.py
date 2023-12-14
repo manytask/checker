@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from .base import PluginABC, PluginOutput
 from ..exceptions import PluginExecutionFailed
+from .base import PluginABC, PluginOutput
 
 
 class AggregatePlugin(PluginABC):
@@ -33,7 +33,9 @@ class AggregatePlugin(PluginABC):
                 output=f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
             )
 
-        weighted_scores = [score * weight for score, weight in zip(args.scores, weights)]
+        weighted_scores = [
+            score * weight for score, weight in zip(args.scores, weights)
+        ]
 
         if args.strategy == "mean":
             score = sum(weighted_scores) / len(weighted_scores)
@@ -45,6 +47,7 @@ class AggregatePlugin(PluginABC):
             score = max(weighted_scores)
         elif args.strategy == "product":
             from functools import reduce
+
             score = reduce(lambda x, y: x * y, weighted_scores)
         else:
             raise PluginExecutionFailed(

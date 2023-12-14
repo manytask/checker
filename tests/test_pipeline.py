@@ -104,14 +104,18 @@ class TestSampleFixtures:
 
 
 class TestPipelineRunnerValidation:
-    def test_correct_pipeline(self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]) -> None:
+    def test_correct_pipeline(
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
+    ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
             plugins=sample_plugins,
             verbose=False,
         )
         pipeline_runner.validate({}, validate_placeholders=False)
-        pipeline_runner.validate({'message': 'Hello'}, validate_placeholders=True)
+        pipeline_runner.validate({"message": "Hello"}, validate_placeholders=True)
         with pytest.raises(BadConfig):
             pipeline_runner.validate({}, validate_placeholders=True)
 
