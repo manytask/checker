@@ -11,7 +11,8 @@ help:
 	@echo "test             - Run all tests with pytest"
 	@echo "lint             - Lint and typecheck the code"
 	@echo "format           - Format the code with black"
-	@echo "docs             - Build the documentation"
+	@echo "docs-build       - Build the documentation"
+	@echo "docs-serve       - Serve the documentation in development mode"
 	@echo "help             - Display this help"
 
 # Run unit tests only
@@ -48,4 +49,15 @@ format:
 	black checker tests
 	isort checker tests
 
-.PHONY: all help test-unit test-integration test-docstests test lint format
+# Build the documentation
+docs-build:
+	@echo "[make] Building the documentation..."
+	@echo "TODO"
+
+# Serve the documentation in development mode
+docs-serve:
+	@echo "[make] Serve the documentation..."
+	@echo "TODO"
+
+
+.PHONY: all help test-unit test-integration test-docstests test lint format docs-build docs-serve
