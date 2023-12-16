@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
-
 from pydantic import Field
 
 from ..exceptions import PluginExecutionFailed
@@ -15,8 +13,8 @@ class RunScriptPlugin(PluginABC):
 
     class Args(PluginABC.Args):
         origin: str
-        script: Union[str, list[str]]  # as pydantic does not support | in older python versions
-        timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
+        script: str | list[str]
+        timeout: float | None = None
         isolate: bool = False
         env_whitelist: list[str] = Field(default_factory=lambda: ["PATH"])
 

@@ -3,15 +3,21 @@
 This section describes advanced usage of the checker.
 
 
-## CLI
+[//]: # (## CLI)
 
-The main checker functionality is available via CLI.
+[//]: # ()
+[//]: # (The main checker functionality is available via CLI.)
 
-::: mkdocs-click
-    :module: checker.__main__
-    :command: cli
-    :list_subcommands: True
-    :style: table
+[//]: # ()
+[//]: # (::: mkdocs-click)
+
+[//]: # (    :module: checker.__main__)
+
+[//]: # (    :command: cli)
+
+[//]: # (    :list_subcommands: True)
+
+[//]: # (    :style: table)
 
 
 ## Docker

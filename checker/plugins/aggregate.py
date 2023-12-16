@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Union
+from typing import Literal
 
 from ..exceptions import PluginExecutionFailed
 from .base import PluginABC, PluginOutput
@@ -13,7 +13,7 @@ class AggregatePlugin(PluginABC):
 
     class Args(PluginABC.Args):
         scores: list[float]
-        weights: Union[list[float], None] = None  # as pydantic does not support | in older python versions
+        weights: list[float] | None = None
         strategy: Literal["mean", "sum", "min", "max", "product"] = "mean"
         # TODO: validate for weights: len weights should be equal to len scores
         # TODO: validate not empty scores

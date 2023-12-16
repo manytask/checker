@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 from pathlib import Path
 from typing import Any, Generic, TypeVar, Type, Protocol
@@ -42,6 +40,5 @@ class YamlLoaderMixin(Generic[T]):
         with path.open("w") as f:
             yaml.dump(self.model_dump(), f)
 
-    @classmethod
-    def get_json_schema(cls: type[T]) -> dict[str, Any]:
-        return cls.model_json_schema()
+    def get_json_schema(self: T) -> dict[str, Any]:
+        return self.model_json_schema()

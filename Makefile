@@ -52,12 +52,15 @@ format:
 # Build the documentation
 docs-build:
 	@echo "[make] Building the documentation..."
-	@echo "TODO"
+	mike deploy `cat VERSION`
+	mike set-default `cat VERSION`
 
 # Serve the documentation in development mode
 docs-serve:
 	@echo "[make] Serve the documentation..."
-	@echo "TODO"
+	mike deploy `cat VERSION`
+	mike set-default `cat VERSION`
+	mike serve
 
 
 .PHONY: all help test-unit test-integration test-docstests test lint format docs-build docs-serve

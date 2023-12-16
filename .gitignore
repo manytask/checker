@@ -132,3 +132,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Specified files
+docs/ignore_me__production.md
+docs/ignore_me__system_setup.md
