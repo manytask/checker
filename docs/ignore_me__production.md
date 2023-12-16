@@ -1,13 +1,13 @@
 # Production
 
 On this page you can find documentation on how to run `checker` itself  
-NB: Please first refer to the [system setup documentation](./system_setup.md)
+NB: Please first refer to the [system setup documentation](./ignore_me__system_setup)
 
 
 ## Installation 
 
 In a nutshell `checker` is just a python pkg available with pip as [manytask-checker](https://pypi.org/project/manytask-checker/).  
-So, as it was mentioned in  [system setup documentation](./system_setup.md) you can install it with
+So, as it was mentioned in  [system setup documentation](./ignore_me__system_setup) you can install it with
 ```shell
 python -m pip install manytask-checker
 ```
