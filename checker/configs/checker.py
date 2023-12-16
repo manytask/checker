@@ -59,7 +59,7 @@ class PipelineStageConfig(CustomBaseModel):
     fail: FailType = FailType.FAST
 
     # save pipline stage result to context under this key
-    register_output: str | None = None
+    register_output: Optional[str] = None
 
 
 class CheckerTestingConfig(CustomBaseModel):
