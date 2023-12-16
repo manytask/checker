@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import cast
+from typing import cast, Union, Optional
 
 if sys.version_info < (3, 8):
     from pytz import (
@@ -26,11 +26,12 @@ class DeadlinesType(Enum):
 class DeadlinesSettingsConfig(CustomBaseModel):
     timezone: str
 
+    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
     deadlines: DeadlinesType = DeadlinesType.HARD
-    max_submissions: int | None = None
+    max_submissions: Optional[int] = None
     submission_penalty: float = 0
 
-    task_url: AnyUrl | None = None  # $GROUP_NAME $TASK_NAME vars are available
+    task_url: Optional[AnyUrl] = None  # $GROUP_NAME $TASK_NAME vars are available
 
     @field_validator("task_url")
     @classmethod
@@ -65,7 +66,8 @@ class DeadlinesTaskConfig(CustomBaseModel):
     bonus: int = 0
     special: int = 0
 
-    url: AnyUrl | None = None
+    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
+    url: Optional[AnyUrl] = None
 
     @property
     def name(self) -> str:
@@ -77,9 +79,10 @@ class DeadlinesGroupConfig(CustomBaseModel):
 
     enabled: bool = True
 
+    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
     start: datetime
-    steps: dict[float, datetime | timedelta] = Field(default_factory=dict)
-    end: datetime | timedelta | None = None
+    steps: dict[float, Union[datetime, timedelta]] = Field(default_factory=dict)
+    end: Union[datetime, timedelta, None] = None
 
     tasks: list[DeadlinesTaskConfig] = Field(default_factory=list)
 
