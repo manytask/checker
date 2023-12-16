@@ -2,7 +2,7 @@ name: Lint and Test
 
 on:
   push:
-    branches: [ main, new-1.x.x ]
+    branches: [ main ]
   pull_request:
     branches: [ main, new-1.x.x ]
 
