@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ from checker.course import Course, FileSystemTask
 from checker.tester import Tester
 from checker.utils import print_info
 
-from .configs import CheckerConfig, DeadlinesConfig
+from .configs import CheckerConfig, DeadlinesConfig, TaskConfig
 from .exceptions import BadConfig, TestingError
 
 
@@ -277,6 +278,28 @@ def grade(
         print_info(e)
         exit(1)
     print_info("TESTING PASSED", color="green")
+
+
+@cli.command(hidden=True)
+@click.argument("output_folder", type=ClickReadableDirectory, default=".")
+@click.pass_context
+def schema(
+        ctx: click.Context,
+        output_folder: Path,
+) -> None:
+    """
+    Generate json schema for the checker configs.
+    """
+    checker_schema = CheckerConfig.get_json_schema()
+    deadlines_schema = DeadlinesConfig.get_json_schema()
+    task_schema = TaskConfig.get_json_schema()
+
+    with open(output_folder / "schema-checker.json", "w") as f:
+        json.dump(checker_schema, f, indent=2)
+    with open(output_folder / "schema-deadlines.json", "w") as f:
+        json.dump(deadlines_schema, f, indent=2)
+    with open(output_folder / "schema-task.json", "w") as f:
+        json.dump(task_schema, f, indent=2)
 
 
 if __name__ == "__main__":
