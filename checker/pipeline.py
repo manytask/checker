@@ -81,7 +81,7 @@ class PipelineRunner:
     def __init__(
         self,
         pipeline: list[PipelineStageConfig],
-        plugins: dict[str, Type[PluginABC]],
+        plugins: dict[str, type[PluginABC]],
         *,
         verbose: bool = False,
     ):

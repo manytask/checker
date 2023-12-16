@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import Any, Generic, TypeVar, Type, Protocol
@@ -25,7 +27,7 @@ T = TypeVar('T', bound=pydantic.BaseModel)
 
 class YamlLoaderMixin(Generic[T]):
     @classmethod
-    def from_yaml(cls: Type[T], path: Path) -> T:
+    def from_yaml(cls: type[T], path: Path) -> T:
         try:
             with path.open() as f:
                 return cls(**yaml.safe_load(f))
@@ -41,5 +43,5 @@ class YamlLoaderMixin(Generic[T]):
             yaml.dump(self.model_dump(), f)
 
     @classmethod
-    def get_json_schema(cls: Type[T]) -> dict[str, Any]:
+    def get_json_schema(cls: type[T]) -> dict[str, Any]:
         return cls.model_json_schema()
