@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 from .base import PluginABC, PluginOutput
 
 
@@ -9,8 +11,8 @@ class AggregatePlugin(PluginABC):
     name = "report_score_manytask"
 
     class Args(PluginABC.Args):
-        origin: str | None = None
-        patterns: list[str] | None = None
+        origin: Union[str, None] = None  # as pydantic does not support | in older python versions
+        patterns: Union[list[str], None] = None  # as pydantic does not support | in older python versions
         username: str
         task_name: str
         score: float  # TODO: validate score is in [0, 1] (bonus score?)
