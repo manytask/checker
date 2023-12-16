@@ -2,14 +2,18 @@ name: Lint and Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, new-1.x.x ]
   pull_request:
     branches: [ main, new-1.x.x ]
 
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref_name | github.ref }}
   cancel-in-progress: true
+
+
+env:
+  PYTHON_VERSIONS: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
 
 jobs:
@@ -17,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ${{ env.PYTHON_VERSIONS }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ${{ env.PYTHON_VERSIONS }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ${{ env.PYTHON_VERSIONS }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -84,14 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-          cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          echo "TODO: add docs dependencies"
-          # python -m pip install -e .[docs]
+          python -m pip install -e .[docs]
       - name: TODO
         run: |
           echo "TODO: add docs tests"
@@ -100,14 +99,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-          cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          echo "TODO: add docs dependencies"
-          # python -m pip install -e .[docs]
+          python -m pip install -e .[docs]
       - name: TODO
         run: |
           echo "TODO: add docs preview"

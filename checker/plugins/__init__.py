@@ -6,6 +6,7 @@ import pkgutil
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Type
 
 from .base import PluginABC, PluginOutput  # noqa: F401
 

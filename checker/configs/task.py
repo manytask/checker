@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import Field, model_validator
 
 from .checker import (
@@ -17,8 +15,7 @@ class TaskConfig(CustomBaseModel, YamlLoaderMixin['TaskConfig']):
 
     version: int  # if config exists, version is always present
 
-    # Note: use Optional[...] instead of ... | None as pydantic does not support | in older python versions
-    structure: Optional[CheckerStructureConfig] = None
-    parameters: Optional[CheckerParametersConfig] = None
-    task_pipeline: Optional[list[PipelineStageConfig]] = None
-    report_pipeline: Optional[list[PipelineStageConfig]] = None
+    structure: CheckerStructureConfig | None = None
+    parameters: CheckerParametersConfig | None = None
+    task_pipeline: list[PipelineStageConfig] | None = None
+    report_pipeline: list[PipelineStageConfig] | None = None

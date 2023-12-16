@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Union, Optional
+from typing import Any, Union
 
 from pydantic import AnyUrl, Field, RootModel, ValidationError, field_validator
 
@@ -14,10 +14,9 @@ TTemplate = Union[str, list[Union[ParamType, str]], dict[str, Union[ParamType, s
 
 
 class CheckerStructureConfig(CustomBaseModel):
-    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
-    ignore_patterns: Optional[list[str]] = None
-    private_patterns: Optional[list[str]] = None
-    public_patterns: Optional[list[str]] = None
+    ignore_patterns: list[str] | None = None
+    private_patterns: list[str] | None = None
+    public_patterns: list[str] | None = None
     # TODO: add check "**" is not allowed
 
 
@@ -52,14 +51,13 @@ class PipelineStageConfig(CustomBaseModel):
     name: str
     run: str
 
-    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
-    args: dict[str, Union[ParamType, TTemplate]] = Field(default_factory=dict)
+    args: dict[str, ParamType | TTemplate] = Field(default_factory=dict)
 
-    run_if: Union[bool, TTemplate, None] = None
+    run_if: bool | TTemplate | None = None
     fail: FailType = FailType.FAST
 
     # save pipline stage result to context under this key
-    register_output: Optional[str] = None
+    register_output: str | None = None
 
 
 class CheckerTestingConfig(CustomBaseModel):
