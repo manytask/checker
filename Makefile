@@ -51,9 +51,9 @@ format:
 
 # Deploy the documentation
 docs-deploy:
-    @echo "[make] Deploying the documentation..."
-    mike deploy -b gh-pages `cat VERSION` --push
-    mike set-default `cat VERSION`
+	@echo "[make] Deploying the documentation..."
+	mike deploy -b gh-pages `cat VERSION` --push
+	mike set-default `cat VERSION`
 
 # Build the documentation
 docs-build:
