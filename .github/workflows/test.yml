@@ -109,7 +109,6 @@ jobs:
           # python -m pip install -e .[docs]
       - name: Docs preview
         run: |
-          mkdir -p site
           make docs-build
       - name: Publish to Cloudflare Pages
         id: deploy

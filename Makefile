@@ -52,18 +52,18 @@ format:
 # Deploy the documentation
 docs-deploy:
 	@echo "[make] Deploying the documentation..."
-	mike deploy -b gh-pages `cat VERSION` --push
-	mike set-default `cat VERSION`
+	python -m mike deploy -b gh-pages `cat VERSION` --push
+	python -m mike set-default `cat VERSION`
 
 # Build the documentation
 docs-build:
 	@echo "[make] Building the documentation..."
-	mkdocs build
+	python -m mkdocs build
 
 # Serve the documentation in development mode
 docs-serve:
 	@echo "[make] Serve the documentation..."
-	mkdocs serve
+	python -m mkdocs serve
 
 
 .PHONY: all help test-unit test-integration test-docstests test lint format docs-build docs-serve
