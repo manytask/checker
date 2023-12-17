@@ -10,18 +10,18 @@ You can refer to the [course-template](https://github.com/manytask/course-templa
 Plugin is a single stage of the pipeline, have arguments, return exclusion result. 
 In a nutshell, it is a Python class overriding abstract class `checker.plugins.PluginABC`:
 
-::: checker.plugins.PluginABC
+::: checker.plugins.base.PluginABC
     handler: python
 
 Note that each plugin should override `checker.plugins.PluginABC.Args` class to provide arguments validation. Otherwise, empty arguments will be passed to `run` method.
 
-::: checker.plugins.PluginABC.Args
+::: checker.plugins.base.PluginABC.Args
     handler: python
 
 
 Each plugin output `checker.plugins.PluginOutput` class when executed successfully. 
 
-::: checker.plugins.PluginOutput
+::: checker.plugins.base.PluginOutput
     handler: python
 
 In case of error, `checker.exceptions.PluginExecutionFailed` have to be raised.

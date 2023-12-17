@@ -90,11 +90,10 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          echo "TODO: add docs dependencies"
-          # python -m pip install -e .[docs]
-      - name: TODO
+          python -m pip install -e .[docs]
+      - name: Build docs
         run: |
-          echo "TODO: add docs tests"
+          make docs-build
 
   docs-preview:
     runs-on: ubuntu-latest
@@ -106,8 +105,20 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          echo "TODO: add docs dependencies"
-          # python -m pip install -e .[docs]
-      - name: TODO
+          python -m pip install -e .[docs]
+      - name: Docs preview
         run: |
-          echo "TODO: add docs preview"
+          make docs-build
+      - name: Publish to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: manytask-checker
+          directory: ./site
+          # Optional: Enable this if you want to have GitHub Deployments triggered
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: Switch what branch you are publishing to.
+          # By default this will be the branch which triggered this workflow
+          branch: ${{ ( github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == 'main' && 'main' ) || ( github.event.workflow_run.head_sha ) }}

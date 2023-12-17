@@ -90,6 +90,6 @@ TBA
 ## Contributing
 
 Really appreciate any contributions!  
-For guidance on setting up a development environment see the [development guide](./docs/development.md).
+For guidance on setting up a development environment see the [development guide](./docs/5_development.md).
 For styleguide see organization [contribution guide](https://github.com/manytask/.github/CONTRIBUTING.md).
 
