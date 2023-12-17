@@ -105,8 +105,7 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          echo "TODO: add docs dependencies"
-          # python -m pip install -e .[docs]
+          python -m pip install -e .[docs]
       - name: Docs preview
         run: |
           make docs-build
