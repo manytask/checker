@@ -33,7 +33,7 @@ class AggregatePlugin(PluginABC):
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: check on requests 2.0.0
-        time = args.send_time or datetime.now().astimezone()
+        submit_time = args.send_time or datetime.now().astimezone()
         time_isoformat = '%Y-%m-%dT%H:%M:%S.%f%:z'
         # Do not expose token in logs.
         data = {
@@ -42,7 +42,7 @@ class AggregatePlugin(PluginABC):
             'username': args.username,
             'score': args.score,
             'check_deadline': args.check_deadline,
-            'submit_time': time.strftime(time_isoformat)
+            'submit_time': submit_time.strftime(time_isoformat)
         }
 
         files = self._collect_files_to_send(args)
