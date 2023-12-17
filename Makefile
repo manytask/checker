@@ -49,15 +49,21 @@ format:
 	black checker tests
 	isort checker tests
 
+# Deploy the documentation
+docs-deploy:
+    @echo "[make] Deploying the documentation..."
+    mike deploy -b gh-pages `cat VERSION` --push
+    mike set-default `cat VERSION`
+
 # Build the documentation
 docs-build:
 	@echo "[make] Building the documentation..."
-	@echo "TODO"
+	mkdocs build
 
 # Serve the documentation in development mode
 docs-serve:
 	@echo "[make] Serve the documentation..."
-	@echo "TODO"
+	mkdocs serve
 
 
 .PHONY: all help test-unit test-integration test-docstests test lint format docs-build docs-serve
