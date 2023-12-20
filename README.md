@@ -12,9 +12,9 @@ Checker is a Python cli script to test students' solutions with built-in [manyta
 * **production-like** - setup for students with gitlab-ci, language-specific testing etc 
 * **customizable** - testing pipeline configuration via yaml files
 * **extensible** - build-in plugins and ability to write custom plugins
-  * [manytask](https://github.com/manytask/manytask) integration with plugin
-  * gitlab merge-requests checks with plugin
-  * etc
+    * [manytask](https://github.com/manytask/manytask) integration with plugin
+    * gitlab merge-requests checks with plugin
+    * etc
 * **secure** - sandbox execution of students' code
 * **fast** - lightweight script with testing parallelization
 
@@ -37,6 +37,7 @@ So you have `Public Repo` and `Students' Repositories` and `Web App` to collect 
 For the checker this setup extends with `Private Repo` with tasks, tests and solutions and `gitlab-ci` to run tests in.
 
 The `checker` in a nutshell is a CLI script providing the following functionality:  
+
 * **grade** - to run in a student's repository to test solution against private and public tests and push scores.
 * **validate** - to run in a private (tutors') repository to validate tasks and deadlines integrity (will run in check automatically).
 * **check** - to run in a private (tutors') repository to test gold solutions against private and public tests.
@@ -53,22 +54,24 @@ flowchart LR
     end
 ```
 
-The flow for tutors looks like:
-* Have a manytask ready with empty public repo
-* Create private repo with tasks, tests and solutions
-* Configure checker with yaml files
-* Make docker with your environment and checker installed
-* Write ci file from students to run `checker grade` on each push/mr
-* Setup private repo ci to run `checker check` on each push/mr
-* Setup private repo ci to run `checker export` on each push/mr oor release or regularly or manually
-* Profit!
+The flow for tutors looks like:  
+
+1. Have a manytask ready with empty public repo
+2. Create private repo with tasks, tests and solutions
+3. Configure checker with yaml files
+4. Make docker with your environment and checker installed
+5. Write ci file from students to run `checker grade` on each push/mr
+6. Setup private repo ci to run `checker check` on each push/mr
+7. Setup private repo ci to run `checker export` on each push/mr oor release or regularly or manually
+8. Profit!
 
 The flow for students looks like:
-* Register in manytask and get access to the public repo fork
-* Clone this repo and start working on tasks
-* Update from public repo regularly to get new tasks and tests
-* Push your solution to gitlab where `checker grade` will run and push scores
-* Profit!
+
+1. Register in manytask and get access to the public repo fork
+2. Clone this repo and start working on tasks
+3. Update from public repo regularly to get new tasks and tests
+4. Push your solution to gitlab where `checker grade` will run and push scores
+5. Profit!
 
 
 It is a short description, please refer to the [checker docs](./docs) for more details.
@@ -90,6 +93,6 @@ TBA
 ## Contributing
 
 Really appreciate any contributions!  
-For guidance on setting up a development environment see the [development guide](./docs/5_development.md).
+For guidance on setting up a development environment see the [development guide](./docs/6_development).
 For styleguide see organization [contribution guide](https://github.com/manytask/.github/CONTRIBUTING.md).
 

@@ -85,6 +85,7 @@ Feel free to open issues and PRs. Please check on existing issues and PRs before
 This project uses GitHub actions to run tests and build docs on each push and pull request.
 
 Your PR will not be merged if tests or docs build will fail. The following checks are mandatory:
+
 1. Testing
 2. Linting/typechecks/formatting
 3. Docs build and Docs Tests

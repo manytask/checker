@@ -10,27 +10,23 @@ You can refer to the [course-template](https://github.com/manytask/course-templa
 Plugin is a single stage of the pipeline, have arguments, return exclusion result. 
 In a nutshell, it is a Python class overriding abstract class `checker.plugins.PluginABC`:
 
-::: checker.plugins.base.PluginABC
-    handler: python
+> ::: checker.plugins.base.PluginABC
 
 Note that each plugin should override `checker.plugins.PluginABC.Args` class to provide arguments validation. Otherwise, empty arguments will be passed to `run` method.
 
-::: checker.plugins.base.PluginABC.Args
-    handler: python
+> ::: checker.plugins.base.PluginABC.Args
 
 
 Each plugin output `checker.plugins.PluginOutput` class when executed successfully. 
 
-::: checker.plugins.base.PluginOutput
-    handler: python
+> ::: checker.plugins.base.PluginOutput
 
 In case of error, `checker.exceptions.PluginExecutionFailed` have to be raised.
-::: checker.exceptions.PluginExecutionFailed
-    handler: python
+> ::: checker.exceptions.PluginExecutionFailed
 
-> ![note]  
-> Base Plugin class will handle all ValidationErrors of Args and raise error by itself.  
-> So try to move all arguments validation to `Args` class in `pydantic` way.
+!!! note  
+    Base Plugin class will handle all ValidationErrors of Args and raise error by itself.  
+    So try to move all arguments validation to `Args` class in `pydantic` way.
 
 
 ## How to use plugins
@@ -39,8 +35,11 @@ Plugins are used in the pipelines described in `.checker.yml` file. When running
 
 The following plugins are available out of the box:
 
-::: checker.plugins
-    handler: python
+TBA
+
+[//]: # (::: checker.plugins)
+
+[//]: # (    handler: python)
 
 [//]: # (TODO: list here all plugins available out of the box)
 
@@ -78,10 +77,10 @@ class PrintUrlPlugin(PluginABC):
         )
 ```
 
-> ![important]  
-> The Plugin must implement `verbose` functionality!  
-> If `verbose` is `True` the plugin should provide all info and possible debug info.  
-> If `verbose` is `False` the plugin should provide only public-friendly info, e.g. excluding private test output.
+!!! important  
+    The Plugin must implement `verbose` functionality!  
+    If `verbose` is `True` the plugin should provide all info and possible debug info.  
+    If `verbose` is `False` the plugin should provide only public-friendly info, e.g. excluding private test output.
 
-> ![note]
-> It is a nice practice to write a small tests for your custom plugins to be sure that it works as expected.
+!!! note
+    It is a nice practice to write a small tests for your custom plugins to be sure that it works as expected.
