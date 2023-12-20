@@ -15,7 +15,7 @@ from checker.exceptions import PluginExecutionFailed
 from .base import PluginABC, PluginOutput
 
 
-class AggregatePlugin(PluginABC):
+class ManytaskPlugin(PluginABC):
     """Given score report it to the manytask."""
 
     name = "report_score_manytask"
