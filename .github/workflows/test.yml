@@ -11,6 +11,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  deployments: write
 
 jobs:
   package-lint:
