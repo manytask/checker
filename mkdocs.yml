@@ -72,8 +72,13 @@ nav:
   - Changelog: 6_changelog.md
 
 markdown_extensions:
+  - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       pygments_lang_class: true
   - pymdownx.extra

@@ -11,8 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
   cancel-in-progress: true
 
-permissions:
-  deployments: write
 
 jobs:
   package-lint:
@@ -98,6 +96,8 @@ jobs:
           make docs-build
 
   docs-preview:
+    permissions:
+      deployments: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
