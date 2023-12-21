@@ -29,11 +29,10 @@ class ManytaskPlugin(PluginABC):
         report_url: AnyUrl
         tester_token: str
         check_deadline: bool
-        send_time: Optional[datetime] = None  # as pydantic does not support | in older python versions
+        send_time: datetime = datetime.now().astimezone()
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: check on requests 2.0.0
-        submit_time = args.send_time or datetime.now().astimezone()
         time_isoformat = '%Y-%m-%dT%H:%M:%S.%f%:z'
         # Do not expose token in logs.
         data = {
@@ -42,7 +41,7 @@ class ManytaskPlugin(PluginABC):
             'username': args.username,
             'score': args.score,
             'check_deadline': args.check_deadline,
-            'submit_time': submit_time.strftime(time_isoformat)
+            'submit_time': args.send_time.strftime(time_isoformat)
         }
 
         files = self._collect_files_to_send(args)
