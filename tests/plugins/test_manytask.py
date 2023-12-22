@@ -4,11 +4,10 @@ from datetime import datetime
 from os.path import basename
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import Any
-from unittest import mock
-
 
 import pytest
 from pydantic import ValidationError, HttpUrl
+from pytest_mock import MockFixture
 
 from checker.plugins.manytask import ManytaskPlugin
 
@@ -117,9 +116,10 @@ class TestManytaskPlugin:
              0)
         ]
     )
-    def test_collect_files_to_send(self, patterns_to_take: list[str], extensions_to_create: list[str],
+    def test_collect_files_to_send(self, mocker: MockFixture, extensions_to_create: list[str],
+                                   patterns_to_take: list[str],
                                    taken_files_num: int) -> None:
-        args = self.get_sample_args()
+        args = mocker.MagicMock()
         args.patterns = patterns_to_take
 
         with TemporaryDirectory() as tdir:
@@ -133,12 +133,12 @@ class TestManytaskPlugin:
                 if f'*{extension}' in patterns_to_take or '*' in patterns_to_take:
                     expected_filenames.append(basename(tempfiles[-1].name))
 
-            with mock.patch('builtins.open', mock.mock_open(read_data=b"File content")) as mock_open_file:
-                result = ManytaskPlugin._collect_files_to_send(args)
+            mocker.patch('builtins.open', mocker.mock_open(read_data=b"File content"))
+            result = ManytaskPlugin._collect_files_to_send(args)
 
-                assert result is not None, "Didn't collect files"
-                assert len(result) == taken_files_num, 'Wrong file quantity are collected'
-                assert sorted(result.keys()) == sorted(expected_filenames), 'Wrong files are collected'
+            assert result is not None, "Didn't collect files"
+            assert len(result) == taken_files_num, 'Wrong file quantity are collected'
+            assert sorted(result.keys()) == sorted(expected_filenames), 'Wrong files are collected'
 
-                if taken_files_num:
-                    mock_open_file.assert_called_with(mock.ANY, "rb")
+            if taken_files_num:
+                open.assert_called_with(mocker.ANY, "rb")  # type: ignore
