@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+from os.path import basename
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import Any
 from unittest import mock
-from os.path import basename
+
 
 import pytest
-from pydantic import ValidationError
+from pydantic import ValidationError, HttpUrl
 
 from checker.plugins.manytask import ManytaskPlugin
 
@@ -18,12 +19,12 @@ class TestManytaskPlugin:
         return ManytaskPlugin.Args(username='user1',
                                    task_name='task1',
                                    score=0.5,
-                                   report_url='https://example.com',
+                                   report_url=HttpUrl('https://example.com'),
                                    tester_token='token1',
                                    check_deadline=True)
 
     @pytest.mark.parametrize(
-        "parameters, expected_exception",
+        'parameters, expected_exception',
         [
             ({
                  'username': 'user1',
@@ -100,7 +101,7 @@ class TestManytaskPlugin:
             ManytaskPlugin.Args(**parameters)
 
     @pytest.mark.parametrize(
-        "extensions_to_create, patterns_to_take, taken_files_num",
+        'extensions_to_create, patterns_to_take, taken_files_num',
         [
             (['.py', '.yml', '.txt'],
              ['*'],
@@ -132,10 +133,10 @@ class TestManytaskPlugin:
                 if f'*{extension}' in patterns_to_take or '*' in patterns_to_take:
                     expected_filenames.append(basename(tempfiles[-1].name))
 
-            with mock.patch("builtins.open", mock.mock_open(read_data=b"File content")) as mock_open_file:
+            with mock.patch('builtins.open', mock.mock_open(read_data=b"File content")) as mock_open_file:
                 result = ManytaskPlugin._collect_files_to_send(args)
 
-                assert result is not None, 'Didn\'t collect files'
+                assert result is not None, "Didn't collect files"
                 assert len(result) == taken_files_num, 'Wrong file quantity are collected'
                 assert sorted(result.keys()) == sorted(expected_filenames), 'Wrong files are collected'
 
