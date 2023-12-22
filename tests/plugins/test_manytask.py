@@ -8,8 +8,9 @@ from typing import Any
 import pytest
 from pydantic import ValidationError, HttpUrl
 from pytest_mock import MockFixture
+from requests_mock import Mocker
 
-from checker.plugins.manytask import ManytaskPlugin
+from checker.plugins.manytask import ManytaskPlugin, PluginExecutionFailed
 
 
 class TestManytaskPlugin:
@@ -142,3 +143,26 @@ class TestManytaskPlugin:
 
             if taken_files_num:
                 open.assert_called_with(mocker.ANY, "rb")  # type: ignore
+
+    @pytest.mark.parametrize(
+        'response_status_code, response_text, expected_exception',
+        [
+            (200, 'Success', None),
+            (408, 'Request Timeout', PluginExecutionFailed),
+            (503, 'Service Unavailable', PluginExecutionFailed)
+        ])
+    def test_post_with_retries(self, response_status_code: int, response_text: str,
+                               expected_exception: Exception) -> None:
+        example_site = 'https://example.com'
+        with Mocker() as mocker:
+            mocker.post(f'{example_site}/api/report', status_code=response_status_code, text=response_text)
+
+            if expected_exception:
+                with pytest.raises(expected_exception) as exc:
+                    ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
+                assert str(response_status_code) in str(exc.value)
+                assert response_text in str(exc.value)
+            else:
+                result = ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
+                assert result.status_code == 200
+                assert result.text == 'Success'
