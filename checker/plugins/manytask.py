@@ -71,7 +71,7 @@ class ManytaskPlugin(PluginABC):
         session = requests.Session()
         session.mount("https://", adapter)
         session.mount("http://", adapter)
-        response = session.post(url=f'{report_url}/api/report', data=data, files=files)
+        response = session.post(url=f'{report_url}api/report', data=data, files=files)
 
         if response.status_code >= 400:
             raise PluginExecutionFailed(f'{response.status_code}: {response.text}')
