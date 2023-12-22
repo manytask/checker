@@ -80,7 +80,7 @@ class ManytaskPlugin(PluginABC):
 
     @staticmethod
     def _collect_files_to_send(args: Args) -> dict[str, tuple[str, IO[bytes]]] | None:
-        if args.origin and args.patterns:
+        if args.origin is not None and args.patterns:
             source_dir = Path(args.origin)
             return {
                 path.name: (str(path.relative_to(source_dir)), open(path, 'rb'))
