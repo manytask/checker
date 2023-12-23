@@ -46,10 +46,6 @@ class TestManytaskPlugin:
         })
         return args_dict
 
-    @staticmethod
-    def get_default_args() -> ManytaskPlugin.Args:
-        return ManytaskPlugin.Args(**TestManytaskPlugin.get_default_args_dict())
-
     @pytest.mark.parametrize(
         'parameters, expected_exception',
         [
