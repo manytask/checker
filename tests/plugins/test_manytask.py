@@ -182,7 +182,7 @@ class TestManytaskPlugin:
                 assert result.status_code == 200
                 assert result.text == 'Success'
 
-    def test_plugin_run(self, mocker) -> None:
+    def test_plugin_run(self, mocker: MockFixture) -> None:
         args_dict = self.get_default_full_args_dict()
         result_score = 1.
         expected_files = {'files': 'good'}
@@ -205,4 +205,30 @@ class TestManytaskPlugin:
                                  f"requested score: {self.TEST_SCORE}, result score: {result_score}")
 
         ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)
-        pass
+
+    def test_verbose(self, mocker: MockFixture) -> None:
+        args_dict = self.get_default_full_args_dict()
+        expected_files = {'files': 'good'}
+        result_score = 1.
+
+        mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        mocker.patch.object(ManytaskPlugin, '_post_with_retries')
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore
+        result = ManytaskPlugin().run(args_dict, verbose=True)
+
+        assert str(expected_files) in result.output
+
+    def test_bad_response(self, mocker: MockFixture) -> None:
+        args_dict = self.get_default_full_args_dict()
+        expected_files = {'files': 'good'}
+
+        mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        mocker.patch.object(ManytaskPlugin, '_post_with_retries')
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {}  # type: ignore
+
+        with pytest.raises(PluginExecutionFailed) as exc:
+            ManytaskPlugin().run(args_dict)
+
+        assert 'Unable to decode response' == str(exc.value)
