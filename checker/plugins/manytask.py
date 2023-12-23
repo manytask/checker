@@ -91,11 +91,7 @@ class ManytaskPlugin(PluginABC):
         }
 
     def _format_time(self, time: datetime) -> str:
-        print(time)
-        print(time.tzinfo)
         if not time.tzinfo:
-            print(time.tzinfo)
-            print(bool(time.tzinfo))
             self._output.append('Warning: No timezone provided for send_time, possible time miscalculations')
         time_isoformat = '%Y-%m-%dT%H:%M:%S.%f%:z'
         return time.strftime(time_isoformat)
