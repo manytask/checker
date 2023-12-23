@@ -14,102 +14,96 @@ from checker.plugins.manytask import ManytaskPlugin, PluginExecutionFailed
 
 
 class TestManytaskPlugin:
+    BASE_URL = HttpUrl('https://test.manytask.org')
+    TESTER_TOKEN = 'test_token'
+    TEST_NOW_DATETIME = datetime(2021, 1, 1, 0, 0, 0, 1).astimezone()
+    TEST_NOW_DATETIME_STR = '2023-12-21T00:52:36.166028+06:00'
+    TEST_TASK_NAME = 'some_task'
+    TEST_USERNAME = 'username'
+    TEST_SCORE = 1.0
+
     @staticmethod
-    def get_sample_args() -> ManytaskPlugin.Args:
-        return ManytaskPlugin.Args(username='user1',
-                                   task_name='task1',
-                                   score=0.5,
-                                   report_url=HttpUrl('https://example.com'),
-                                   tester_token='token1',
-                                   check_deadline=True)
+    def get_default_args_dict() -> dict[str, Any]:
+        return {
+            'username': TestManytaskPlugin.TEST_USERNAME,
+            'task_name': TestManytaskPlugin.TEST_TASK_NAME,
+            'score': TestManytaskPlugin.TEST_SCORE,
+            'report_url': TestManytaskPlugin.BASE_URL,
+            'tester_token': TestManytaskPlugin.TESTER_TOKEN,
+            'check_deadline': True
+        }
+
+    @staticmethod
+    def get_default_args() -> ManytaskPlugin.Args:
+        return ManytaskPlugin.Args(**TestManytaskPlugin.get_default_args_dict())
 
     @pytest.mark.parametrize(
         'parameters, expected_exception',
         [
-            ({
-                 'username': 'user1',
-                 'task_name': 'task1',
-                 'score': 0.5,
-                 'report_url': 'https://example.com',
-                 'tester_token': 'token1',
-                 'check_deadline': True,
-             }, None),
+            ({}, None),
             ({
                  'origin': 'test/',
                  'patterns': ['*.py'],
-                 'username': 'user2',
-                 'task_name': 'task2',
-                 'score': 0.01,
-                 'report_url': 'https://example2.com',
-                 'tester_token': 'token2',
-                 'check_deadline': True,
-                 'send_time': datetime.now()
              }, None),
             ({
                  'origin': '/test/test/test',
                  'patterns': ['*.py', '**.*', 'test'],
-                 'username': 'user3',
-                 'task_name': 'task3',
-                 'score': 1.,
-                 'report_url': 'https://example3.com',
-                 'tester_token': 'token3',
-                 'check_deadline': True,
-                 'send_time': '2023-12-21T00:52:36.166028+06:00'
              }, None),
             ({
                  'origin': './',
-                 'patterns': [],
-                 'username': 'user4',
-                 'task_name': 'task4',
-                 'score': 1.5,
-                 'report_url': 'https://example4.com',
-                 'tester_token': 'token4',
-                 'check_deadline': False
              }, None),
             ({
-                 'origin': 'test/',
-                 'patterns': ['*.py'],
-                 'username': 'user2',
-                 'task_name': 'task2',
-                 'score': 0.01,
-                 'report_url': 'invalidurl',
-                 'tester_token': 'token2',
-                 'check_deadline': True,
-                 'send_time': datetime.now()
-             }, ValidationError),
+                 'origin': '',
+                 'patterns': [],
+             }, None),
             ({
-                 'origin': 'test/',
-                 'patterns': ['*.py'],
-                 'username': 'user2',
-                 'task_name': 'task2',
                  'score': 0.01,
-                 'report_url': 'https://example2.com',
-                 'tester_token': 'token2',
-                 'check_deadline': True,
+             }, None),
+            ({
+                 'score': 1.,
+             }, None),
+            ({
+                 'score': 1.5,
+             }, None),
+            ({
+                 'send_time': TEST_NOW_DATETIME
+             }, None),
+            ({
+                 'send_time': TEST_NOW_DATETIME_STR
+             }, None),
+            ({
                  'send_time': 'invalidtime'
              }, ValidationError),
-            ({}, ValidationError),
+            ({
+                 'report_url': 'invalidurl'
+             }, ValidationError),
         ],
     )
     def test_plugin_args(
             self, parameters: dict[str, Any], expected_exception: Exception | None
     ) -> None:
+        args = self.get_default_args_dict()
+        args.update(parameters)
         if expected_exception:
             with pytest.raises(expected_exception):
-                ManytaskPlugin.Args(**parameters)
+                ManytaskPlugin.Args(**args)
         else:
-            ManytaskPlugin.Args(**parameters)
+            ManytaskPlugin.Args(**args)
+
+    def test_empty_args_raise_validation_error(self) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskPlugin.Args(**{})
 
     def test_date_without_timezone_throws_warning(self) -> None:
         plugin = ManytaskPlugin()
         plugin._output = []
-        plugin._format_time(datetime.now())
+        plugin._format_time(self.TEST_NOW_DATETIME.replace(tzinfo=None))
         assert any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
 
     def test_date_with_timezone_doesnt_throw_warning(self) -> None:
         plugin = ManytaskPlugin()
         plugin._output = []
-        plugin._format_time(datetime.now().astimezone())
+        plugin._format_time(self.TEST_NOW_DATETIME.astimezone())
         assert not any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
 
     @pytest.mark.parametrize(
@@ -162,16 +156,15 @@ class TestManytaskPlugin:
         ])
     def test_post_with_retries(self, response_status_code: int, response_text: str,
                                expected_exception: Exception) -> None:
-        example_site = 'https://example.com'
         with Mocker() as mocker:
-            mocker.post(f'{example_site}/api/report', status_code=response_status_code, text=response_text)
+            mocker.post(f'{self.BASE_URL}api/report', status_code=response_status_code, text=response_text)
 
             if expected_exception:
                 with pytest.raises(expected_exception) as exc:
-                    ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
+                    ManytaskPlugin._post_with_retries(self.BASE_URL, {'key': 'value'}, None)
                 assert str(response_status_code) in str(exc.value), "Status code wasn't provided in exception message"
                 assert response_text in str(exc.value), "Error text wasn't provided in exception message"
             else:
-                result = ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
+                result = ManytaskPlugin._post_with_retries(self.BASE_URL, {'key': 'value'}, None)
                 assert result.status_code == 200
                 assert result.text == 'Success'
