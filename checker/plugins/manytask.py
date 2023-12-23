@@ -33,7 +33,6 @@ class ManytaskPlugin(PluginABC):
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # TODO: check on requests 2.0.0
-        time_isoformat = '%Y-%m-%dT%H:%M:%S.%f%:z'
         self._output = []
         # Do not expose token in logs.
         data = {
@@ -42,7 +41,7 @@ class ManytaskPlugin(PluginABC):
             'username': args.username,
             'score': args.score,
             'check_deadline': args.check_deadline,
-            'submit_time': args.send_time.strftime(time_isoformat)
+            'submit_time': self._format_time(args.send_time)
         }
 
         files = None
@@ -91,4 +90,12 @@ class ManytaskPlugin(PluginABC):
             if path.is_file()
         }
 
-        return None
+    def _format_time(self, time: datetime) -> str:
+        print(time)
+        print(time.tzinfo)
+        if not time.tzinfo:
+            print(time.tzinfo)
+            print(bool(time.tzinfo))
+            self._output.append('Warning: No timezone provided for send_time, possible time miscalculations')
+        time_isoformat = '%Y-%m-%dT%H:%M:%S.%f%:z'
+        return time.strftime(time_isoformat)

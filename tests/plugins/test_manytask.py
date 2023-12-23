@@ -100,6 +100,18 @@ class TestManytaskPlugin:
         else:
             ManytaskPlugin.Args(**parameters)
 
+    def test_date_without_timezone_throws_warning(self) -> None:
+        plugin = ManytaskPlugin()
+        plugin._output = []
+        plugin._format_time(datetime.now())
+        assert any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
+
+    def test_date_with_timezone_doesnt_throw_warning(self) -> None:
+        plugin = ManytaskPlugin()
+        plugin._output = []
+        plugin._format_time(datetime.now().astimezone())
+        assert not any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
+
     @pytest.mark.parametrize(
         'extensions_to_create, patterns_to_take, taken_files_num',
         [
@@ -120,11 +132,8 @@ class TestManytaskPlugin:
     def test_collect_files_to_send(self, mocker: MockFixture, extensions_to_create: list[str],
                                    patterns_to_take: list[str],
                                    taken_files_num: int) -> None:
-        args = mocker.MagicMock()
-        args.patterns = patterns_to_take
 
         with TemporaryDirectory() as tdir:
-            args.origin = tdir
             tempfiles = []
             expected_filenames = []
 
@@ -135,7 +144,7 @@ class TestManytaskPlugin:
                     expected_filenames.append(basename(tempfiles[-1].name))
 
             mocker.patch('builtins.open', mocker.mock_open(read_data=b"File content"))
-            result = ManytaskPlugin._collect_files_to_send(args)
+            result = ManytaskPlugin._collect_files_to_send(tdir, patterns_to_take)
 
             assert result is not None, "Didn't collect files"
             assert len(result) == taken_files_num, 'Wrong file quantity are collected'
@@ -160,8 +169,8 @@ class TestManytaskPlugin:
             if expected_exception:
                 with pytest.raises(expected_exception) as exc:
                     ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
-                assert str(response_status_code) in str(exc.value)
-                assert response_text in str(exc.value)
+                assert str(response_status_code) in str(exc.value), "Status code wasn't provided in exception message"
+                assert response_text in str(exc.value), "Error text wasn't provided in exception message"
             else:
                 result = ManytaskPlugin._post_with_retries(HttpUrl(example_site), {'key': 'value'}, None)
                 assert result.status_code == 200
