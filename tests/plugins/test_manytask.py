@@ -16,11 +16,14 @@ from checker.plugins.manytask import ManytaskPlugin, PluginExecutionFailed
 class TestManytaskPlugin:
     BASE_URL = HttpUrl('https://test.manytask.org')
     TESTER_TOKEN = 'test_token'
-    TEST_NOW_DATETIME = datetime(2021, 1, 1, 0, 0, 0, 1).astimezone()
-    TEST_NOW_DATETIME_STR = '2023-12-21T00:52:36.166028+06:00'
     TEST_TASK_NAME = 'some_task'
     TEST_USERNAME = 'username'
     TEST_SCORE = 1.0
+    TEST_ORIGIN = './'
+    TEST_PATTERNS = ['*']
+    TEST_NOW_DATETIME = datetime(2023, 12, 21, 0, 52, 36, 166028).astimezone()
+    TEST_NOW_DATETIME_STR = '2023-12-21T00:52:36.166028+06:00'
+    TEST_CHECK_DEADLINE = True
 
     @staticmethod
     def get_default_args_dict() -> dict[str, Any]:
@@ -30,8 +33,18 @@ class TestManytaskPlugin:
             'score': TestManytaskPlugin.TEST_SCORE,
             'report_url': TestManytaskPlugin.BASE_URL,
             'tester_token': TestManytaskPlugin.TESTER_TOKEN,
-            'check_deadline': True
+            'check_deadline': TestManytaskPlugin.TEST_CHECK_DEADLINE
         }
+
+    @staticmethod
+    def get_default_full_args_dict() -> dict[str, Any]:
+        args_dict = TestManytaskPlugin.get_default_args_dict()
+        args_dict.update({
+            'origin': TestManytaskPlugin.TEST_ORIGIN,
+            'patterns': TestManytaskPlugin.TEST_PATTERNS,
+            'send_time': TestManytaskPlugin.TEST_NOW_DATETIME_STR
+        })
+        return args_dict
 
     @staticmethod
     def get_default_args() -> ManytaskPlugin.Args:
@@ -168,3 +181,28 @@ class TestManytaskPlugin:
                 result = ManytaskPlugin._post_with_retries(self.BASE_URL, {'key': 'value'}, None)
                 assert result.status_code == 200
                 assert result.text == 'Success'
+
+    def test_plugin_run(self, mocker) -> None:
+        args_dict = self.get_default_full_args_dict()
+        result_score = 1.
+        expected_files = {'files': 'good'}
+        expected_data = {
+            'token': self.TESTER_TOKEN,
+            'task': self.TEST_TASK_NAME,
+            'username': self.TEST_USERNAME,
+            'score': self.TEST_SCORE,
+            'check_deadline': self.TEST_CHECK_DEADLINE,
+            'submit_time': self.TEST_NOW_DATETIME_STR
+        }
+
+        mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        mocker.patch.object(ManytaskPlugin, '_post_with_retries')
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore
+        result = ManytaskPlugin().run(args_dict)
+
+        assert result.output == (f"Report for task '{self.TEST_TASK_NAME}' for user '{self.TEST_USERNAME}', "
+                                 f"requested score: {self.TEST_SCORE}, result score: {result_score}")
+
+        ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)
+        pass
