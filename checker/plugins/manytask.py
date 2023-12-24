@@ -18,7 +18,7 @@ class ManytaskPlugin(PluginABC):
     """Given score report it to the manytask.
     Datetime format in args should be: '%Y-%m-%dT%H:%M:%S.%f%z'"""
 
-    TIME_ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
+    DEFAULT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 
     name = "report_score_manytask"
     _output: list[str]
@@ -95,4 +95,4 @@ class ManytaskPlugin(PluginABC):
     def _format_time(self, time: datetime) -> str:
         if not time.tzinfo:
             self._output.append('Warning: No timezone provided for send_time, possible time miscalculations')
-        return time.strftime(self.TIME_ISOFORMAT)
+        return time.strftime(self.DEFAULT_TIME_FORMAT)

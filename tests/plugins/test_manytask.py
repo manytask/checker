@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from os.path import basename
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-from typing import Any
+from typing import Any, Type
 
 import pytest
 from pydantic import ValidationError, HttpUrl
@@ -89,7 +89,7 @@ class TestManytaskPlugin:
         ],
     )
     def test_plugin_args(
-            self, parameters: dict[str, Any], expected_exception: Exception | None
+            self, parameters: dict[str, Any], expected_exception: Type[BaseException] | None
     ) -> None:
         args = self.get_default_args_dict()
         args.update(parameters)
@@ -154,7 +154,7 @@ class TestManytaskPlugin:
             assert sorted(result.keys()) == sorted(expected_filenames), 'Wrong files are collected'
 
             if taken_files_num:
-                open.assert_called_with(mocker.ANY, "rb")  # type: ignore
+                open.assert_called_with(mocker.ANY, "rb")  # type: ignore[attr-defined]
 
     @pytest.mark.parametrize(
         'response_status_code, response_text, expected_exception',
@@ -164,7 +164,7 @@ class TestManytaskPlugin:
             (503, 'Service Unavailable', PluginExecutionFailed)
         ])
     def test_post_with_retries(self, response_status_code: int, response_text: str,
-                               expected_exception: Exception) -> None:
+                               expected_exception: Type[BaseException]) -> None:
         with Mocker() as mocker:
             mocker.post(f'{self.BASE_URL}api/report', status_code=response_status_code, text=response_text)
 
@@ -192,15 +192,15 @@ class TestManytaskPlugin:
         }
 
         mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
-        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, '_post_with_retries')
-        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore[attr-defined]
         result = ManytaskPlugin().run(args_dict)
 
         assert result.output == (f"Report for task '{self.TEST_TASK_NAME}' for user '{self.TEST_USERNAME}', "
                                  f"requested score: {self.TEST_SCORE}, result score: {result_score}")
 
-        ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)
+        ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)  # type: ignore[attr-defined]
 
     def test_verbose(self, mocker: MockFixture) -> None:
         args_dict = self.get_default_full_args_dict()
@@ -208,9 +208,9 @@ class TestManytaskPlugin:
         result_score = 1.
 
         mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
-        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, '_post_with_retries')
-        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {'score': result_score}  # type: ignore[attr-defined]
         result = ManytaskPlugin().run(args_dict, verbose=True)
 
         assert str(expected_files) in result.output
@@ -220,9 +220,9 @@ class TestManytaskPlugin:
         expected_files = {'files': 'good'}
 
         mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
-        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore
+        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, '_post_with_retries')
-        ManytaskPlugin._post_with_retries.return_value.json.return_value = {}  # type: ignore
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {}  # type: ignore[attr-defined]
 
         with pytest.raises(PluginExecutionFailed) as exc:
             ManytaskPlugin().run(args_dict)
