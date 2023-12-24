@@ -34,7 +34,7 @@ dependencies = [
     "requests >=2.20.0,<3.0.0",
     "unshare >=0.22,<0.30; sys_platform != 'darwin'",
     "pytz >=2022.0,<2023.4; python_version < '3.9'",
-    "requests >=2.0.0,<3.0.0",
+    "requests ~=2.0.0",
     "urllib3 >=2.0.0,<3.0.0",
 ]
 dynamic = ["version"]
