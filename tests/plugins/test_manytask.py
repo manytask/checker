@@ -214,15 +214,12 @@ class TestManytaskPlugin:
         assert str(expected_files) in result.output
 
     def test_bad_response(self, mocker: MockFixture) -> None:
-        args_dict = self.get_default_full_args_dict()
-        expected_files = {'files': 'good'}
+        args_dict = self.get_default_args_dict()
 
-        mocker.patch.object(ManytaskPlugin, '_collect_files_to_send')
-        ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, '_post_with_retries')
         ManytaskPlugin._post_with_retries.return_value.json.return_value = {}  # type: ignore[attr-defined]
 
         with pytest.raises(PluginExecutionFailed) as exc:
             ManytaskPlugin().run(args_dict)
 
-        assert 'Unable to decode response' == str(exc.value)
+        assert str(exc.value) == 'Unable to decode response'
