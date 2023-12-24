@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import AnyUrl
 
 from .base import PluginABC, PluginOutput
@@ -22,7 +24,6 @@ class CheckGitlabMergeRequestPlugin(PluginABC):
         return PluginOutput(
             output="",
         )
-
 
 
 class CollectScoreGitlabMergeRequestPlugin(PluginABC):
@@ -51,5 +52,5 @@ class CollectScoreGitlabMergeRequestPlugin(PluginABC):
 
         return PluginOutput(
             output="",
-            points=1.0,
+            percentage=1.0,
         )

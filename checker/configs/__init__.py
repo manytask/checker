@@ -3,7 +3,8 @@ from .checker import (
     CheckerConfig,
     CheckerExportConfig,
     PipelineStageConfig,
-)
+    CheckerStructureConfig,
+)  # noqa: F401
 from .deadlines import (
     DeadlinesConfig,
     DeadlinesGroupConfig,

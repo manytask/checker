@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from inspect import cleandoc
 from pathlib import Path
 from typing import Any
 
@@ -11,19 +12,23 @@ from checker.exceptions import PluginExecutionFailed
 from checker.plugins.regex import CheckRegexpsPlugin
 
 
+T_CREATE_TEST_FILES = Callable[[dict[str, str]], Path]
+
+
+@pytest.fixture
+def create_test_files(tmpdir: Path) -> T_CREATE_TEST_FILES:
+    def _create_test_files(files_content: dict[str, str]) -> Path:
+        for filename, content in files_content.items():
+            file = Path(tmpdir / filename)
+            file.parent.mkdir(parents=True, exist_ok=True)
+            with open(file, "w") as f:
+                f.write(cleandoc(content))
+        return tmpdir
+
+    return _create_test_files
+
+
 class TestCheckRegexpsPlugin:
-    T_CREATE_TEST_FILES = Callable[[dict[str, str]], Path]
-
-    @pytest.fixture
-    def create_test_files(self, tmpdir: Path) -> T_CREATE_TEST_FILES:
-        def _create_test_files(files_content: dict[str, str]) -> Path:
-            for filename, content in files_content.items():
-                file = tmpdir / filename
-                with open(file, "w") as f:
-                    f.write(content)
-            return tmpdir
-
-        return _create_test_files
 
     # TODO: add tests with wrong patterns and regexps
     @pytest.mark.parametrize(
