@@ -35,7 +35,6 @@ class ManytaskPlugin(PluginABC):
         send_time: datetime = datetime.now().astimezone()
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
-        # TODO: check on requests 2.0.0
         self._output = []
         # Do not expose token in logs.
         data = {
