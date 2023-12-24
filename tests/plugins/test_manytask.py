@@ -88,9 +88,7 @@ class TestManytaskPlugin:
              }, ValidationError),
         ],
     )
-    def test_plugin_args(
-            self, parameters: dict[str, Any], expected_exception: Type[BaseException] | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Type[BaseException] | None) -> None:
         args = self.get_default_args_dict()
         args.update(parameters)
         if expected_exception:
