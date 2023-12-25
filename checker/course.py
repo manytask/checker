@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import shutil
-from collections.abc import Iterable, Generator
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from .configs import DeadlinesConfig, TaskConfig
-from .configs.checker import CheckerConfig, CheckerParametersConfig
 from .exceptions import BadConfig
 
 

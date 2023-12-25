@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from checker.course import Course, FileSystemTask
+from checker.exporter import Exporter
 from checker.tester import Tester
 from checker.utils import print_info
 
@@ -29,13 +30,13 @@ ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Pa
     "--checker-config",
     type=ClickReadableFile,
     default=".checker.yml",
-    help="Path to the checker config file.",
+    help="Path to the checker config file."
 )
 @click.option(
     "--deadlines-config",
     type=ClickReadableFile,
     default=".deadlines.yml",
-    help="Path to the deadlines config file.",
+    help="Path to the deadlines config file."
 )
 @click.version_option(package_name="manytask-checker")
 @click.pass_context
@@ -82,10 +83,20 @@ def validate(
 
     print_info("Validating Course Structure (and tasks configs)...")
     try:
-        course = Course(checker_config, deadlines_config, root)
+        course = Course(deadlines_config, root)
         course.validate()
     except BadConfig as e:
         print_info("Course Validation Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+    print_info("Validating Exporter...")
+    try:
+        exporter = Exporter(course, checker_config.structure, checker_config.export, root, verbose=True, dry_run=True)
+        exporter.validate()
+    except BadConfig as e:
+        print_info("Exporter Validation Failed", color="red")
         print_info(e)
         exit(1)
     print_info("Ok", color="green")
@@ -110,7 +121,7 @@ def validate(
     type=str,
     multiple=True,
     default=None,
-    help="Task name to check (multiple possible)",
+    help="Task name to check (multiple possible)"
 )
 @click.option(
     "-g",
@@ -118,21 +129,21 @@ def validate(
     type=str,
     multiple=True,
     default=None,
-    help="Group name to check (multiple possible)",
+    help="Group name to check (multiple possible)"
 )
 @click.option(
     "-p",
     "--parallelize",
     is_flag=True,
     default=True,
-    help="Execute parallel checking of tasks",
+    help="Execute parallel checking of tasks"
 )
 @click.option(
     "-n",
     "--num-processes",
     type=int,
     default=os.cpu_count(),
-    help="Num of processes parallel checking",
+    help="Num of processes parallel checking"
 )
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
 @click.option(
@@ -140,7 +151,7 @@ def validate(
     "--verbose/--silent",
     is_flag=True,
     default=True,
-    help="Verbose tests output",
+    help="Verbose tests output"
 )
 @click.option(
     "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
@@ -167,7 +178,11 @@ def check(
     deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(checker_config, deadlines_config, root, username="private")
+    course = Course(deadlines_config, root)
+
+    # create exporter and export files for testing
+    exporter = Exporter(course, checker_config.structure, checker_config.export, root, verbose=True, cleanup=not no_clean, dry_run=dry_run)
+    exporter.export_for_testing(exporter.temporary_dir)
 
     # validate tasks and groups if passed
     filesystem_tasks: dict[str, FileSystemTask] = dict()
@@ -185,13 +200,14 @@ def check(
 
     # create tester to... to test =)
     tester = Tester(
-        course, checker_config, verbose=verbose, cleanup=not no_clean, dry_run=dry_run
+        course, checker_config, verbose=verbose, dry_run=dry_run
     )
 
     # run tests
     # TODO: progressbar on parallelize
     try:
         tester.run(
+            exporter.temporary_dir,
             tasks=list(filesystem_tasks.values()) if filesystem_tasks else None,
             report=False,
         )
@@ -249,9 +265,11 @@ def grade(
     deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(
-        checker_config, deadlines_config, root, reference_root, username=username
-    )
+    course = Course(deadlines_config, root, reference_root)
+
+    # create exporter and export files for testing
+    exporter = Exporter(course, checker_config.structure, checker_config.export, root, verbose=False, cleanup=not no_clean, dry_run=dry_run)
+    exporter.export_for_testing(exporter.temporary_dir)
 
     # detect changes to test
     filesystem_tasks: list[FileSystemTask] = list()
@@ -262,13 +280,17 @@ def grade(
 
     # create tester to... to test =)
     tester = Tester(
-        course, checker_config, verbose=verbose, cleanup=not no_clean, dry_run=dry_run
+        course, checker_config, verbose=verbose, dry_run=dry_run
     )
 
     # run tests
     # TODO: progressbar on parallelize
     try:
-        tester.run(tasks=filesystem_tasks, report=True)
+        tester.run(
+            exporter.temporary_dir,
+            filesystem_tasks,
+            report=True,
+        )
     except TestingError as e:
         print_info("TESTING FAILED", color="red")
         print_info(e)
@@ -278,6 +300,38 @@ def grade(
         print_info(e)
         exit(1)
     print_info("TESTING PASSED", color="green")
+
+
+@cli.command()
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.argument("export_root", type=ClickWritableDirectory, default="./export")
+@click.option(
+    "--commit", is_flag=True, help="Commit and push changes to the repository"
+)
+@click.option(
+    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
+)
+@click.pass_context
+def export(
+    ctx: click.Context,
+    reference_root: Path,
+    export_root: Path,
+    commit: bool,
+    dry_run: bool,
+) -> None:
+    """
+    Export tasks from reference to public repository.
+    """
+    # load configs
+    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+
+    # read filesystem, check existing tasks
+    course = Course(deadlines_config, reference_root)
+
+    # create exporter and export files for public
+    exporter = Exporter(course, checker_config.structure, checker_config.export, reference_root, verbose=True, dry_run=dry_run)
+    exporter.export_for_testing(exporter.temporary_dir)
 
 
 @cli.command(hidden=True)
