@@ -33,6 +33,8 @@ class YamlLoaderMixin(Generic[T]):
                 return cls(**yaml.safe_load(f))
         except FileNotFoundError:
             raise BadConfig(f"File {path} not found")
+        except TypeError as e:
+            raise BadConfig(f"Config YAML error:\n{e}")
         except yaml.YAMLError as e:
             raise BadConfig(f"Config YAML error:\n{e}")
         except pydantic.ValidationError as e:
