@@ -169,3 +169,7 @@ lines_after_imports = 2
 combine_as_imports = true
 default_section = "THIRDPARTY"
 known_first_party = "checker,tests"
+
+[tool.black]
+line-length = 120
+target-version = ['py312']

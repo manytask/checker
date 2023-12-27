@@ -103,9 +103,7 @@ class TestManytaskPlugin:
             ({"report_url": "invalidurl"}, ValidationError),
         ],
     )
-    def test_plugin_args(
-        self, parameters: dict[str, Any], expected_exception: Type[BaseException] | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Type[BaseException] | None) -> None:
         args = self.get_default_args_dict()
         args.update(parameters)
         if expected_exception:
@@ -124,9 +122,7 @@ class TestManytaskPlugin:
         args["send_time"] = self.TEST_NOW_DATETIME.replace(tzinfo=None)
 
         with Mocker() as mocker:
-            mocker.post(
-                f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}'
-            )
+            mocker.post(f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}')
 
             output = plugin.run(args)
 
@@ -138,9 +134,7 @@ class TestManytaskPlugin:
         args["send_time"] = self.TEST_NOW_DATETIME.astimezone()
 
         with Mocker() as mocker:
-            mocker.post(
-                f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}'
-            )
+            mocker.post(f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}')
 
             output = plugin.run(args)
 
@@ -177,9 +171,7 @@ class TestManytaskPlugin:
 
             assert result is not None, "Didn't collect files"
             assert len(result) == taken_files_num, "Wrong file quantity are collected"
-            assert sorted(result.keys()) == sorted(
-                expected_filenames
-            ), "Wrong files are collected"
+            assert sorted(result.keys()) == sorted(expected_filenames), "Wrong files are collected"
 
             if taken_files_num:
                 open.assert_called_with(mocker.ANY, "rb")  # type: ignore[attr-defined]
@@ -207,19 +199,11 @@ class TestManytaskPlugin:
 
             if expected_exception:
                 with pytest.raises(expected_exception) as exc:
-                    ManytaskPlugin._post_with_retries(
-                        self.BASE_URL, {"key": "value"}, None
-                    )
-                assert str(response_status_code) in str(
-                    exc.value
-                ), "Status code wasn't provided in exception message"
-                assert response_text in str(
-                    exc.value
-                ), "Error text wasn't provided in exception message"
+                    ManytaskPlugin._post_with_retries(self.BASE_URL, {"key": "value"}, None)
+                assert str(response_status_code) in str(exc.value), "Status code wasn't provided in exception message"
+                assert response_text in str(exc.value), "Error text wasn't provided in exception message"
             else:
-                result = ManytaskPlugin._post_with_retries(
-                    self.BASE_URL, {"key": "value"}, None
-                )
+                result = ManytaskPlugin._post_with_retries(self.BASE_URL, {"key": "value"}, None)
                 assert result.status_code == 200
                 assert result.text == "Success"
 
