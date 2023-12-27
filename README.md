@@ -43,7 +43,7 @@ The `checker` in a nutshell is a CLI script providing the following functionalit
 * **check** - to run in a private (tutors') repository to test gold solutions against private and public tests.
 * **export** - to run in a private (tutors') repository to export tasks, templates and tests to the public repository.
 
-```mermaid
+``` mermaid
 flowchart LR
     private(Private Repo) -->|checker check| private
     private -->|checker export| public
