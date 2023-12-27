@@ -67,3 +67,18 @@ jobs:
         run: |
           echo -n "${{github.ref_name}}" > VERSION
           make docs-deploy
+
+  release-docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build docker image
+        run: |
+          docker build --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t manytask-checker:${{ github.sha }} .
+      - name: Test run --help in docker image
+        run: |
+            docker run --rm manytask-checker:${{ github.sha }} --help

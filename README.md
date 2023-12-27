@@ -86,8 +86,9 @@ pip install manytask-checker
 
 Or use pre-built docker image (you can base your image on it)
 ```shell
-TBA
+FROM manytask/checker:0.0.1-python3.8
 ```
+Please check [docker hub](https://hub.docker.com/r/manytask/checker) for available tags.
 
 
 ## Contributing
