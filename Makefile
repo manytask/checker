@@ -59,8 +59,14 @@ format:
 .PHONY: docs-deploy
 docs-deploy:
 	@echo "[make] Deploying the documentation..."
-	python -m mike deploy -b gh-pages `cat VERSION` --push
+	python -m mike deploy -b gh-pages `cat VERSION` --push --message "docs(auto): deploy docs for `cat VERSION`"
 	python -m mike set-default `cat VERSION`
+
+# Deploy dev version of the documentation
+.PHONY: docs-deploy-dev
+docs-deploy-dev:
+	@echo "[make] Deploying the documentation (dev)..."
+	python -m mike deploy -b gh-pages dev --push --message "docs(auto): deploy docs for dev"
 
 # Build the documentation
 .PHONY: docs-build
