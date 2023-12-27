@@ -14,6 +14,14 @@ from .utils import print_info
 
 @dataclass
 class PipelineStageResult:
+    """Result of a single pipeline stage.
+    :param name: name of the stage
+    :param failed: if True, stage failed
+    :param skipped: if True, stage was skipped
+    :param percentage: optional percentage of points earned
+    :param elapsed_time: optional elapsed time in seconds
+    :param output: output of the stage
+    """
     name: str
     failed: bool
     skipped: bool

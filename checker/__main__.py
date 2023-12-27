@@ -51,8 +51,8 @@ def validate(
     root: Path,
     verbose: bool,
 ) -> None:
-    """
-    Validate the configuration files, plugins and tasks.
+    """Validate the configuration files, plugins and tasks.
+
     1. Validate the configuration files content.
     2. Validate mentioned plugins.
     3. Check all tasks are valid and consistent with the deadlines.
@@ -122,7 +122,13 @@ def check(
     verbose: bool,
     dry_run: bool,
 ) -> None:
-    """Check private repository: run tests, lint etc. First forces validation."""
+    """Check private repository: run tests, lint etc. First forces validation.
+
+    1. Run `validate` command.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and (dry-run) report.
+    4. Cleanup temporary directory.
+    """
     # validate first
     ctx.invoke(validate, root=root, verbose=verbose)  # TODO: check verbose level
 
@@ -209,8 +215,12 @@ def grade(
     verbose: bool,
     dry_run: bool,
 ) -> None:
-    """
-    Process the configuration file and grade the tasks.
+    """Process the configuration file and grade the tasks.
+
+    1. Detect changes to test.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and report.
+    4. Cleanup temporary directory.
     """
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
@@ -271,9 +281,7 @@ def export(
     commit: bool,
     dry_run: bool,
 ) -> None:
-    """
-    Export tasks from reference to public repository.
-    """
+    """Export tasks from reference to public repository."""
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
     deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
@@ -295,9 +303,7 @@ def schema(
     ctx: click.Context,
     output_folder: Path,
 ) -> None:
-    """
-    Generate json schema for the checker configs.
-    """
+    """Generate json schema for the checker configs."""
     checker_schema = CheckerConfig.get_json_schema()
     deadlines_schema = DeadlinesConfig.get_json_schema()
     task_schema = TaskConfig.get_json_schema()

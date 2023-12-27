@@ -16,10 +16,12 @@ No json schema available yet, but you can refer to the checker.configs.checker.C
 Or [course-template](https://github.com/manytask/course-template) repository.
 
 
-> ![important]  
-> The structure section requires glob patterns to be valid and will apply the same patterns recursively to all subdirectories.  
-> The moment it faces `.task.yml` file, it will stop and use the parameters from this file recursively.  
-> No `**` patterns are allowed.
+!!! warning  
+    The structure section requires glob patterns to be valid and will apply the same patterns recursively to all subdirectories.  
+    The moment it faces `.task.yml` file, it will stop and use the parameters from this file recursively.  
+    No `**` patterns are allowed.
+
+Please refer to the [plugins](./3_plugins.md) and [pipelines](./4_pipelines.md) sections for more information on how to configure pipelines.
 
 ### Example
 
@@ -55,64 +57,15 @@ testing:
 
   # run once per repo
   global_pipeline:
-    - name: "Fail never"
-      fail: never  # fast, after_all, never
-      run: "run_script"
-      args:
-        origin: ${{ global.temp_dir }}
-        script: "echo HI && false"
-
+    - ...
   # run once per task
   tasks_pipeline:
-    - name: "Check forbidden regexps"
-      fail: fast  # fast, after_all, never
-      run: "check_regexps"
-      args:
-        origin: "${{ global.temp_dir }}/${{ task.task_sub_path }}"
-        patterns: ["**/*.py"]
-        regexps: ["exit(0)"]
-        
-    - name: "Run tests"
-      run_if: ${{ parameters.run_testing }}
-      fail: after_all  # fast, after_all, never
-      run: "run_script"
-      register_output: test_output
-      args:
-        origin: ${{ global.temp_dir }}
-        script: "python -m pytest --tb=no -qq ${{ task.task_sub_path }}"
-        timeout: ${{ parameters.timeout }}
-
+    - ...
+    - ...
   # will run once per task only if task_pipeline NOT failed
   report_pipeline:
-    - name: "Report Score Manytask"
-      run: "report_score_manytask"
-      args:
-        origin: "${{ global.temp_dir }}/${{ task.task_sub_path }}"
-        patterns: ["**/*.py"]
-        username: ${{ global.username }}
-        task_name: ${{ task.task_name }}
-        score: ${{ outputs.test_output.percentage }}
+    - ...
 ```
-
-### Templating in Tester Pipelines
-
-You can use [jinja2](https://jinja.palletsprojects.com/en/3.0.x/) templating in `.checker.yml` file pipeline arguments and `run_if` conditions.
-
-The available variables are:
-
-* `global` - global parameters
-  ::: checker.tester.GlobalPipelineVariables
-      handler: python
-* `task` - task parameters
-  ::: checker.tester.TaskPipelineVariables
-      handler: python
-* `parameters` - default parameters
-  ::: checker.configs.checker.CheckerParametersConfig
-      handler: python
-* `env` - environment variables dict in the moment of running checker
-* `outputs` - outputs of previous pipeline step if `register_output` is set, dict of string to `checker.plugins.PluginOutput` objects
-  ::: checker.pipeline.PipelineOutputs
-      handler: python
 
 
 ## `.deadlines.yml`
