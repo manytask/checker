@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
-from typing import Any, Generic, TypeVar, Type, Protocol
+from typing import Any, Generic, TypeVar
 
 import pydantic
 import yaml
@@ -12,14 +11,6 @@ from ..exceptions import BadConfig
 
 class CustomBaseModel(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid", validate_default=True)
-
-
-# class BaseModelProtocol(Protocol):
-#     def to_yaml(self: pydantic.BaseModel, path: Path) -> None:
-#         ...
-#
-#     def get_json_schema(self: pydantic.BaseModel) -> dict[str, Any]:
-#         ...
 
 
 T = TypeVar('T', bound=pydantic.BaseModel)
