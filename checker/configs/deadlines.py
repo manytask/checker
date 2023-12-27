@@ -7,7 +7,10 @@ from typing import Optional, Union
 
 
 if sys.version_info < (3, 8):
-    from pytz import ZoneInfoNotFoundError as ZoneInfoNotFoundError, timezone as ZoneInfo
+    from pytz import (
+        ZoneInfoNotFoundError as ZoneInfoNotFoundError,
+        timezone as ZoneInfo,
+    )
 else:
     from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
