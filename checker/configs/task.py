@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .checker import (
-    CheckerParametersConfig,
-    CheckerStructureConfig,
-    PipelineStageConfig,
-)
+from .checker import CheckerParametersConfig, CheckerStructureConfig, PipelineStageConfig
 from .utils import CustomBaseModel, YamlLoaderMixin
 
 
