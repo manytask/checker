@@ -18,6 +18,8 @@ Checker is a Python cli script to test students' solutions with built-in [manyta
 * **secure** - sandbox execution of students' code
 * **fast** - lightweight script with testing parallelization
 
+`Requires Python 3.9+`
+
 ---
 
 
@@ -86,7 +88,7 @@ pip install manytask-checker
 
 Or use pre-built docker image (you can base your image on it)
 ```shell
-FROM manytask/checker:0.0.1-python3.8
+FROM manytask/checker:0.0.1-python3.12
 ```
 Please check [docker hub](https://hub.docker.com/r/manytask/checker) for available tags.
 
