@@ -29,9 +29,7 @@ class TestAggregatePlugin:
             ({}, ValidationError),
         ],
     )
-    def test_plugin_args(
-        self, parameters: dict[str, Any], expected_exception: Exception | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Exception | None) -> None:
         if expected_exception:
             with pytest.raises(expected_exception):
                 AggregatePlugin.Args(**parameters)
@@ -63,8 +61,8 @@ class TestAggregatePlugin:
         assert f"Score: {expected:.2f}" in result.output
 
     def test_wrong_strategy(self) -> None:
-        with pytest.raises(ValidationError) as exc_info:
-            args = AggregatePlugin.Args(scores=[1, 2, 3], strategy="invalid_strategy")
+        with pytest.raises(ValidationError):
+            AggregatePlugin.Args(scores=[1, 2, 3], strategy="invalid_strategy")
 
     @pytest.mark.parametrize(
         "scores, weights",

@@ -17,7 +17,7 @@ class PluginOutput:
     """
 
     output: str
-    percentage: float | None = None
+    percentage: float = 1.0
 
 
 class PluginABC(ABC):

@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import subprocess
-from collections.abc import Callable
-from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -38,9 +35,7 @@ class TestRunScriptPlugin:
             ),
         ],
     )
-    def test_plugin_args(
-        self, parameters: dict[str, Any], expected_exception: Exception | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Exception | None) -> None:
         if expected_exception:
             with pytest.raises(expected_exception):
                 RunScriptPlugin.Args(**parameters)
@@ -57,9 +52,7 @@ class TestRunScriptPlugin:
             ("echo Hello && false", "Hello", PluginExecutionFailed),
         ],
     )
-    def test_simple_cases(
-        self, script: str, output: str, expected_exception: Exception | None
-    ) -> None:
+    def test_simple_cases(self, script: str, output: str, expected_exception: Exception | None) -> None:
         plugin = RunScriptPlugin()
         args = RunScriptPlugin.Args(origin="/tmp", script=script)
 
@@ -80,9 +73,7 @@ class TestRunScriptPlugin:
             ("sleep 1", 0.5, PluginExecutionFailed),
         ],
     )
-    def test_timeout(
-        self, script: str, timeout: float, expected_exception: Exception | None
-    ) -> None:
+    def test_timeout(self, script: str, timeout: float, expected_exception: Exception | None) -> None:
         # TODO: check if timeout float
         plugin = RunScriptPlugin()
         args = RunScriptPlugin.Args(origin="/tmp", script=script, timeout=timeout)

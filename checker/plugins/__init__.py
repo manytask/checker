@@ -18,9 +18,7 @@ __all__ = [
 
 
 def get_all_subclasses(cls: type[PluginABC]) -> set[type[PluginABC]]:
-    return set(cls.__subclasses__()).union(
-        [s for c in cls.__subclasses__() for s in get_all_subclasses(c)]
-    )
+    return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in get_all_subclasses(c)])
 
 
 def load_plugins(
@@ -34,7 +32,10 @@ def load_plugins(
     :param verbose: verbose output
     """
     search_directories = search_directories or []
-    search_directories = [Path(__file__).parent, *search_directories]  # add local plugins first
+    search_directories = [
+        Path(__file__).parent,
+        *search_directories,
+    ]  # add local plugins first
 
     # force load plugins
     print("Loading plugins...")
@@ -42,20 +43,21 @@ def load_plugins(
         if module_info.name == "__init__":
             continue
         if verbose:
-            print(f"- {module_info.name} from {module_info.module_finder.path}")
+            print(f"- {module_info.name} from {module_info.module_finder.path}")  # type: ignore[union-attr]
 
-        spec = module_info.module_finder.find_spec(fullname=module_info.name)
+        spec = module_info.module_finder.find_spec(fullname=module_info.name)  # type: ignore[call-arg]
         if spec is None:
             raise ImportError(f"Could not find {module_info.name}")
         module = importlib.util.module_from_spec(spec)
         module.__package__ = __package__  # TODO: check for external plugins
 
         sys.modules[module_info.name] = module
+        assert spec.loader is not None
         spec.loader.exec_module(module)
 
     # collect plugins as abstract class subclasses
     plugins = {}
-    for subclass in get_all_subclasses(PluginABC):
+    for subclass in get_all_subclasses(PluginABC):  # type: ignore[type-abstract]
         plugins[subclass.name] = subclass
     if verbose:
         print(f"Loaded: {', '.join(plugins.keys())}")

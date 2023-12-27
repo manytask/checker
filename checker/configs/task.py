@@ -2,17 +2,11 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import Field, model_validator
-
-from .checker import (
-    CheckerParametersConfig,
-    CheckerStructureConfig,
-    PipelineStageConfig,
-)
+from .checker import CheckerParametersConfig, CheckerStructureConfig, PipelineStageConfig
 from .utils import CustomBaseModel, YamlLoaderMixin
 
 
-class TaskConfig(CustomBaseModel, YamlLoaderMixin['TaskConfig']):
+class TaskConfig(CustomBaseModel, YamlLoaderMixin["TaskConfig"]):
     """Task configuration file."""
 
     version: int  # if config exists, version is always present

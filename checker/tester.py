@@ -1,23 +1,16 @@
 from __future__ import annotations
 
 import os
-import tempfile
-from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .configs import CheckerTestingConfig
-from .configs.checker import (
-    CheckerConfig,
-    CheckerParametersConfig,
-    CheckerStructureConfig,
-)
+from .configs.checker import CheckerConfig, CheckerParametersConfig
 from .course import Course, FileSystemTask
-from .exceptions import PluginExecutionFailed, TestingError
+from .exceptions import TestingError
+from .pipeline import PipelineResult, PipelineRunner, PipelineStageResult
 from .plugins import load_plugins
 from .utils import print_header_info, print_info, print_separator
-from .pipeline import PipelineResult, PipelineRunner, PipelineStageResult
 
 
 @dataclass
@@ -27,7 +20,6 @@ class GlobalPipelineVariables:
     ref_dir: str
     repo_dir: str
     temp_dir: str
-    username: str
     task_names: list[str]
     task_sub_paths: list[str]
 
@@ -43,11 +35,11 @@ class TaskPipelineVariables:
 class Tester:
     """
     Class to encapsulate all testing logic.
-    1. Create temporary directory
-    2. Execute global pipeline
-    3. Execute task pipeline for each task
-    4. Collect results and push to them
-    5. Remove temporary directory
+    1. Accept directory with files ready for testing
+    2. Execute global pipeline once
+    3. For each task:
+        3.1. Execute task pipeline
+        3.2. Execute report pipeline (optional)
     """
 
     __test__ = False  # do not collect this class for pytest
@@ -57,7 +49,6 @@ class Tester:
         course: Course,
         checker_config: CheckerConfig,
         *,
-        cleanup: bool = True,
         verbose: bool = False,
         dry_run: bool = False,
     ):
@@ -66,7 +57,6 @@ class Tester:
 
         :param course: Course object for iteration with physical course
         :param checker_config: Full checker config with testing,structure and params folders
-        :param cleanup: Cleanup temporary directory after testing
         :param verbose: Whatever to print private outputs and debug info
         :param dry_run: Do not execute anything, just print what would be executed
         :raises exception.ValidationError: if config is invalid or repo structure is wrong
@@ -78,39 +68,33 @@ class Tester:
         self.default_params = checker_config.default_parameters
 
         self.plugins = load_plugins(self.testing_config.search_plugins, verbose=verbose)
-        self.global_pipeline = PipelineRunner(
-            self.testing_config.global_pipeline, self.plugins, verbose=verbose
-        )
-        self.task_pipeline = PipelineRunner(
-            self.testing_config.tasks_pipeline, self.plugins, verbose=verbose
-        )
-        self.report_pipeline = PipelineRunner(
-            self.testing_config.report_pipeline, self.plugins, verbose=verbose
-        )
+
+        self.global_pipeline = PipelineRunner(self.testing_config.global_pipeline, self.plugins, verbose=verbose)
+        self.task_pipeline = PipelineRunner(self.testing_config.tasks_pipeline, self.plugins, verbose=verbose)
+        self.report_pipeline = PipelineRunner(self.testing_config.report_pipeline, self.plugins, verbose=verbose)
 
         self.repository_dir = self.course.repository_root
         self.reference_dir = self.course.reference_root
-        self._temporary_dir_manager = tempfile.TemporaryDirectory()
-        self.temporary_dir = Path(self._temporary_dir_manager.name)
 
-        self.cleanup = cleanup
         self.verbose = verbose
         self.dry_run = dry_run
 
     def _get_global_pipeline_parameters(
-        self, tasks: list[FileSystemTask]
+        self,
+        origin: Path,
+        tasks: list[FileSystemTask],
     ) -> GlobalPipelineVariables:
         return GlobalPipelineVariables(
             ref_dir=self.reference_dir.absolute().as_posix(),
             repo_dir=self.repository_dir.absolute().as_posix(),
-            temp_dir=self.temporary_dir.absolute().as_posix(),
-            username=self.course.username,
+            temp_dir=origin.absolute().as_posix(),
             task_names=[task.name for task in tasks],
             task_sub_paths=[task.relative_path for task in tasks],
         )
 
     def _get_task_pipeline_parameters(
-        self, task: FileSystemTask
+        self,
+        task: FileSystemTask,
     ) -> TaskPipelineVariables:
         return TaskPipelineVariables(
             task_name=task.name,
@@ -142,10 +126,8 @@ class Tester:
 
         # validate global pipeline (only default params and variables available)
         print("- global pipeline...")
-        global_variables = self._get_global_pipeline_parameters(tasks)
-        context = self._get_context(
-            global_variables, None, outputs, self.default_params, None
-        )
+        global_variables = self._get_global_pipeline_parameters(Path(), tasks)
+        context = self._get_context(global_variables, None, outputs, self.default_params, None)
         self.global_pipeline.validate(context, validate_placeholders=True)
         print("  ok")
 
@@ -172,12 +154,10 @@ class Tester:
 
     def run(
         self,
+        origin: Path,
         tasks: list[FileSystemTask] | None = None,
         report: bool = True,
     ) -> None:
-        # copy files for testing
-        self.course.copy_files_for_testing(self.temporary_dir)
-
         # get all tasks
         tasks = tasks or self.course.get_tasks(enabled=True)
 
@@ -186,13 +166,9 @@ class Tester:
 
         # run global pipeline
         print_header_info("Run global pipeline:", color="pink")
-        global_variables = self._get_global_pipeline_parameters(tasks)
-        context = self._get_context(
-            global_variables, None, outputs, self.default_params, None
-        )
-        global_pipeline_result: PipelineResult = self.global_pipeline.run(
-            context, dry_run=self.dry_run
-        )
+        global_variables = self._get_global_pipeline_parameters(origin, tasks)
+        context = self._get_context(global_variables, None, outputs, self.default_params, None)
+        global_pipeline_result: PipelineResult = self.global_pipeline.run(context, dry_run=self.dry_run)
         print_separator("-")
         print_info(str(global_pipeline_result), color="pink")
 
@@ -215,9 +191,7 @@ class Tester:
             )
 
             # TODO: read pipeline from task config if any
-            task_pipeline_result: PipelineResult = self.task_pipeline.run(
-                context, dry_run=self.dry_run
-            )
+            task_pipeline_result: PipelineResult = self.task_pipeline.run(context, dry_run=self.dry_run)
             print_separator("-")
 
             print_info(str(task_pipeline_result), color="pink")
@@ -227,9 +201,7 @@ class Tester:
             if task_pipeline_result:
                 print_info(f"Reporting <{task.name}> task tests:", color="pink")
                 if report:
-                    task_report_result: PipelineResult = self.report_pipeline.run(
-                        context, dry_run=self.dry_run
-                    )
+                    task_report_result: PipelineResult = self.report_pipeline.run(context, dry_run=self.dry_run)
                     if task_report_result:
                         print_info("->Reporting succeeded")
                     else:
@@ -242,8 +214,3 @@ class Tester:
 
         if failed_tasks:
             raise TestingError(f"Task pipelines failed: {failed_tasks}")
-
-    def __del__(self) -> None:
-        # if self.cleanup:
-        if self.__dict__.get("cleanup") and self._temporary_dir_manager:
-            self._temporary_dir_manager.cleanup()

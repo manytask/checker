@@ -139,7 +139,7 @@ Manytask and checker waaay different things.
 
 It is language-agnostic and do not care about your course environment and tests. Just create repositories and store grades.  
 Here is the scheme of the manytask workflow:
-```mermaid
+``` mermaid
 flowchart LR
     subgraph gitlab
         public(Public Repo) -.->|fork| student
@@ -159,7 +159,7 @@ flowchart LR
 
 It is language-agnostic, but requires docker with your course environment and pipeline configures in yaml files how to run tests.  
 Here is the scheme of the checker workflow:
-```mermaid
+``` mermaid
 flowchart LR
     private(Private Repo) -->|checker check| private
     private -->|checker export| public

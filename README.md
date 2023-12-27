@@ -18,6 +18,8 @@ Checker is a Python cli script to test students' solutions with built-in [manyta
 * **secure** - sandbox execution of students' code
 * **fast** - lightweight script with testing parallelization
 
+`Requires Python 3.9+`
+
 ---
 
 
@@ -43,7 +45,7 @@ The `checker` in a nutshell is a CLI script providing the following functionalit
 * **check** - to run in a private (tutors') repository to test gold solutions against private and public tests.
 * **export** - to run in a private (tutors') repository to export tasks, templates and tests to the public repository.
 
-```mermaid
+``` mermaid
 flowchart LR
     private(Private Repo) -->|checker check| private
     private -->|checker export| public
@@ -86,8 +88,9 @@ pip install manytask-checker
 
 Or use pre-built docker image (you can base your image on it)
 ```shell
-TBA
+FROM manytask/checker:0.0.1-python3.12
 ```
+Please check [docker hub](https://hub.docker.com/r/manytask/checker) for available tags.
 
 
 ## Contributing

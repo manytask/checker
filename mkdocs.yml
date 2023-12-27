@@ -97,6 +97,6 @@ plugins:
         python:
           options:
             heading_level: 4
-            show_source: false
-            exclude_private: true
+#            show_source: false
+#            exclude_private: true
   - mermaid2

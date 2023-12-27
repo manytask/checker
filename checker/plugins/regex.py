@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..exceptions import PluginExecutionFailed
 from .base import PluginABC, PluginOutput
 
@@ -13,7 +15,7 @@ class CheckRegexpsPlugin(PluginABC):
         regexps: list[str]
         # TODO: Add validation for patterns and regexps
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         # TODO: add verbose output with files list
         import re
         from pathlib import Path

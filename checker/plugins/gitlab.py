@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import AnyUrl
 
 from .base import PluginABC, PluginOutput
@@ -15,14 +17,13 @@ class CheckGitlabMergeRequestPlugin(PluginABC):
         requre_approval: bool = False
         search_for_score: bool = False
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         # TODO: implement
         assert NotImplementedError()
 
         return PluginOutput(
             output="",
         )
-
 
 
 class CollectScoreGitlabMergeRequestPlugin(PluginABC):
@@ -37,7 +38,7 @@ class CollectScoreGitlabMergeRequestPlugin(PluginABC):
         requre_approval: bool = False
         search_for_score: bool = False
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         # TODO: implement
         assert NotImplementedError()
 
@@ -51,5 +52,5 @@ class CollectScoreGitlabMergeRequestPlugin(PluginABC):
 
         return PluginOutput(
             output="",
-            points=1.0,
+            percentage=1.0,
         )

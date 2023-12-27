@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 import click
 
 from checker.course import Course, FileSystemTask
+from checker.exporter import Exporter
 from checker.tester import Tester
 from checker.utils import print_info
 
@@ -15,12 +15,8 @@ from .configs import CheckerConfig, DeadlinesConfig, TaskConfig
 from .exceptions import BadConfig, TestingError
 
 
-ClickReadableFile = click.Path(
-    exists=True, file_okay=True, readable=True, path_type=Path
-)
-ClickReadableDirectory = click.Path(
-    exists=True, file_okay=False, readable=True, path_type=Path
-)
+ClickReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
+ClickReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
 ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Path)
 
 
@@ -54,17 +50,15 @@ def cli(
 
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
-@click.option(
-    "-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose output"
-)
+@click.option("-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose output")
 @click.pass_context
 def validate(
     ctx: click.Context,
     root: Path,
     verbose: bool,
 ) -> None:
-    """
-    Validate the configuration files, plugins and tasks.
+    """Validate the configuration files, plugins and tasks.
+
     1. Validate the configuration files content.
     2. Validate mentioned plugins.
     3. Check all tasks are valid and consistent with the deadlines.
@@ -82,10 +76,27 @@ def validate(
 
     print_info("Validating Course Structure (and tasks configs)...")
     try:
-        course = Course(checker_config, deadlines_config, root)
+        course = Course(deadlines_config, root)
         course.validate()
     except BadConfig as e:
         print_info("Course Validation Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+    print_info("Validating Exporter...")
+    try:
+        exporter = Exporter(
+            course,
+            checker_config.structure,
+            checker_config.export,
+            root,
+            verbose=True,
+            dry_run=True,
+        )
+        exporter.validate()
+    except BadConfig as e:
+        print_info("Exporter Validation Failed", color="red")
         print_info(e)
         exit(1)
     print_info("Ok", color="green")
@@ -142,9 +153,7 @@ def validate(
     default=True,
     help="Verbose tests output",
 )
-@click.option(
-    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
-)
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def check(
     ctx: click.Context,
@@ -158,7 +167,13 @@ def check(
     verbose: bool,
     dry_run: bool,
 ) -> None:
-    """Check private repository: run tests, lint etc. First forces validation."""
+    """Check private repository: run tests, lint etc. First forces validation.
+
+    1. Run `validate` command.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and (dry-run) report.
+    4. Cleanup temporary directory.
+    """
     # validate first
     ctx.invoke(validate, root=root, verbose=verbose)  # TODO: check verbose level
 
@@ -167,7 +182,19 @@ def check(
     deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(checker_config, deadlines_config, root, username="private")
+    course = Course(deadlines_config, root)
+
+    # create exporter and export files for testing
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=True,
+        cleanup=not no_clean,
+        dry_run=dry_run,
+    )
+    exporter.export_for_testing(exporter.temporary_dir)
 
     # validate tasks and groups if passed
     filesystem_tasks: dict[str, FileSystemTask] = dict()
@@ -184,16 +211,96 @@ def check(
         print_info(f"Checking tasks: {', '.join(filesystem_tasks.keys())}")
 
     # create tester to... to test =)
-    tester = Tester(
-        course, checker_config, verbose=verbose, cleanup=not no_clean, dry_run=dry_run
-    )
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
 
     # run tests
     # TODO: progressbar on parallelize
     try:
         tester.run(
+            exporter.temporary_dir,
             tasks=list(filesystem_tasks.values()) if filesystem_tasks else None,
             report=False,
+        )
+    except TestingError as e:
+        print_info("TESTING FAILED", color="red")
+        print_info(e)
+        exit(1)
+    except Exception as e:
+        print_info("UNEXPECTED ERROR", color="red")
+        print_info(e)
+        raise e
+        exit(1)
+    print_info("TESTING PASSED", color="green")
+
+
+@cli.command()
+@click.argument("root", type=ClickReadableDirectory, default=".")
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
+@click.option("--timestamp", type=str, default=None, help="Timestamp to use for the submission")
+@click.option("--username", type=str, default=None, help="Username to use for the submission")
+@click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
+@click.option(
+    "-v/-s",
+    "--verbose/--silent",
+    is_flag=True,
+    default=False,
+    help="Verbose tests output",
+)
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
+@click.pass_context
+def grade(
+    ctx: click.Context,
+    root: Path,
+    reference_root: Path,
+    submit_score: bool,
+    timestamp: str | None,
+    username: str | None,
+    no_clean: bool,
+    verbose: bool,
+    dry_run: bool,
+) -> None:
+    """Process the configuration file and grade the tasks.
+
+    1. Detect changes to test.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and report.
+    4. Cleanup temporary directory.
+    """
+    # load configs
+    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+
+    # read filesystem, check existing tasks
+    course = Course(deadlines_config, root, reference_root)
+
+    # create exporter and export files for testing
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=False,
+        cleanup=not no_clean,
+        dry_run=dry_run,
+    )
+    exporter.export_for_testing(exporter.temporary_dir)
+
+    # detect changes to test
+    filesystem_tasks: list[FileSystemTask] = list()
+    # TODO: detect changes
+    filesystem_tasks = [task for task in course.get_tasks(enabled=True) if task.name == "hello_world"]
+
+    # create tester to... to test =)
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
+
+    # run tests
+    # TODO: progressbar on parallelize
+    try:
+        tester.run(
+            exporter.temporary_dir,
+            filesystem_tasks,
+            report=True,
         )
     except TestingError as e:
         print_info("TESTING FAILED", color="red")
@@ -207,89 +314,46 @@ def check(
 
 
 @cli.command()
-@click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
-@click.option(
-    "--submit-score", is_flag=True, help="Submit score to the Manytask server"
-)
-@click.option(
-    "--timestamp", type=str, default=None, help="Timestamp to use for the submission"
-)
-@click.option(
-    "--username", type=str, default=None, help="Username to use for the submission"
-)
-@click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
-@click.option(
-    "-v/-s",
-    "--verbose/--silent",
-    is_flag=True,
-    default=False,
-    help="Verbose tests output",
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
-)
+@click.argument("export_root", type=ClickWritableDirectory, default="./export")
+@click.option("--commit", is_flag=True, help="Commit and push changes to the repository")
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
-def grade(
+def export(
     ctx: click.Context,
-    root: Path,
     reference_root: Path,
-    submit_score: bool,
-    timestamp: str | None,
-    username: str | None,
-    no_clean: bool,
-    verbose: bool,
+    export_root: Path,
+    commit: bool,
     dry_run: bool,
 ) -> None:
-    """
-    Process the configuration file and grade the tasks.
-    """
+    """Export tasks from reference to public repository."""
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
     deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(
-        checker_config, deadlines_config, root, reference_root, username=username
+    course = Course(deadlines_config, reference_root)
+
+    # create exporter and export files for public
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        reference_root,
+        verbose=True,
+        dry_run=dry_run,
     )
-
-    # detect changes to test
-    filesystem_tasks: list[FileSystemTask] = list()
-    # TODO: detect changes
-    filesystem_tasks = [
-        task for task in course.get_tasks(enabled=True) if task.name == "hello_world"
-    ]
-
-    # create tester to... to test =)
-    tester = Tester(
-        course, checker_config, verbose=verbose, cleanup=not no_clean, dry_run=dry_run
-    )
-
-    # run tests
-    # TODO: progressbar on parallelize
-    try:
-        tester.run(tasks=filesystem_tasks, report=True)
-    except TestingError as e:
-        print_info("TESTING FAILED", color="red")
-        print_info(e)
-        exit(1)
-    except Exception as e:
-        print_info("UNEXPECTED ERROR", color="red")
-        print_info(e)
-        exit(1)
-    print_info("TESTING PASSED", color="green")
+    exporter.export_for_testing(exporter.temporary_dir)
 
 
 @cli.command(hidden=True)
 @click.argument("output_folder", type=ClickReadableDirectory, default=".")
 @click.pass_context
 def schema(
-        ctx: click.Context,
-        output_folder: Path,
+    ctx: click.Context,
+    output_folder: Path,
 ) -> None:
-    """
-    Generate json schema for the checker configs.
-    """
+    """Generate json schema for the checker configs."""
     checker_schema = CheckerConfig.get_json_schema()
     deadlines_schema = DeadlinesConfig.get_json_schema()
     task_schema = TaskConfig.get_json_schema()

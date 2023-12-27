@@ -16,7 +16,7 @@ class RunScriptPlugin(PluginABC):
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         import subprocess
 
         try:

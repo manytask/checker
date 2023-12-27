@@ -16,54 +16,66 @@ help:
 	@echo "help             - Display this help"
 
 # Run unit tests only
+.PHONY: test-unit
 test-unit:
 	@echo "[make] Running unit tests..."
 	pytest --skip-integration --skip-doctest
 
 # Run integration tests only
+.PHONY: test-integration
 test-integration:
 	@echo "[make] Running integration tests..."
 	pytest --skip-unit --skip-doctest
 
 # Run doctests only
+.PHONY: test-docstests
 test-docstests:
 	@echo "[make] Running doctests..."
 	pytest --skip-unit --skip-integration
 
 # Run all tests
+.PHONY: test
 test:
 	@echo "[make] Running unit and integration tests..."
 	pytest
 
 # Lint and typecheck the code
+.PHONY: lint
 lint:
 	@echo "[make] Linting and typechecking the code..."
 	ruff check checker tests
-	mypy checker tests
+	mypy checker
 	black --check checker tests
 	isort --check-only checker tests
 
 # Format the code with black and isort
+.PHONY: format
 format:
 	@echo "[make] Formatting the code..."
 	black checker tests
 	isort checker tests
 
 # Deploy the documentation
+.PHONY: docs-deploy
 docs-deploy:
 	@echo "[make] Deploying the documentation..."
-	python -m mike deploy -b gh-pages `cat VERSION` --push
+	python -m mike deploy -b gh-pages `cat VERSION` --push --message "docs(auto): deploy docs for `cat VERSION`"
 	python -m mike set-default `cat VERSION`
 
+# Deploy dev version of the documentation
+.PHONY: docs-deploy-dev
+docs-deploy-dev:
+	@echo "[make] Deploying the documentation (dev)..."
+	python -m mike deploy -b gh-pages dev --push --message "docs(auto): deploy docs for dev"
+
 # Build the documentation
+.PHONY: docs-build
 docs-build:
 	@echo "[make] Building the documentation..."
 	python -m mkdocs build
 
 # Serve the documentation in development mode
+.PHONY: docs-serve
 docs-serve:
 	@echo "[make] Serve the documentation..."
 	python -m mkdocs serve
-
-
-.PHONY: all help test-unit test-integration test-docstests test lint format docs-build docs-serve

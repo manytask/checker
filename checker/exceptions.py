@@ -34,12 +34,6 @@ class ExportError(CheckerException):
     pass
 
 
-class ReportError(CheckerException):
-    """Report stage exception"""
-
-    pass
-
-
 class TestingError(CheckerException):
     """All testers exceptions can occur during testing stage"""
 
@@ -53,6 +47,3 @@ class PluginExecutionFailed(TestingError):
     message: str = ""
     output: str | None = None
     percentage: float = 0.0
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.message}"

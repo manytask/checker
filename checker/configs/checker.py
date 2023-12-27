@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Union, Optional
+from typing import Optional, Union
 
 from pydantic import AnyUrl, Field, RootModel, ValidationError, field_validator
 
@@ -9,8 +9,8 @@ from .utils import CustomBaseModel, YamlLoaderMixin
 
 
 # Note: old Union style in definition for backward compatibility
-ParamType = Union[bool, int, float, str, list[Union[int, float, str, None]], None]
-TTemplate = Union[str, list[Union[ParamType, str]], dict[str, Union[ParamType, str]]]
+TParamType = Union[bool, int, float, str, list[Union[int, float, str, None]], None]
+TTemplate = Union[str, list[Union[TParamType, str]], dict[str, Union[TParamType, str]]]
 
 
 class CheckerStructureConfig(CustomBaseModel):
@@ -21,15 +21,22 @@ class CheckerStructureConfig(CustomBaseModel):
     # TODO: add check "**" is not allowed
 
 
-class CheckerParametersConfig(RootModel[dict[str, ParamType]]):
-    root: dict[str, ParamType]
+class CheckerParametersConfig(RootModel[dict[str, TParamType]]):
+    root: dict[str, TParamType]
 
-    def __getitem__(self, item: str) -> ParamType:
+    def __getitem__(self, item: str) -> TParamType:
         return self.root[item]
 
+    def __contains__(self, item: str) -> bool:
+        return item in self.root
+
     @property
-    def __dict__(self) -> dict[str, ParamType]:
+    def __dict__(self) -> dict[str, TParamType]:
         return self.root
+
+    @__dict__.setter
+    def __dict__(self, value: dict[str, TParamType]) -> None:
+        self.root = value
 
 
 class CheckerExportConfig(CustomBaseModel):
@@ -53,7 +60,7 @@ class PipelineStageConfig(CustomBaseModel):
     run: str
 
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
-    args: dict[str, Union[ParamType, TTemplate]] = Field(default_factory=dict)
+    args: dict[str, Union[TParamType, TTemplate]] = Field(default_factory=dict)
 
     run_if: Union[bool, TTemplate, None] = None
     fail: FailType = FailType.FAST
@@ -78,7 +85,7 @@ class CheckerTestingConfig(CustomBaseModel):
     report_pipeline: list[PipelineStageConfig] = Field(default_factory=list)
 
 
-class CheckerConfig(CustomBaseModel, YamlLoaderMixin['CheckerConfig']):
+class CheckerConfig(CustomBaseModel, YamlLoaderMixin["CheckerConfig"]):
     """
     Checker configuration.
     :ivar version: config version

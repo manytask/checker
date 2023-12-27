@@ -26,3 +26,10 @@ The docker entrypoint is `checker` script, so you can use it as a CLI applicatio
 ```shell
 docker run --rm -it manytask/checker --help
 ```
+
+or you can build it from your Dockerfile
+
+```dockerfile
+FROM manytask/checker:0.0.1-python3.8
+# ...
+```
