@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 import click
@@ -16,27 +15,17 @@ from .configs import CheckerConfig, DeadlinesConfig, TaskConfig
 from .exceptions import BadConfig, TestingError
 
 
-ClickReadableFile = click.Path(
-    exists=True, file_okay=True, readable=True, path_type=Path
-)
-ClickReadableDirectory = click.Path(
-    exists=True, file_okay=False, readable=True, path_type=Path
-)
+ClickReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
+ClickReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
 ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Path)
 
 
 @click.group(context_settings={"show_default": True})
 @click.option(
-    "--checker-config",
-    type=ClickReadableFile,
-    default=".checker.yml",
-    help="Path to the checker config file."
+    "--checker-config", type=ClickReadableFile, default=".checker.yml", help="Path to the checker config file."
 )
 @click.option(
-    "--deadlines-config",
-    type=ClickReadableFile,
-    default=".deadlines.yml",
-    help="Path to the deadlines config file."
+    "--deadlines-config", type=ClickReadableFile, default=".deadlines.yml", help="Path to the deadlines config file."
 )
 @click.version_option(package_name="manytask-checker")
 @click.pass_context
@@ -55,9 +44,7 @@ def cli(
 
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
-@click.option(
-    "-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose output"
-)
+@click.option("-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose output")
 @click.pass_context
 def validate(
     ctx: click.Context,
@@ -115,47 +102,13 @@ def validate(
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
-@click.option(
-    "-t",
-    "--task",
-    type=str,
-    multiple=True,
-    default=None,
-    help="Task name to check (multiple possible)"
-)
-@click.option(
-    "-g",
-    "--group",
-    type=str,
-    multiple=True,
-    default=None,
-    help="Group name to check (multiple possible)"
-)
-@click.option(
-    "-p",
-    "--parallelize",
-    is_flag=True,
-    default=True,
-    help="Execute parallel checking of tasks"
-)
-@click.option(
-    "-n",
-    "--num-processes",
-    type=int,
-    default=os.cpu_count(),
-    help="Num of processes parallel checking"
-)
+@click.option("-t", "--task", type=str, multiple=True, default=None, help="Task name to check (multiple possible)")
+@click.option("-g", "--group", type=str, multiple=True, default=None, help="Group name to check (multiple possible)")
+@click.option("-p", "--parallelize", is_flag=True, default=True, help="Execute parallel checking of tasks")
+@click.option("-n", "--num-processes", type=int, default=os.cpu_count(), help="Num of processes parallel checking")
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
-@click.option(
-    "-v/-s",
-    "--verbose/--silent",
-    is_flag=True,
-    default=True,
-    help="Verbose tests output"
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
-)
+@click.option("-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose tests output")
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def check(
     ctx: click.Context,
@@ -181,7 +134,15 @@ def check(
     course = Course(deadlines_config, root)
 
     # create exporter and export files for testing
-    exporter = Exporter(course, checker_config.structure, checker_config.export, root, verbose=True, cleanup=not no_clean, dry_run=dry_run)
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=True,
+        cleanup=not no_clean,
+        dry_run=dry_run,
+    )
     exporter.export_for_testing(exporter.temporary_dir)
 
     # validate tasks and groups if passed
@@ -199,9 +160,7 @@ def check(
         print_info(f"Checking tasks: {', '.join(filesystem_tasks.keys())}")
 
     # create tester to... to test =)
-    tester = Tester(
-        course, checker_config, verbose=verbose, dry_run=dry_run
-    )
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
 
     # run tests
     # TODO: progressbar on parallelize
@@ -218,6 +177,7 @@ def check(
     except Exception as e:
         print_info("UNEXPECTED ERROR", color="red")
         print_info(e)
+        raise e
         exit(1)
     print_info("TESTING PASSED", color="green")
 
@@ -225,15 +185,9 @@ def check(
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
-@click.option(
-    "--submit-score", is_flag=True, help="Submit score to the Manytask server"
-)
-@click.option(
-    "--timestamp", type=str, default=None, help="Timestamp to use for the submission"
-)
-@click.option(
-    "--username", type=str, default=None, help="Username to use for the submission"
-)
+@click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
+@click.option("--timestamp", type=str, default=None, help="Timestamp to use for the submission")
+@click.option("--username", type=str, default=None, help="Username to use for the submission")
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
 @click.option(
     "-v/-s",
@@ -242,9 +196,7 @@ def check(
     default=False,
     help="Verbose tests output",
 )
-@click.option(
-    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
-)
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def grade(
     ctx: click.Context,
@@ -268,20 +220,24 @@ def grade(
     course = Course(deadlines_config, root, reference_root)
 
     # create exporter and export files for testing
-    exporter = Exporter(course, checker_config.structure, checker_config.export, root, verbose=False, cleanup=not no_clean, dry_run=dry_run)
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=False,
+        cleanup=not no_clean,
+        dry_run=dry_run,
+    )
     exporter.export_for_testing(exporter.temporary_dir)
 
     # detect changes to test
     filesystem_tasks: list[FileSystemTask] = list()
     # TODO: detect changes
-    filesystem_tasks = [
-        task for task in course.get_tasks(enabled=True) if task.name == "hello_world"
-    ]
+    filesystem_tasks = [task for task in course.get_tasks(enabled=True) if task.name == "hello_world"]
 
     # create tester to... to test =)
-    tester = Tester(
-        course, checker_config, verbose=verbose, dry_run=dry_run
-    )
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
 
     # run tests
     # TODO: progressbar on parallelize
@@ -305,12 +261,8 @@ def grade(
 @cli.command()
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
 @click.argument("export_root", type=ClickWritableDirectory, default="./export")
-@click.option(
-    "--commit", is_flag=True, help="Commit and push changes to the repository"
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Do not execute anything, only log actions"
-)
+@click.option("--commit", is_flag=True, help="Commit and push changes to the repository")
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def export(
     ctx: click.Context,
@@ -330,7 +282,9 @@ def export(
     course = Course(deadlines_config, reference_root)
 
     # create exporter and export files for public
-    exporter = Exporter(course, checker_config.structure, checker_config.export, reference_root, verbose=True, dry_run=dry_run)
+    exporter = Exporter(
+        course, checker_config.structure, checker_config.export, reference_root, verbose=True, dry_run=dry_run
+    )
     exporter.export_for_testing(exporter.temporary_dir)
 
 
@@ -338,8 +292,8 @@ def export(
 @click.argument("output_folder", type=ClickReadableDirectory, default=".")
 @click.pass_context
 def schema(
-        ctx: click.Context,
-        output_folder: Path,
+    ctx: click.Context,
+    output_folder: Path,
 ) -> None:
     """
     Generate json schema for the checker configs.

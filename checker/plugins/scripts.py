@@ -20,7 +20,7 @@ class RunScriptPlugin(PluginABC):
         isolate: bool = False
         env_whitelist: list[str] = Field(default_factory=lambda: ["PATH"])
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         import subprocess
 
         def set_up_env_sandbox() -> None:  # pragma: nocover

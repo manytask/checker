@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import copy
-from typing import Any, Type
+from typing import Type
 
 import pytest
 
 from checker.configs import PipelineStageConfig
 from checker.exceptions import BadConfig, PluginExecutionFailed
+from checker.pipeline import PipelineRunner
 from checker.plugins import PluginABC
 from checker.plugins.base import PluginOutput
-from checker.pipeline import PipelineRunner
 
 
 class _FailPlugin(PluginABC):
@@ -132,7 +131,7 @@ class TestPipelineRunnerValidation:
 
     def test_unknown_plugin(self, sample_plugins: dict[str, Type[PluginABC]]) -> None:
         with pytest.raises(BadConfig) as exc_info:
-            pipeline_runner = PipelineRunner(
+            _ = PipelineRunner(
                 pipeline=[
                     PipelineStageConfig(
                         name="stage1 - echo",
@@ -147,34 +146,40 @@ class TestPipelineRunnerValidation:
 
     def test_validate_placeholders(self, sample_correct_pipeline: list[PipelineStageConfig]) -> None:
         with pytest.raises(BadConfig) as exc_info:
-            pipeline_runner = PipelineRunner(
+            _ = PipelineRunner(
                 pipeline=sample_correct_pipeline,
                 plugins={},
                 verbose=False,
             )
         assert "Unknown plugin" in str(exc_info.value)
 
-    def test_unknown_placeholder(self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]) -> None:
+    def test_unknown_placeholder(
+        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+    ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
             plugins=sample_plugins,
             verbose=False,
         )
-        with pytest.raises(BadConfig) as exc_info:
+        with pytest.raises(BadConfig):
             pipeline_runner.validate({}, validate_placeholders=True)
         # TODO: fix it, now throwing Validation Error
         # assert "Unknown placeholder" in str(exc_info.value)
 
-    def test_invalid_run_if(self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]) -> None:
+    def test_invalid_run_if(
+        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+    ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
             plugins=sample_plugins,
             verbose=False,
         )
-        with pytest.raises(BadConfig) as exc_info:
+        with pytest.raises(BadConfig):
             pipeline_runner.validate({"score": 0.5}, validate_placeholders=True)
 
-    def test_invalid_register_output(self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]) -> None:
+    def test_invalid_register_output(
+        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+    ) -> None:
         sample_correct_pipeline[1].register_output = "unknown"
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
@@ -236,10 +241,10 @@ class TestPipelineRunnerValidation:
             assert stage_name in captured
 
     def test_dry_run(
-            self,
-            sample_correct_pipeline: list[PipelineStageConfig],
-            sample_plugins: dict[str, Type[PluginABC]],
-            capsys: pytest.CaptureFixture[str],
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
@@ -258,10 +263,10 @@ class TestPipelineRunnerValidation:
             assert stage_name in captured
 
     def test_fail_fast(
-            self,
-            sample_correct_pipeline: list[PipelineStageConfig],
-            sample_plugins: dict[str, Type[PluginABC]],
-            capsys: pytest.CaptureFixture[str],
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         sample_correct_pipeline[2].fail = PipelineStageConfig.FailType.FAST
         pipeline_runner = PipelineRunner(
@@ -282,10 +287,10 @@ class TestPipelineRunnerValidation:
             assert stage_name in captured
 
     def test_fail_after_all(
-            self,
-            sample_correct_pipeline: list[PipelineStageConfig],
-            sample_plugins: dict[str, Type[PluginABC]],
-            capsys: pytest.CaptureFixture[str],
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         sample_correct_pipeline[2].fail = PipelineStageConfig.FailType.AFTER_ALL
         pipeline_runner = PipelineRunner(

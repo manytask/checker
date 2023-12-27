@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Union, Optional
+from typing import Optional, Union
 
 from pydantic import AnyUrl, Field, RootModel, ValidationError, field_validator
 
@@ -27,9 +27,16 @@ class CheckerParametersConfig(RootModel[dict[str, TParamType]]):
     def __getitem__(self, item: str) -> TParamType:
         return self.root[item]
 
+    def __contains__(self, item: str) -> bool:
+        return item in self.root
+
     @property
     def __dict__(self) -> dict[str, TParamType]:
         return self.root
+
+    @__dict__.setter
+    def __dict__(self, value: dict[str, TParamType]) -> None:
+        self.root = value
 
 
 class CheckerExportConfig(CustomBaseModel):
@@ -78,7 +85,7 @@ class CheckerTestingConfig(CustomBaseModel):
     report_pipeline: list[PipelineStageConfig] = Field(default_factory=list)
 
 
-class CheckerConfig(CustomBaseModel, YamlLoaderMixin['CheckerConfig']):
+class CheckerConfig(CustomBaseModel, YamlLoaderMixin["CheckerConfig"]):
     """
     Checker configuration.
     :ivar version: config version

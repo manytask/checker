@@ -5,9 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from checker.course import Course, FileSystemTask, FileSystemGroup
 from checker.configs.deadlines import DeadlinesConfig
+from checker.course import Course, FileSystemGroup, FileSystemTask
 from checker.exceptions import BadConfig
+
 
 TEST_TIMEZONE = "Europe/Berlin"
 TEST_FILE_STRUCTURE = {
@@ -34,10 +35,29 @@ TEST_DEADLINES_CONFIG = DeadlinesConfig(
     version=1,
     settings={"timezone": TEST_TIMEZONE},
     schedule=[
-        {"group": "group1", "start": "2020-10-10 00:00:00", "enabled": True, "tasks": [{"task": "task1_1", "score": 10}, {"task": "task1_2", "score": 20}]},
-        {"group": "group2", "start": "2020-10-10 00:00:00", "enabled": False, "tasks": [{"task": "task2_1", "score": 30}, {"task": "task2_2", "score": 40}, {"task": "task2_3", "score": 50}]},
+        {
+            "group": "group1",
+            "start": "2020-10-10 00:00:00",
+            "enabled": True,
+            "tasks": [{"task": "task1_1", "score": 10}, {"task": "task1_2", "score": 20}],
+        },
+        {
+            "group": "group2",
+            "start": "2020-10-10 00:00:00",
+            "enabled": False,
+            "tasks": [
+                {"task": "task2_1", "score": 30},
+                {"task": "task2_2", "score": 40},
+                {"task": "task2_3", "score": 50},
+            ],
+        },
         {"group": "group3", "start": "2020-10-10 00:00:00", "enabled": True, "tasks": []},
-        {"group": "group4", "start": "2020-10-10 00:00:00", "enabled": True, "tasks": [{"task": "task4_1", "score": 50}]},
+        {
+            "group": "group4",
+            "start": "2020-10-10 00:00:00",
+            "enabled": True,
+            "tasks": [{"task": "task4_1", "score": 50}],
+        },
     ],
 )
 
@@ -102,7 +122,9 @@ class TestCourse:
         assert all(isinstance(group, FileSystemGroup) for group in groups)
         assert len(groups) == expected_num_groups
 
-    @pytest.mark.parametrize("enabled, expected_num_tasks", [(None, 6), (True, 3), pytest.param(False, 3, marks=pytest.mark.xfail())])
+    @pytest.mark.parametrize(
+        "enabled, expected_num_tasks", [(None, 6), (True, 3), pytest.param(False, 3, marks=pytest.mark.xfail())]
+    )
     def test_get_tasks(self, enabled: bool | None, expected_num_tasks, repository_root: Path) -> None:
         test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
 

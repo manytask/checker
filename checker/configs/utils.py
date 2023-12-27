@@ -13,12 +13,12 @@ class CustomBaseModel(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="forbid", validate_default=True)
 
 
-T = TypeVar('T', bound=pydantic.BaseModel)
+T = TypeVar("T", bound=pydantic.BaseModel)
 
 
 class YamlLoaderMixin(Generic[T]):
     @classmethod
-    def from_yaml(cls: type[T], path: Path) -> T:
+    def from_yaml(cls: type[T], path: Path) -> T:  # type: ignore[misc]
         try:
             with path.open() as f:
                 return cls(**yaml.safe_load(f))
@@ -31,10 +31,10 @@ class YamlLoaderMixin(Generic[T]):
         except pydantic.ValidationError as e:
             raise BadConfig(f"Config Validation error:\n{e}")
 
-    def to_yaml(self: T, path: Path) -> None:
+    def to_yaml(self: T, path: Path) -> None:  # type: ignore[misc]
         with path.open("w") as f:
             yaml.dump(self.model_dump(), f)
 
     @classmethod
-    def get_json_schema(cls: type[T]) -> dict[str, Any]:
+    def get_json_schema(cls: type[T]) -> dict[str, Any]:  # type: ignore[misc]
         return cls.model_json_schema()

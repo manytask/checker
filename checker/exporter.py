@@ -11,19 +11,19 @@ from checker.course import Course
 
 class Exporter:
     def __init__(
-            self,
-            course: Course,
-            structure_config: CheckerStructureConfig,
-            export_config: CheckerExportConfig,
-            repository_root: Path,
-            reference_root: Path | None = None,
-            *,
-            cleanup: bool = True,
-            verbose: bool = False,
-            dry_run: bool = False,
+        self,
+        course: Course,
+        structure_config: CheckerStructureConfig,
+        export_config: CheckerExportConfig,
+        repository_root: Path,
+        reference_root: Path | None = None,
+        *,
+        cleanup: bool = True,
+        verbose: bool = False,
+        dry_run: bool = False,
     ) -> None:
         self.course = course
-        
+
         self.structure_config = structure_config
         self.export_config = export_config
 
@@ -42,10 +42,10 @@ class Exporter:
         pass
 
     def export_public(
-            self,
-            target: Path,
-            push: bool = False,
-            commit_message: str = "chore(auto): Update public files [skip-ci]",
+        self,
+        target: Path,
+        push: bool = False,
+        commit_message: str = "chore(auto): Update public files [skip-ci]",
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
@@ -77,22 +77,19 @@ class Exporter:
                         "*",
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.public_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.public_patterns) is not None
                             else global_public_patterns
                         ),
                     ],
                     [
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.private_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.private_patterns) is not None
                             else global_private_patterns
                         ),
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.ignore_patterns) is not None
                             else global_ignore_patterns
                         ),
                     ],
@@ -103,8 +100,8 @@ class Exporter:
         )
 
     def export_for_testing(
-            self,
-            target: Path,
+        self,
+        target: Path,
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
@@ -127,26 +124,22 @@ class Exporter:
                 *global_private_patterns,
             ],
             sub_rules={
-                self.repository_root
-                / task.relative_path: (
+                self.repository_root / task.relative_path: (
                     ["*"],
                     [
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.ignore_patterns) is not None
                             else global_ignore_patterns
                         ),
                         *(
                             task_public
-                            if (task_public := task.config.structure.public_patterns)
-                            is not None
+                            if (task_public := task.config.structure.public_patterns) is not None
                             else global_public_patterns
                         ),
                         *(
                             task_private
-                            if (task_private := task.config.structure.private_patterns)
-                            is not None
+                            if (task_private := task.config.structure.private_patterns) is not None
                             else global_private_patterns
                         ),
                     ],
@@ -174,22 +167,19 @@ class Exporter:
                     [
                         *(
                             task_public
-                            if (task_public := task.config.structure.public_patterns)
-                            is not None
+                            if (task_public := task.config.structure.public_patterns) is not None
                             else global_public_patterns
                         ),
                         *(
                             task_private
-                            if (task_private := task.config.structure.private_patterns)
-                            is not None
+                            if (task_private := task.config.structure.private_patterns) is not None
                             else global_private_patterns
                         ),
                     ],
                     [
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.ignore_patterns) is not None
                             else global_ignore_patterns
                         ),
                     ],
@@ -200,8 +190,8 @@ class Exporter:
         )
 
     def export_for_contribution(
-            self,
-            target: Path,
+        self,
+        target: Path,
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
@@ -209,7 +199,7 @@ class Exporter:
 
         global_ignore_patterns = self.structure_config.ignore_patterns or []
         global_public_patterns = self.structure_config.public_patterns or []
-        global_private_patterns = self.structure_config.private_patterns or []
+        global_private_patterns = self.structure_config.private_patterns or []  # noqa: F841
 
         print("REPO")
         print(f"Copy files from {self.repository_root} to {target}")
@@ -224,21 +214,18 @@ class Exporter:
                 *global_ignore_patterns,
             ],
             sub_rules={
-                self.repository_root
-                / task.relative_path: (
+                self.repository_root / task.relative_path: (
                     [
                         *(
                             task_public
-                            if (task_public := task.config.structure.public_patterns)
-                            is not None
+                            if (task_public := task.config.structure.public_patterns) is not None
                             else global_public_patterns
                         ),
                     ],
                     [
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.ignore_patterns) is not None
                             else global_ignore_patterns
                         ),
                     ],
@@ -265,14 +252,12 @@ class Exporter:
                     [
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.public_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.public_patterns) is not None
                             else global_public_patterns
                         ),
                         *(
                             task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns)
-                            is not None
+                            if (task_ignore := task.config.structure.ignore_patterns) is not None
                             else global_ignore_patterns
                         ),
                     ],
@@ -312,9 +297,7 @@ class Exporter:
             relative_filename = str(path.relative_to(root))
             if path.is_dir():
                 if path in sub_rules:
-                    print(
-                        f"    - Check Dir {path} to {destination / relative_filename} with sub rules (rec)"
-                    )
+                    print(f"    - Check Dir {path} to {destination / relative_filename} with sub rules (rec)")
                     self._copy_files_accounting_sub_rules(
                         path,
                         destination / relative_filename,
@@ -324,9 +307,7 @@ class Exporter:
                         sub_rules=sub_rules,
                     )
                 else:
-                    print(
-                        f"    - Check Dir {path} to {destination / relative_filename} (rec)"
-                    )
+                    print(f"    - Check Dir {path} to {destination / relative_filename} (rec)")
                     self._copy_files_accounting_sub_rules(
                         path,
                         destination / relative_filename,
@@ -337,9 +318,7 @@ class Exporter:
                     )
             else:
                 if any(path.match(copy_pattern) for copy_pattern in copy_patterns):
-                    print(
-                        f"    - Copy File {path} to {destination / relative_filename}"
-                    )
+                    print(f"    - Copy File {path} to {destination / relative_filename}")
                     destination.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(
                         path,

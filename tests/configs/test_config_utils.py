@@ -3,9 +3,8 @@ from pathlib import Path
 
 import pydantic
 import pytest
-import yaml
 
-from checker.configs.utils import YamlLoaderMixin, CustomBaseModel
+from checker.configs.utils import CustomBaseModel, YamlLoaderMixin
 from checker.exceptions import BadConfig
 
 
@@ -31,15 +30,17 @@ class TestCustomBaseModel:
 
 
 class TestYamlLoader:
-    class SomeTestModel(CustomBaseModel, YamlLoaderMixin['SomeTestModel']):
+    class SomeTestModel(CustomBaseModel, YamlLoaderMixin["SomeTestModel"]):
         a: int
         b: str
 
     def test_load_valid_yaml(self, tmp_path: Path) -> None:
-        yaml_content = inspect.cleandoc("""
+        yaml_content = inspect.cleandoc(
+            """
         a: 1
         b: "123"
-        """)
+        """
+        )
         yaml_path = tmp_path / "test.yaml"
         yaml_path.write_text(yaml_content)
 
@@ -52,9 +53,11 @@ class TestYamlLoader:
             self.SomeTestModel.from_yaml(yaml_path)
 
     def test_invalid_yaml_error(self, tmp_path: Path) -> None:
-        yaml_content = inspect.cleandoc("""
+        yaml_content = inspect.cleandoc(
+            """
         a: 1 b: 123
-        """)
+        """
+        )
         yaml_path = tmp_path / "test.yaml"
         yaml_path.write_text(yaml_content)
 
@@ -62,10 +65,12 @@ class TestYamlLoader:
             self.SomeTestModel.from_yaml(yaml_path)
 
     def test_invalid_types_error(self, tmp_path: Path) -> None:
-        yaml_content = inspect.cleandoc("""
+        yaml_content = inspect.cleandoc(
+            """
         a: 1
         b: 123
-        """)
+        """
+        )
         yaml_path = tmp_path / "test.yaml"
         yaml_path.write_text(yaml_content)
 
@@ -83,12 +88,9 @@ class TestYamlLoader:
     def test_get_json_schema(self, tmp_path: Path) -> None:
         schema = self.SomeTestModel.get_json_schema()
         assert schema == {
-            'title': 'SomeTestModel',
-            'type': 'object',
-            'properties': {
-                'a': {'title': 'A', 'type': 'integer'},
-                'b': {'title': 'B', 'type': 'string'}
-            },
-            'required': ['a', 'b'],
-            'additionalProperties': False
+            "title": "SomeTestModel",
+            "type": "object",
+            "properties": {"a": {"title": "A", "type": "integer"}, "b": {"title": "B", "type": "string"}},
+            "required": ["a", "b"],
+            "additionalProperties": False,
         }

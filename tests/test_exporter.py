@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from pathlib import Path
 from inspect import cleandoc
+from pathlib import Path
 
 import pytest
 
 from checker.configs import CheckerExportConfig, CheckerStructureConfig, DeadlinesConfig
+from checker.course import Course
 from checker.exceptions import BadConfig
 from checker.exporter import Exporter
-from checker.course import Course
 
 
 def create_test_files(tmpdir: Path, files_content: dict[str, str]) -> None:
@@ -30,8 +30,13 @@ class TestExporter:
         version=1,
         settings={"timezone": "Europe/Berlin"},
         schedule=[
-            {'group': 'group', 'enabled': True, 'start': '2021-01-01 00:00:00', 'tasks': [{'task': 'task1', 'score': 1}, {'task': 'task2', 'score': 1}]},
-        ]
+            {
+                "group": "group",
+                "enabled": True,
+                "start": "2021-01-01 00:00:00",
+                "tasks": [{"task": "task1", "score": 1}, {"task": "task2", "score": 1}],
+            },
+        ],
     )
     SAMPLE_TEST_STRUCTURE_CONFIG = CheckerStructureConfig(
         ignore_patterns=[".ignore_folder"],
@@ -69,10 +74,13 @@ class TestExporter:
             private_patterns=[".*"],
             public_patterns=["*"],
         )
-        create_test_files(Path(tmpdir / "repository"), {
-            "test.py": "print('Hello')\n",
-            "folder/test.txt": "Hello\n",
-        })
+        create_test_files(
+            Path(tmpdir / "repository"),
+            {
+                "test.py": "print('Hello')\n",
+                "folder/test.txt": "Hello\n",
+            },
+        )
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=Path(tmpdir / "repository"),
@@ -91,11 +99,14 @@ class TestExporter:
             private_patterns=[".*"],
             public_patterns=["*"],
         )
-        create_test_files(Path(tmpdir / "repository"), {
-            "test.py": "print('Hello')\n",
-            "folder/.task.yml": "version: 1\n",
-            "folder/test.txt": "Hello\n",
-        })
+        create_test_files(
+            Path(tmpdir / "repository"),
+            {
+                "test.py": "print('Hello')\n",
+                "folder/.task.yml": "version: 1\n",
+                "folder/test.txt": "Hello\n",
+            },
+        )
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=Path(tmpdir / "repository"),
@@ -115,11 +126,14 @@ class TestExporter:
             private_patterns=[".*"],
             public_patterns=["*"],
         )
-        create_test_files(Path(tmpdir / "repository"), {
-            "test.py": "print('Hello')\n",
-            "folder/.task.yml": "wrong_field: HEHE\n",
-            "folder/test.txt": "Hello\n",
-        })
+        create_test_files(
+            Path(tmpdir / "repository"),
+            {
+                "test.py": "print('Hello')\n",
+                "folder/.task.yml": "wrong_field: HEHE\n",
+                "folder/test.txt": "Hello\n",
+            },
+        )
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=Path(tmpdir / "repository"),
@@ -150,18 +164,21 @@ class TestExporter:
 
         exporter.export_public(Path(tmpdir / "export"))
 
-        assert_files_in_folder(tmpdir / "export", [
-            "folder/test.txt",
-            "folder/folder/test.txt",
-            "other_folder/test.txt",
-            "test.py",
-            "test.txt",
-            # ".private_exception",  # TODO: fix private exception here not applied
-            "group/task1/.task.yml",
-            "group/task1/test.txt",
-            "group/task1/.test.py",
-            "group/task2/valid.txt",
-        ])
+        assert_files_in_folder(
+            tmpdir / "export",
+            [
+                "folder/test.txt",
+                "folder/folder/test.txt",
+                "other_folder/test.txt",
+                "test.py",
+                "test.txt",
+                # ".private_exception",  # TODO: fix private exception here not applied
+                "group/task1/.task.yml",
+                "group/task1/test.txt",
+                "group/task1/.test.py",
+                "group/task2/valid.txt",
+            ],
+        )
 
     def test_export_for_testing(self, tmpdir: Path) -> None:
         create_test_files(Path(tmpdir / "repository"), self.SAMPLE_TEST_FILES)
@@ -178,18 +195,21 @@ class TestExporter:
 
         exporter.export_for_testing(Path(tmpdir / "export"))
 
-        assert_files_in_folder(tmpdir / "export", [
-            "folder/test.txt",
-            "folder/folder/test.txt",
-            "other_folder/test.txt",
-            "test.py",
-            "test.txt",
-            ".private_exception",
-            "group/task1/.task.yml",
-            "group/task1/test.txt",
-            "group/task1/.test.py",
-            "group/task2/valid.txt",
-        ])
+        assert_files_in_folder(
+            tmpdir / "export",
+            [
+                "folder/test.txt",
+                "folder/folder/test.txt",
+                "other_folder/test.txt",
+                "test.py",
+                "test.txt",
+                ".private_exception",
+                "group/task1/.task.yml",
+                "group/task1/test.txt",
+                "group/task1/.test.py",
+                "group/task2/valid.txt",
+            ],
+        )
 
     def test_export_for_contribution(self, tmpdir: Path) -> None:
         create_test_files(Path(tmpdir / "repository"), self.SAMPLE_TEST_FILES)
@@ -206,15 +226,18 @@ class TestExporter:
 
         exporter.export_for_contribution(Path(tmpdir / "export"))
 
-        assert_files_in_folder(tmpdir / "export", [
-            "folder/test.txt",
-            "folder/folder/test.txt",
-            "other_folder/test.txt",
-            "test.py",
-            "test.txt",
-            ".private_exception",
-            "group/task1/.task.yml",
-            "group/task1/test.txt",
-            "group/task1/.test.py",
-            "group/task2/valid.txt",
-        ])
+        assert_files_in_folder(
+            tmpdir / "export",
+            [
+                "folder/test.txt",
+                "folder/folder/test.txt",
+                "other_folder/test.txt",
+                "test.py",
+                "test.txt",
+                ".private_exception",
+                "group/task1/.task.yml",
+                "group/task1/test.txt",
+                "group/task1/.test.py",
+                "group/task2/valid.txt",
+            ],
+        )

@@ -29,7 +29,6 @@ def create_test_files(tmpdir: Path) -> T_CREATE_TEST_FILES:
 
 
 class TestCheckRegexpsPlugin:
-
     # TODO: add tests with wrong patterns and regexps
     @pytest.mark.parametrize(
         "parameters, expected_exception",
@@ -46,9 +45,7 @@ class TestCheckRegexpsPlugin:
             ),
         ],
     )
-    def test_plugin_args(
-        self, parameters: dict[str, Any], expected_exception: Exception | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Exception | None) -> None:
         if expected_exception:
             with pytest.raises(expected_exception):
                 CheckRegexpsPlugin.Args(**parameters)
@@ -83,9 +80,7 @@ class TestCheckRegexpsPlugin:
         regexps = ["forbidden"]
 
         plugin = CheckRegexpsPlugin()
-        args = CheckRegexpsPlugin.Args(
-            origin=str(origin), patterns=patterns, regexps=regexps
-        )
+        args = CheckRegexpsPlugin.Args(origin=str(origin), patterns=patterns, regexps=regexps)
 
         if expected_exception:
             with pytest.raises(expected_exception):
@@ -120,9 +115,7 @@ class TestCheckRegexpsPlugin:
         patterns = ["*"]
 
         plugin = CheckRegexpsPlugin()
-        args = CheckRegexpsPlugin.Args(
-            origin=str(origin), patterns=patterns, regexps=regexps
-        )
+        args = CheckRegexpsPlugin.Args(origin=str(origin), patterns=patterns, regexps=regexps)
 
         if expected_exception:
             with pytest.raises(expected_exception) as exc_info:
@@ -130,18 +123,12 @@ class TestCheckRegexpsPlugin:
             assert "matches regexp" in str(exc_info.value)
         else:
             assert plugin._run(args).output == "No forbidden regexps found"
-            assert (
-                plugin._run(args, verbose=True).output == "No forbidden regexps found"
-            )
-            assert (
-                plugin._run(args, verbose=False).output == "No forbidden regexps found"
-            )
+            assert plugin._run(args, verbose=True).output == "No forbidden regexps found"
+            assert plugin._run(args, verbose=False).output == "No forbidden regexps found"
 
     def test_non_existent_origin(self) -> None:
         plugin = CheckRegexpsPlugin()
-        args = CheckRegexpsPlugin.Args(
-            origin="/tmp/non_existent", patterns=["*.txt"], regexps=["forbidden"]
-        )
+        args = CheckRegexpsPlugin.Args(origin="/tmp/non_existent", patterns=["*.txt"], regexps=["forbidden"])
 
         with pytest.raises(PluginExecutionFailed) as exc_info:
             plugin._run(args)

@@ -51,5 +51,5 @@ def print_header_info(
     info_extended_string = " " + header_string + " "
     print_info("", file=file)
     print_separator(symbol="+", string_length=string_length, color=color, file=file)
-    print_info(f"{info_extended_string :+^{string_length}}", color=color, file=file)
+    print_info(f"{info_extended_string:+^{string_length}}", color=color, file=file)
     print_separator(symbol="+", string_length=string_length, color=color, file=file)

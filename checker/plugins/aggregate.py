@@ -18,7 +18,7 @@ class AggregatePlugin(PluginABC):
         # TODO: validate for weights: len weights should be equal to len scores
         # TODO: validate not empty scores
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         weights = args.weights or ([1.0] * len(args.scores))
 
         if len(args.scores) != len(weights):
@@ -33,9 +33,7 @@ class AggregatePlugin(PluginABC):
                 output=f"Length of scores ({len(args.scores)}) or weights ({len(weights)}) is zero",
             )
 
-        weighted_scores = [
-            score * weight for score, weight in zip(args.scores, weights)
-        ]
+        weighted_scores = [score * weight for score, weight in zip(args.scores, weights)]
 
         if args.strategy == "mean":
             score = sum(weighted_scores) / len(weighted_scores)
@@ -47,6 +45,7 @@ class AggregatePlugin(PluginABC):
             score = max(weighted_scores)
         elif args.strategy == "product":
             from functools import reduce
+
             score = reduce(lambda x, y: x * y, weighted_scores)
         else:  # pragma: no cover
             assert False, "Not reachable"

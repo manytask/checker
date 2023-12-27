@@ -17,7 +17,7 @@ class CheckGitlabMergeRequestPlugin(PluginABC):
         requre_approval: bool = False
         search_for_score: bool = False
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         # TODO: implement
         assert NotImplementedError()
 
@@ -38,7 +38,7 @@ class CollectScoreGitlabMergeRequestPlugin(PluginABC):
         requre_approval: bool = False
         search_for_score: bool = False
 
-    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         # TODO: implement
         assert NotImplementedError()
 
