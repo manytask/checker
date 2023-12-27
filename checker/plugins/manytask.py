@@ -30,7 +30,7 @@ class ManytaskPlugin(PluginABC):
         task_name: str
         score: float  # TODO: validate score is in [0, 1] (bonus score is higher than 1)
         report_url: AnyUrl
-        tester_token: str
+        report_token: str
         check_deadline: bool
         send_time: datetime = datetime.now().astimezone()
 
@@ -43,7 +43,7 @@ class ManytaskPlugin(PluginABC):
 
         # Do not expose token in logs.
         data = {
-            'token': args.tester_token,
+            'token': args.report_token,
             'task': args.task_name,
             'username': args.username,
             'score': args.score,

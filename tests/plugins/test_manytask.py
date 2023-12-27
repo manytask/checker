@@ -15,7 +15,7 @@ from checker.plugins.manytask import ManytaskPlugin, PluginExecutionFailed
 
 class TestManytaskPlugin:
     BASE_URL = HttpUrl('https://test.manytask.org')
-    TESTER_TOKEN = 'test_token'
+    REPORT_TOKEN = 'report_token'
     TEST_TASK_NAME = 'some_task'
     TEST_USERNAME = 'username'
     TEST_SCORE = 1.0
@@ -32,7 +32,7 @@ class TestManytaskPlugin:
             'task_name': TestManytaskPlugin.TEST_TASK_NAME,
             'score': TestManytaskPlugin.TEST_SCORE,
             'report_url': TestManytaskPlugin.BASE_URL,
-            'tester_token': TestManytaskPlugin.TESTER_TOKEN,
+            'report_token': TestManytaskPlugin.REPORT_TOKEN,
             'check_deadline': TestManytaskPlugin.TEST_CHECK_DEADLINE
         }
 
@@ -193,7 +193,7 @@ class TestManytaskPlugin:
         result_score = 1.
         expected_files = {'files': 'good'}
         expected_data = {
-            'token': self.TESTER_TOKEN,
+            'token': self.REPORT_TOKEN,
             'task': self.TEST_TASK_NAME,
             'username': self.TEST_USERNAME,
             'score': self.TEST_SCORE,
