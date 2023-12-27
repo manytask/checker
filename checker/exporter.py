@@ -211,9 +211,9 @@ class Exporter:
 
         global_ignore_patterns = self.structure_config.ignore_patterns or []
         global_public_patterns = self.structure_config.public_patterns or []
-        global_private_patterns = (
+        global_private_patterns = (  # noqa: F841
             self.structure_config.private_patterns or []
-        )  # noqa: F841
+        )
 
         print("REPO")
         print(f"Copy files from {self.repository_root} to {target}")
