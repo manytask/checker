@@ -1,362 +1,370 @@
-"""Main executable file. Refer to cli module"""
 from __future__ import annotations
 
 import json
 import os
-import shutil
-import sys
-import tempfile
 from pathlib import Path
-from typing import Any
 
 import click
 
-from .actions.check import pre_release_check_tasks
+from checker.course import Course, FileSystemTask
+from checker.exporter import Exporter
+from checker.tester import Tester
+from checker.utils import print_info
 
-# from .actions.contributing import create_public_mr  # type: ignore
-from .actions.export import export_public_files
-from .actions.grade import grade_on_ci
-from .actions.grade_mr import grade_student_mrs, grade_students_mrs_to_master
-from .course import CourseConfig, CourseSchedule, Task
-from .course.driver import CourseDriver
-from .testers import Tester
-from .utils.glab import GitlabConnection
-from .utils.print import print_info
+from .configs import CheckerConfig, DeadlinesConfig, TaskConfig
+from .exceptions import BadConfig, TestingError
 
 
-ClickTypeReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
-ClickTypeReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
-ClickTypeWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Path)
+ClickReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
+ClickReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
+ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Path)
 
 
-@click.group()
-@click.option('-c', '--config', envvar='CHECKER_CONFIG', type=ClickTypeReadableFile, default=None,
-              help='Course config path')
-@click.version_option(package_name='manytask-checker')
+@click.group(context_settings={"show_default": True})
+@click.option(
+    "--checker-config",
+    type=ClickReadableFile,
+    default=".checker.yml",
+    help="Path to the checker config file.",
+)
+@click.option(
+    "--deadlines-config",
+    type=ClickReadableFile,
+    default=".deadlines.yml",
+    help="Path to the deadlines config file.",
+)
+@click.version_option(package_name="manytask-checker")
 @click.pass_context
-def main(
-        ctx: click.Context,
-        config: Path | None,
+def cli(
+    ctx: click.Context,
+    checker_config: Path,
+    deadlines_config: Path,
 ) -> None:
-    """Students' solutions *checker*"""
-    # Read course config and pass it to any command
-    # If not provided - read .course.yml from the root
-    config = config or Path() / '.course.yml'
-    if not config.exists():
-        config = Path() / 'tests' / '.course.yml'
-    if not config.exists():
-        config = Path() / 'tools' / '.course.yml'
-
-    if not config.exists():
-        raise FileNotFoundError('Unable to find `.course.yml` config')
-
-    execution_folder = Path()
-
+    """Manytask checker - automated tests for students' assignments."""
+    ctx.ensure_object(dict)
     ctx.obj = {
-        'course_config': CourseConfig.from_yaml(config),
-        'execution_folder': execution_folder,
+        "course_config_path": checker_config,
+        "deadlines_config_path": deadlines_config,
     }
 
 
-@main.command()
-@click.argument('root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--task', type=str, multiple=True, help='Task name to check')
-@click.option('--group', type=str, multiple=True, help='Group name to check')
-@click.option('--no-clean', is_flag=True, help='Clean or not check tmp folders')
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.option('--parallelize', is_flag=True, help='Execute parallel checking of tasks')
-@click.option('--num-processes', type=int, default=None, help='Num of processes parallel checking (default: unlimited)')
-@click.option('--contributing', is_flag=True, help='Run task check for students` contribution (decrease verbosity)')
+@cli.command()
+@click.argument("root", type=ClickReadableDirectory, default=".")
+@click.option("-v/-s", "--verbose/--silent", is_flag=True, default=True, help="Verbose output")
+@click.pass_context
+def validate(
+    ctx: click.Context,
+    root: Path,
+    verbose: bool,
+) -> None:
+    """Validate the configuration files, plugins and tasks.
+
+    1. Validate the configuration files content.
+    2. Validate mentioned plugins.
+    3. Check all tasks are valid and consistent with the deadlines.
+    """
+
+    print_info("Validating configuration files...")
+    try:
+        checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+        deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+    except BadConfig as e:
+        print_info("Configuration Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+    print_info("Validating Course Structure (and tasks configs)...")
+    try:
+        course = Course(deadlines_config, root)
+        course.validate()
+    except BadConfig as e:
+        print_info("Course Validation Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+    print_info("Validating Exporter...")
+    try:
+        exporter = Exporter(
+            course,
+            checker_config.structure,
+            checker_config.export,
+            root,
+            verbose=True,
+            dry_run=True,
+        )
+        exporter.validate()
+    except BadConfig as e:
+        print_info("Exporter Validation Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+    print_info("Validating tester...")
+    try:
+        tester = Tester(course, checker_config, verbose=verbose)
+        tester.validate()
+    except BadConfig as e:
+        print_info("Tester Validation Failed", color="red")
+        print_info(e)
+        exit(1)
+    print_info("Ok", color="green")
+
+
+@cli.command()
+@click.argument("root", type=ClickReadableDirectory, default=".")
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.option(
+    "-t",
+    "--task",
+    type=str,
+    multiple=True,
+    default=None,
+    help="Task name to check (multiple possible)",
+)
+@click.option(
+    "-g",
+    "--group",
+    type=str,
+    multiple=True,
+    default=None,
+    help="Group name to check (multiple possible)",
+)
+@click.option(
+    "-p",
+    "--parallelize",
+    is_flag=True,
+    default=True,
+    help="Execute parallel checking of tasks",
+)
+@click.option(
+    "-n",
+    "--num-processes",
+    type=int,
+    default=os.cpu_count(),
+    help="Num of processes parallel checking",
+)
+@click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
+@click.option(
+    "-v/-s",
+    "--verbose/--silent",
+    is_flag=True,
+    default=True,
+    help="Verbose tests output",
+)
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def check(
-        ctx: click.Context,
-        root: Path | None = None,
-        task: list[str] | None = None,
-        group: list[str] | None = None,
-        no_clean: bool = False,
-        dry_run: bool = False,
-        parallelize: bool = False,
-        num_processes: int | None = None,
-        contributing: bool = False,
+    ctx: click.Context,
+    root: Path,
+    reference_root: Path,
+    task: list[str] | None,
+    group: list[str] | None,
+    parallelize: bool,
+    num_processes: int,
+    no_clean: bool,
+    verbose: bool,
+    dry_run: bool,
 ) -> None:
-    """Run task pre-release checking"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
+    """Check private repository: run tests, lint etc. First forces validation.
 
-    root = root or execution_folder
-    private_course_driver = CourseDriver(
-        root_dir=root,
-        repo_type='private',
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=private_course_driver.get_deadlines_file_path(),
-    )
-    tester = Tester.create(
-        root=root,
-        course_config=course_config,
+    1. Run `validate` command.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and (dry-run) report.
+    4. Cleanup temporary directory.
+    """
+    # validate first
+    ctx.invoke(validate, root=root, verbose=verbose)  # TODO: check verbose level
+
+    # load configs
+    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+
+    # read filesystem, check existing tasks
+    course = Course(deadlines_config, root)
+
+    # create exporter and export files for testing
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=True,
         cleanup=not no_clean,
         dry_run=dry_run,
     )
+    exporter.export_for_testing(exporter.temporary_dir)
 
-    tasks: list[Task] | None = None
+    # validate tasks and groups if passed
+    filesystem_tasks: dict[str, FileSystemTask] = dict()
+    if task:
+        for filesystem_task in course.get_tasks(enabled=True):
+            if filesystem_task.name in task:
+                filesystem_tasks[filesystem_task.name] = filesystem_task
     if group:
-        tasks = []
-        for group_name in group:
-            if group_name in course_schedule.groups:
-                tasks.extend(course_schedule.groups[group_name].tasks)
-            else:
-                print_info(f'Provided wrong group name: {group_name}', color='red')
-                sys.exit(1)
-    elif task:
-        tasks = []
-        for task_name in task:
-            if task_name in course_schedule.tasks:
-                tasks.append(course_schedule.tasks[task_name])
-            else:
-                print_info(f'Provided wrong task name: {task_name}', color='red')
-                sys.exit(1)
+        for filesystem_group in course.get_groups(enabled=True):
+            if filesystem_group.name in group:
+                for filesystem_task in filesystem_group.tasks:
+                    filesystem_tasks[filesystem_task.name] = filesystem_task
+    if filesystem_tasks:
+        print_info(f"Checking tasks: {', '.join(filesystem_tasks.keys())}")
 
-    pre_release_check_tasks(
-        course_schedule,
-        private_course_driver,
-        tester,
-        tasks=tasks,
-        parallelize=parallelize,
-        num_processes=num_processes,
-        contributing=contributing,
-    )
+    # create tester to... to test =)
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
+
+    # run tests
+    # TODO: progressbar on parallelize
+    try:
+        tester.run(
+            exporter.temporary_dir,
+            tasks=list(filesystem_tasks.values()) if filesystem_tasks else None,
+            report=False,
+        )
+    except TestingError as e:
+        print_info("TESTING FAILED", color="red")
+        print_info(e)
+        exit(1)
+    except Exception as e:
+        print_info("UNEXPECTED ERROR", color="red")
+        print_info(e)
+        raise e
+        exit(1)
+    print_info("TESTING PASSED", color="green")
 
 
-@main.command()
-@click.argument('reference_root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--test-full-groups', is_flag=True, help='Test all tasks in changed groups')
+@cli.command()
+@click.argument("root", type=ClickReadableDirectory, default=".")
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
+@click.option("--timestamp", type=str, default=None, help="Timestamp to use for the submission")
+@click.option("--username", type=str, default=None, help="Username to use for the submission")
+@click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
+@click.option(
+    "-v/-s",
+    "--verbose/--silent",
+    is_flag=True,
+    default=False,
+    help="Verbose tests output",
+)
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
 def grade(
-        ctx: click.Context,
-        reference_root: Path | None = None,
-        test_full_groups: bool = False,
+    ctx: click.Context,
+    root: Path,
+    reference_root: Path,
+    submit_score: bool,
+    timestamp: str | None,
+    username: str | None,
+    no_clean: bool,
+    verbose: bool,
+    dry_run: bool,
 ) -> None:
-    """Run student's tasks (current ci user)"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
+    """Process the configuration file and grade the tasks.
 
-    reference_root = reference_root or execution_folder
-    public_course_driver = CourseDriver(
-        root_dir=Path(os.environ['CI_PROJECT_DIR']),
-        repo_type='public',
-        layout=course_config.layout,
-    )
-    private_course_driver = CourseDriver(
-        root_dir=reference_root,
-        repo_type='private',
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=private_course_driver.get_deadlines_file_path(),
-    )
-    tester = Tester.create(
-        root=execution_folder,
-        course_config=course_config,
-    )
+    1. Detect changes to test.
+    2. Export tasks to temporary directory for testing.
+    3. Run pipelines: global, tasks and report.
+    4. Cleanup temporary directory.
+    """
+    # load configs
+    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
-    grade_on_ci(
-        course_config,
-        course_schedule,
-        public_course_driver,
-        private_course_driver,
-        tester,
-        test_full_groups=test_full_groups,
-    )
-    # TODO: think inspect
+    # read filesystem, check existing tasks
+    course = Course(deadlines_config, root, reference_root)
 
-
-@main.command()
-@click.argument('reference_root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.pass_context
-def grade_mrs(
-        ctx: click.Context,
-        reference_root: Path | None = None,
-        dry_run: bool = False,
-) -> None:
-    """Run student's MRs grading (current git user)"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
-
-    reference_root = reference_root or execution_folder
-    public_course_driver = CourseDriver(
-        root_dir=Path(os.environ['CI_PROJECT_DIR']),
-        repo_type='public',
-        layout=course_config.layout,
-    )
-    private_course_driver = CourseDriver(
-        root_dir=reference_root,
-        repo_type='private',
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=private_course_driver.get_deadlines_file_path(),
-    )
-
-    username = os.environ['CI_PROJECT_NAME']
-
-    gitlab_connection = GitlabConnection(
-        gitlab_host_url=course_config.gitlab_url,
-        job_token=os.environ.get('CI_JOB_TOKEN'),
-    )
-
-    grade_student_mrs(
-        course_config,
-        course_schedule,
-        public_course_driver,
-        gitlab_connection,
-        username,
+    # create exporter and export files for testing
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        root,
+        verbose=False,
+        cleanup=not no_clean,
         dry_run=dry_run,
     )
-    # TODO: think inspect
+    exporter.export_for_testing(exporter.temporary_dir)
+
+    # detect changes to test
+    filesystem_tasks: list[FileSystemTask] = list()
+    # TODO: detect changes
+    filesystem_tasks = [task for task in course.get_tasks(enabled=True) if task.name == "hello_world"]
+
+    # create tester to... to test =)
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
+
+    # run tests
+    # TODO: progressbar on parallelize
+    try:
+        tester.run(
+            exporter.temporary_dir,
+            filesystem_tasks,
+            report=True,
+        )
+    except TestingError as e:
+        print_info("TESTING FAILED", color="red")
+        print_info(e)
+        exit(1)
+    except Exception as e:
+        print_info("UNEXPECTED ERROR", color="red")
+        print_info(e)
+        exit(1)
+    print_info("TESTING PASSED", color="green")
 
 
-@main.command()
-@click.argument('root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
+@cli.command()
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.argument("export_root", type=ClickWritableDirectory, default="./export")
+@click.option("--commit", is_flag=True, help="Commit and push changes to the repository")
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
 @click.pass_context
-def grade_students_mrs(
-        ctx: click.Context,
-        root: Path | None = None,
-        dry_run: bool = False,
+def export(
+    ctx: click.Context,
+    reference_root: Path,
+    export_root: Path,
+    commit: bool,
+    dry_run: bool,
 ) -> None:
-    """Run students' MRs grading (all users)"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
+    """Export tasks from reference to public repository."""
+    # load configs
+    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
+    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
 
-    root = root or execution_folder
-    private_course_driver = CourseDriver(
-        root_dir=root,
-        repo_type='private',
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=private_course_driver.get_deadlines_file_path(),
-    )
+    # read filesystem, check existing tasks
+    course = Course(deadlines_config, reference_root)
 
-    gitlab_connection = GitlabConnection(
-        gitlab_host_url=course_config.gitlab_url,
-        private_token=course_config.gitlab_service_token,
-    )
-
-    grade_students_mrs_to_master(
-        course_config,
-        course_schedule,
-        private_course_driver,
-        gitlab_connection,
+    # create exporter and export files for public
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        reference_root,
+        verbose=True,
         dry_run=dry_run,
     )
+    exporter.export_for_testing(exporter.temporary_dir)
 
 
-@main.command()
-@click.argument('root', required=False, type=ClickTypeReadableDirectory)
-@click.option('--export-dir', type=ClickTypeWritableDirectory, help='TEMP dir to export into')
-@click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-@click.option('--no-cleanup', is_flag=True, help='Do not cleanup export dir')
+@cli.command(hidden=True)
+@click.argument("output_folder", type=ClickReadableDirectory, default=".")
 @click.pass_context
-def export_public(
-        ctx: click.Context,
-        root: Path | None = None,
-        export_dir: Path | None = None,
-        dry_run: bool = False,
-        no_cleanup: bool = False,
+def schema(
+    ctx: click.Context,
+    output_folder: Path,
 ) -> None:
-    """Export enabled tasks to public repo"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    execution_folder: Path = context['execution_folder']
+    """Generate json schema for the checker configs."""
+    checker_schema = CheckerConfig.get_json_schema()
+    deadlines_schema = DeadlinesConfig.get_json_schema()
+    task_schema = TaskConfig.get_json_schema()
 
-    root = root or execution_folder
-
-    export_dir = export_dir or Path(tempfile.mkdtemp())
-    if not export_dir.exists():
-        export_dir.mkdir(exist_ok=True, parents=True)
-
-    public_course_driver = CourseDriver(
-        root_dir=export_dir,
-        repo_type='public',
-        layout=course_config.layout,
-    )
-    private_course_driver = CourseDriver(
-        root_dir=root,
-        repo_type='private',
-        layout=course_config.layout,
-    )
-    course_schedule = CourseSchedule(
-        deadlines_config=private_course_driver.get_deadlines_file_path(),
-    )
-
-    export_public_files(
-        course_config,
-        course_schedule,
-        public_course_driver,
-        private_course_driver,
-        export_dir,
-        dry_run=dry_run,
-    )
-
-    if no_cleanup:
-        print_info(f'No cleanup flag. Exported files stored in {export_dir}.')
-    else:
-        print_info(f'Cleanup flag. Export dir {export_dir} removed.')
-        shutil.rmtree(export_dir)
+    with open(output_folder / "schema-checker.json", "w") as f:
+        json.dump(checker_schema, f, indent=2)
+    with open(output_folder / "schema-deadlines.json", "w") as f:
+        json.dump(deadlines_schema, f, indent=2)
+    with open(output_folder / "schema-task.json", "w") as f:
+        json.dump(task_schema, f, indent=2)
 
 
-# @main.command()
-# @click.option('--dry-run', is_flag=True, help='Do not execute anything, only print')
-# @click.pass_context
-def create_contributing_mr(
-        ctx: click.Context,
-        dry_run: bool = False,
-) -> None:
-    """Move public project to private as MR"""
-    context: dict[str, Any] = ctx.obj
-    course_config: CourseConfig = context['course_config']
-    # execution_folder: Path = context['execution_folder']
-
-    trigger_payload = os.environ.get('TRIGGER_PAYLOAD', 'None')
-    print_info('trigger_payload', trigger_payload)
-
-    # trigger_payload_dict = json.loads(trigger_payload)
-    with open(trigger_payload, 'r') as json_file:
-        trigger_payload_dict = json.load(json_file)
-
-    event_type = trigger_payload_dict['event_type']
-
-    if event_type != 'merge_request':
-        print_info(f'event_type = {event_type}. Skip it.', color='orange')
-        return
-
-    object_attributes = trigger_payload_dict['object_attributes']
-    merge_commit_sha = object_attributes['merge_commit_sha']
-
-    if merge_commit_sha is None:
-        print_info('merge_commit_sha = None. Skip it.', color='orange')
-        return
-
-    mr_state = object_attributes['state']
-    target_branch = object_attributes['target_branch']
-
-    if mr_state != 'merged':
-        print_info(f'mr_state = {mr_state}. Skip it.', color='orange')
-        return
-
-    if target_branch != course_config.default_branch:
-        print_info(f'target_branch = {target_branch}. Skip it.', color='orange')
-        return
-
-    # create_public_mr(course_config, object_attributes, dry_run=dry_run)
-
-
-if __name__ == '__main__':  # pragma: nocover
-    main()
+if __name__ == "__main__":
+    cli()
