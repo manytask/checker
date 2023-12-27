@@ -49,6 +49,59 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
+        tasks = self.course.get_tasks(enabled=True)
+
+        global_ignore_patterns = self.structure_config.ignore_patterns or []
+        global_public_patterns = self.structure_config.public_patterns or []
+        global_private_patterns = self.structure_config.private_patterns or []
+
+        # TODO: implement template searcher
+
+        print("REFERENCE")
+        print(f"Copy files from {self.reference_root} to {target}")
+        self._copy_files_accounting_sub_rules(
+            self.reference_root,
+            target,
+            search_pattern="*",
+            copy_patterns=[
+                "*",
+                *global_public_patterns,
+            ],
+            ignore_patterns=[
+                *global_private_patterns,
+                *global_ignore_patterns,
+            ],
+            sub_rules={
+                self.reference_root / task.relative_path: (
+                    [
+                        "*",
+                        *(
+                            task_ignore
+                            if (task_ignore := task.config.structure.public_patterns)
+                            is not None
+                            else global_public_patterns
+                        ),
+                    ],
+                    [
+                        *(
+                            task_ignore
+                            if (task_ignore := task.config.structure.private_patterns)
+                            is not None
+                            else global_private_patterns
+                        ),
+                        *(
+                            task_ignore
+                            if (task_ignore := task.config.structure.ignore_patterns)
+                            is not None
+                            else global_ignore_patterns
+                        ),
+                    ],
+                )
+                for task in tasks
+                if task.config is not None and task.config.structure is not None
+            },
+        )
+
     def export_for_testing(
             self,
             target: Path,
