@@ -21,7 +21,6 @@ class ManytaskPlugin(PluginABC):
     DEFAULT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f%z'
 
     name = "report_score_manytask"
-    _output: list[str]
 
     class Args(PluginABC.Args):
         origin: Optional[str] = None  # as pydantic does not support | in older python versions

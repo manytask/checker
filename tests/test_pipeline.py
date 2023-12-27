@@ -63,7 +63,7 @@ def sample_correct_pipeline() -> list[PipelineStageConfig]:
             name="stage2 - score",
             run="score",
             args={"score": 0.5},
-            register_output="score",
+            register_output="score_stage",
         ),
         PipelineStageConfig(
             name="stage3 - ignore fail",
@@ -84,7 +84,7 @@ def sample_correct_pipeline() -> list[PipelineStageConfig]:
         PipelineStageConfig(
             name="stage6 - skip fail if registered output",
             run="fail",
-            run_if="${{ outputs.score.percentage > 0.7 }}",
+            run_if="${{ outputs.score_stage.percentage > 0.7 }}",
         ),
         PipelineStageConfig(
             name="stage7 - second echo",
@@ -99,7 +99,7 @@ class TestSampleFixtures:
         plugin = sample_plugins["echo"]()
         plugin.validate({"message": "Hello"})
         result = plugin.run({"message": "Hello"}, verbose=True)
-        assert result.percentage is None
+        assert result.percentage == 1.0
         assert result.output == "Hello"
 
         plugin = sample_plugins["score"]()
@@ -115,7 +115,7 @@ class TestSampleFixtures:
 
 
 class TestPipelineRunnerValidation:
-    def test_correct_pipeline(
+    def test_correct_pipeline_validation(
         self,
         sample_correct_pipeline: list[PipelineStageConfig],
         sample_plugins: dict[str, Type[PluginABC]],

@@ -17,12 +17,12 @@ class PipelineStageResult:
     name: str
     failed: bool
     skipped: bool
-    percentage: float = 0.0
+    percentage: float | None = None
     elapsed_time: float | None = None
     output: str = ""
 
     def __str__(self) -> str:  # pragma: no cover
-        return f"PipelineStageResult: failed={int(self.failed)}, skipped={int(self.skipped)}, percentage={self.percentage:.2f}, name='{self.name}'"
+        return f"PipelineStageResult: failed={int(self.failed)}, skipped={int(self.skipped)}, percentage={self.percentage or 1.0:.2f}, name='{self.name}'"
 
 
 @dataclass
@@ -145,6 +145,7 @@ class PipelineRunner:
                     name=pipeline_stage.name,
                     failed=False,
                     skipped=True,
+                    percentage=1.0,
                 )
 
     def run(
