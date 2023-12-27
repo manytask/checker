@@ -163,7 +163,7 @@ class PipelineRunner:
             )
             resolved_run_if = (
                 self.parameters_resolver.resolve(pipeline_stage.run_if, context=context)
-                if pipeline_stage.run_if
+                if pipeline_stage.run_if is not None
                 else None
             )
 
@@ -189,7 +189,7 @@ class PipelineRunner:
                 continue
 
             # resolve run condition if any; skip if run_if=False
-            if pipeline_stage.run_if:
+            if pipeline_stage.run_if is not None:
                 if not resolved_run_if:
                     print_info(f"skipped! (run_if={resolved_run_if})", color="blue")
                     pipeline_stage_results.append(
@@ -217,6 +217,13 @@ class PipelineRunner:
                         percentage=1.0,
                     )
                 )
+
+                # register output if required
+                if pipeline_stage.register_output:
+                    context.setdefault("outputs", {})[
+                        pipeline_stage.register_output
+                    ] = pipeline_stage_results[-1]
+
                 continue
 
             # run the plugin with executor
@@ -235,7 +242,7 @@ class PipelineRunner:
                         failed=False,
                         skipped=False,
                         output=result.output,
-                        percentage=1.0,  # TODO: get percentage from plugin
+                        percentage=result.percentage,
                         elapsed_time=_end_time - _start_time,
                     )
                 )
@@ -245,7 +252,6 @@ class PipelineRunner:
                 print_info(
                     f"> elapsed time: {_end_time-_start_time:.2f}s", color="grey"
                 )
-                print_info("error!", color="red")
                 pipeline_stage_results.append(
                     PipelineStageResult(
                         name=pipeline_stage.name,
@@ -257,14 +263,17 @@ class PipelineRunner:
                     )
                 )
                 if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
+                    print_info("error! (now as fail=fast)", color="red")
                     skip_the_rest = True
                     pipeline_passed = False
                 elif pipeline_stage.fail == PipelineStageConfig.FailType.AFTER_ALL:
+                    print_info("error! (later as fail=after_all)", color="red")
                     pipeline_passed = False
                 elif pipeline_stage.fail == PipelineStageConfig.FailType.NEVER:
+                    print_info("error! (ignored as fail=never)", color="red")
                     pass
                 else:
-                    assert False, f"Unknown fail type {pipeline_stage.fail}"
+                    assert False, f"Unknown fail type {pipeline_stage.fail}"  # pragma: no cover
 
             # register output if required
             if pipeline_stage.register_output:
