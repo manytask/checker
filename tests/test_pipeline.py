@@ -26,9 +26,14 @@ class _ScorePlugin(PluginABC):
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         if verbose:
-            return PluginOutput(output=f"Score: {args.score:.2f}\nSome secret verbose line", percentage=args.score)
+            return PluginOutput(
+                output=f"Score: {args.score:.2f}\nSome secret verbose line",
+                percentage=args.score,
+            )
         else:
-            return PluginOutput(output=f"Score: {args.score:.2f}", percentage=args.score)
+            return PluginOutput(
+                output=f"Score: {args.score:.2f}", percentage=args.score
+            )
 
 
 class _EchoPlugin(PluginABC):
@@ -144,7 +149,9 @@ class TestPipelineRunnerValidation:
             )
         assert "Unknown plugin" in str(exc_info.value)
 
-    def test_validate_placeholders(self, sample_correct_pipeline: list[PipelineStageConfig]) -> None:
+    def test_validate_placeholders(
+        self, sample_correct_pipeline: list[PipelineStageConfig]
+    ) -> None:
         with pytest.raises(BadConfig) as exc_info:
             _ = PipelineRunner(
                 pipeline=sample_correct_pipeline,
@@ -154,7 +161,9 @@ class TestPipelineRunnerValidation:
         assert "Unknown plugin" in str(exc_info.value)
 
     def test_unknown_placeholder(
-        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
     ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
@@ -167,7 +176,9 @@ class TestPipelineRunnerValidation:
         # assert "Unknown placeholder" in str(exc_info.value)
 
     def test_invalid_run_if(
-        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
     ) -> None:
         pipeline_runner = PipelineRunner(
             pipeline=sample_correct_pipeline,
@@ -178,7 +189,9 @@ class TestPipelineRunnerValidation:
             pipeline_runner.validate({"score": 0.5}, validate_placeholders=True)
 
     def test_invalid_register_output(
-        self, sample_correct_pipeline: list[PipelineStageConfig], sample_plugins: dict[str, Type[PluginABC]]
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
     ) -> None:
         sample_correct_pipeline[1].register_output = "unknown"
         pipeline_runner = PipelineRunner(
@@ -187,7 +200,9 @@ class TestPipelineRunnerValidation:
             verbose=False,
         )
         with pytest.raises(BadConfig) as exc_info:
-            pipeline_runner.validate({"message": "some valid message"}, validate_placeholders=True)
+            pipeline_runner.validate(
+                {"message": "some valid message"}, validate_placeholders=True
+            )
         assert "Invalid template" in str(exc_info.value)
 
     def test_run_correct_pipeline_verbose(

@@ -42,8 +42,15 @@ class Course:
         self.repository_root = repository_root
         self.reference_root = reference_root or repository_root
 
-        self.potential_groups = {group.name: group for group in self._search_potential_groups(self.repository_root)}
-        self.potential_tasks = {task.name: task for group in self.potential_groups.values() for task in group.tasks}
+        self.potential_groups = {
+            group.name: group
+            for group in self._search_potential_groups(self.repository_root)
+        }
+        self.potential_tasks = {
+            task.name: task
+            for group in self.potential_groups.values()
+            for task in group.tasks
+        }
 
     def validate(self) -> None:
         # check all groups and tasks mentioned in deadlines exists
@@ -55,7 +62,9 @@ class Course:
         deadlines_tasks = self.deadlines.get_tasks(enabled=True)
         for deadlines_task in deadlines_tasks:
             if deadlines_task.name not in self.potential_tasks:
-                raise BadConfig(f"Task {deadlines_task.name} of not found in repository")
+                raise BadConfig(
+                    f"Task {deadlines_task.name} of not found in repository"
+                )
 
     def get_groups(
         self,
@@ -98,7 +107,9 @@ class Course:
                     try:
                         task_config = TaskConfig.from_yaml(task_config_path)
                     except BadConfig as e:
-                        raise BadConfig(f"Task config {task_config_path} is invalid:\n{e}")
+                        raise BadConfig(
+                            f"Task config {task_config_path} is invalid:\n{e}"
+                        )
 
                 potential_tasks.append(
                     FileSystemTask(
@@ -118,7 +129,9 @@ class Course:
         return potential_groups
 
     @staticmethod
-    def _search_for_tasks_by_configs(root: Path) -> Generator[FileSystemTask, Any, None]:
+    def _search_for_tasks_by_configs(
+        root: Path,
+    ) -> Generator[FileSystemTask, Any, None]:
         for task_config_path in root.glob(f"**/{Course.TASK_CONFIG_NAME}"):
             task_config = TaskConfig.from_yaml(task_config_path)
             yield FileSystemTask(

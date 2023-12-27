@@ -69,9 +69,15 @@ class Tester:
 
         self.plugins = load_plugins(self.testing_config.search_plugins, verbose=verbose)
 
-        self.global_pipeline = PipelineRunner(self.testing_config.global_pipeline, self.plugins, verbose=verbose)
-        self.task_pipeline = PipelineRunner(self.testing_config.tasks_pipeline, self.plugins, verbose=verbose)
-        self.report_pipeline = PipelineRunner(self.testing_config.report_pipeline, self.plugins, verbose=verbose)
+        self.global_pipeline = PipelineRunner(
+            self.testing_config.global_pipeline, self.plugins, verbose=verbose
+        )
+        self.task_pipeline = PipelineRunner(
+            self.testing_config.tasks_pipeline, self.plugins, verbose=verbose
+        )
+        self.report_pipeline = PipelineRunner(
+            self.testing_config.report_pipeline, self.plugins, verbose=verbose
+        )
 
         self.repository_dir = self.course.repository_root
         self.reference_dir = self.course.reference_root
@@ -113,7 +119,8 @@ class Tester:
             "global": global_variables,
             "task": task_variables,
             "outputs": outputs,
-            "parameters": default_parameters.__dict__ | (task_parameters.__dict__ if task_parameters else {}),
+            "parameters": default_parameters.__dict__
+            | (task_parameters.__dict__ if task_parameters else {}),
             "env": os.environ.__dict__,
         }
 
@@ -127,7 +134,9 @@ class Tester:
         # validate global pipeline (only default params and variables available)
         print("- global pipeline...")
         global_variables = self._get_global_pipeline_parameters(Path(), tasks)
-        context = self._get_context(global_variables, None, outputs, self.default_params, None)
+        context = self._get_context(
+            global_variables, None, outputs, self.default_params, None
+        )
         self.global_pipeline.validate(context, validate_placeholders=True)
         print("  ok")
 
@@ -167,8 +176,12 @@ class Tester:
         # run global pipeline
         print_header_info("Run global pipeline:", color="pink")
         global_variables = self._get_global_pipeline_parameters(origin, tasks)
-        context = self._get_context(global_variables, None, outputs, self.default_params, None)
-        global_pipeline_result: PipelineResult = self.global_pipeline.run(context, dry_run=self.dry_run)
+        context = self._get_context(
+            global_variables, None, outputs, self.default_params, None
+        )
+        global_pipeline_result: PipelineResult = self.global_pipeline.run(
+            context, dry_run=self.dry_run
+        )
         print_separator("-")
         print_info(str(global_pipeline_result), color="pink")
 
@@ -191,7 +204,9 @@ class Tester:
             )
 
             # TODO: read pipeline from task config if any
-            task_pipeline_result: PipelineResult = self.task_pipeline.run(context, dry_run=self.dry_run)
+            task_pipeline_result: PipelineResult = self.task_pipeline.run(
+                context, dry_run=self.dry_run
+            )
             print_separator("-")
 
             print_info(str(task_pipeline_result), color="pink")
@@ -201,7 +216,9 @@ class Tester:
             if task_pipeline_result:
                 print_info(f"Reporting <{task.name}> task tests:", color="pink")
                 if report:
-                    task_report_result: PipelineResult = self.report_pipeline.run(context, dry_run=self.dry_run)
+                    task_report_result: PipelineResult = self.report_pipeline.run(
+                        context, dry_run=self.dry_run
+                    )
                     if task_report_result:
                         print_info("->Reporting succeeded")
                     else:

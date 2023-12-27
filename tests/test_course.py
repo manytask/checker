@@ -39,7 +39,10 @@ TEST_DEADLINES_CONFIG = DeadlinesConfig(
             "group": "group1",
             "start": "2020-10-10 00:00:00",
             "enabled": True,
-            "tasks": [{"task": "task1_1", "score": 10}, {"task": "task1_2", "score": 20}],
+            "tasks": [
+                {"task": "task1_1", "score": 10},
+                {"task": "task1_2", "score": 20},
+            ],
         },
         {
             "group": "group2",
@@ -51,7 +54,12 @@ TEST_DEADLINES_CONFIG = DeadlinesConfig(
                 {"task": "task2_3", "score": 50},
             ],
         },
-        {"group": "group3", "start": "2020-10-10 00:00:00", "enabled": True, "tasks": []},
+        {
+            "group": "group3",
+            "start": "2020-10-10 00:00:00",
+            "enabled": True,
+            "tasks": [],
+        },
         {
             "group": "group4",
             "start": "2020-10-10 00:00:00",
@@ -84,12 +92,16 @@ def repository_root(tmp_path: Path) -> Path:
 
 class TestCourse:
     def test_init(self, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(
+            deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+        )
         assert test_course.repository_root == repository_root
         assert test_course.deadlines == TEST_DEADLINES_CONFIG
 
     def test_validate(self, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(
+            deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+        )
 
         try:
             test_course.validate()
@@ -99,23 +111,35 @@ class TestCourse:
     def test_validate_with_no_group(self, repository_root: Path) -> None:
         shutil.rmtree(repository_root / "group1")
         with pytest.raises(BadConfig):
-            Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root).validate()
+            Course(
+                deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+            ).validate()
 
     def test_validate_with_no_task(self, repository_root: Path) -> None:
         shutil.rmtree(repository_root / "group1" / "task1_1")
         with pytest.raises(BadConfig):
-            Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root).validate()
+            Course(
+                deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+            ).validate()
 
     def test_init_task_with_bad_config(self, repository_root: Path) -> None:
-        with open(repository_root / "group1" / "task1_1" / Course.TASK_CONFIG_NAME, "w") as f:
+        with open(
+            repository_root / "group1" / "task1_1" / Course.TASK_CONFIG_NAME, "w"
+        ) as f:
             f.write("bad_config")
 
         with pytest.raises(BadConfig):
             Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
 
-    @pytest.mark.parametrize("enabled, expected_num_groups", [(None, 4), (True, 3), (False, 1)])
-    def test_get_groups(self, enabled: bool | None, expected_num_groups, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+    @pytest.mark.parametrize(
+        "enabled, expected_num_groups", [(None, 4), (True, 3), (False, 1)]
+    )
+    def test_get_groups(
+        self, enabled: bool | None, expected_num_groups, repository_root: Path
+    ) -> None:
+        test_course = Course(
+            deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+        )
 
         groups = test_course.get_groups(enabled=enabled)
         assert isinstance(groups, list)
@@ -123,10 +147,15 @@ class TestCourse:
         assert len(groups) == expected_num_groups
 
     @pytest.mark.parametrize(
-        "enabled, expected_num_tasks", [(None, 6), (True, 3), pytest.param(False, 3, marks=pytest.mark.xfail())]
+        "enabled, expected_num_tasks",
+        [(None, 6), (True, 3), pytest.param(False, 3, marks=pytest.mark.xfail())],
     )
-    def test_get_tasks(self, enabled: bool | None, expected_num_tasks, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+    def test_get_tasks(
+        self, enabled: bool | None, expected_num_tasks, repository_root: Path
+    ) -> None:
+        test_course = Course(
+            deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root
+        )
 
         tasks = test_course.get_tasks(enabled=enabled)
         assert isinstance(tasks, list)

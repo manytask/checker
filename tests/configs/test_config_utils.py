@@ -90,7 +90,10 @@ class TestYamlLoader:
         assert schema == {
             "title": "SomeTestModel",
             "type": "object",
-            "properties": {"a": {"title": "A", "type": "integer"}, "b": {"title": "B", "type": "string"}},
+            "properties": {
+                "a": {"title": "A", "type": "integer"},
+                "b": {"title": "B", "type": "string"},
+            },
             "required": ["a", "b"],
             "additionalProperties": False,
         }

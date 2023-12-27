@@ -94,13 +94,17 @@ class DeadlinesGroupConfig(CustomBaseModel):
         if isinstance(self.end, timedelta) and self.end < timedelta():
             raise ValueError(f"end timedelta <{self.end}> should be positive")
         if isinstance(self.end, datetime) and self.end < self.start:
-            raise ValueError(f"end datetime <{self.end}> should be after the start <{self.start}>")
+            raise ValueError(
+                f"end datetime <{self.end}> should be after the start <{self.start}>"
+            )
 
         # check steps
         last_step_date_or_delta: datetime | timedelta = self.start
         for _, date_or_delta in self.steps.items():
             step_date = (
-                self.start + date_or_delta if isinstance(date_or_delta, timedelta) else date_or_delta
+                self.start + date_or_delta
+                if isinstance(date_or_delta, timedelta)
+                else date_or_delta
             )
             last_step_date = (
                 self.start + last_step_date_or_delta
@@ -111,7 +115,9 @@ class DeadlinesGroupConfig(CustomBaseModel):
             if isinstance(date_or_delta, timedelta) and date_or_delta < timedelta():
                 raise ValueError(f"step timedelta <{date_or_delta}> should be positive")
             if isinstance(date_or_delta, datetime) and date_or_delta <= self.start:
-                raise ValueError(f"step datetime <{date_or_delta}> should be after the start {self.start}")
+                raise ValueError(
+                    f"step datetime <{date_or_delta}> should be after the start {self.start}"
+                )
 
             if step_date <= last_step_date:
                 raise ValueError(
@@ -148,7 +154,9 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
         self,
         enabled: bool | None = None,
     ) -> list[DeadlinesTaskConfig]:
-        tasks = [task for group in self.get_groups(enabled=enabled) for task in group.tasks]
+        tasks = [
+            task for group in self.get_groups(enabled=enabled) for task in group.tasks
+        ]
 
         if enabled is not None:
             tasks = [task for task in tasks if task.enabled == enabled]
@@ -166,7 +174,9 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
 
     @field_validator("schedule")
     @classmethod
-    def check_group_names_unique(cls, data: list[DeadlinesGroupConfig]) -> list[DeadlinesGroupConfig]:
+    def check_group_names_unique(
+        cls, data: list[DeadlinesGroupConfig]
+    ) -> list[DeadlinesGroupConfig]:
         groups = [group.name for group in data]
         duplicates = [name for name in groups if groups.count(name) > 1]
         if duplicates:
@@ -175,7 +185,9 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
 
     @field_validator("schedule")
     @classmethod
-    def check_task_names_unique(cls, data: list[DeadlinesGroupConfig]) -> list[DeadlinesGroupConfig]:
+    def check_task_names_unique(
+        cls, data: list[DeadlinesGroupConfig]
+    ) -> list[DeadlinesGroupConfig]:
         tasks_names = [task.name for group in data for task in group.tasks]
         duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
         if duplicates:
