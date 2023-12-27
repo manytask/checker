@@ -35,7 +35,12 @@ class ManytaskPlugin(PluginABC):
         send_time: datetime = datetime.now().astimezone()
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
-        self._output = []
+        output: list[str] = []
+
+        if not args.send_time.tzinfo:
+            output.append('Warning: No timezone provided for send_time, possible time miscalculations')
+        send_time_formatted = args.send_time.strftime(self.DEFAULT_TIME_FORMAT)
+
         # Do not expose token in logs.
         data = {
             'token': args.tester_token,
@@ -43,7 +48,7 @@ class ManytaskPlugin(PluginABC):
             'username': args.username,
             'score': args.score,
             'check_deadline': args.check_deadline,
-            'submit_time': self._format_time(args.send_time)
+            'submit_time': send_time_formatted,
         }
 
         files = None
@@ -51,15 +56,15 @@ class ManytaskPlugin(PluginABC):
             files = self._collect_files_to_send(args.origin, args.patterns)
 
         if verbose:
-            self._output.append(str(files))
+            output.append(str(files))
 
         response = self._post_with_retries(args.report_url, data, files)
 
         try:
             result = response.json()
-            self._output.append(f"Report for task '{args.task_name}' for user '{args.username}', "
-                                f"requested score: {args.score}, result score: {result['score']}")
-            return PluginOutput(output='\n'.join(self._output))
+            output.append(f"Report for task '{args.task_name}' for user '{args.username}', "
+                          f"requested score: {args.score}, result score: {result['score']}")
+            return PluginOutput(output='\n'.join(output))
         except (json.JSONDecodeError, KeyError):
             raise PluginExecutionFailed('Unable to decode response')
 
@@ -91,8 +96,3 @@ class ManytaskPlugin(PluginABC):
             for path in source_dir.glob(pattern)
             if path.is_file()
         }
-
-    def _format_time(self, time: datetime) -> str:
-        if not time.tzinfo:
-            self._output.append('Warning: No timezone provided for send_time, possible time miscalculations')
-        return time.strftime(self.DEFAULT_TIME_FORMAT)

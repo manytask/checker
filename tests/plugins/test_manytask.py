@@ -103,15 +103,27 @@ class TestManytaskPlugin:
 
     def test_date_without_timezone_throws_warning(self) -> None:
         plugin = ManytaskPlugin()
-        plugin._output = []
-        plugin._format_time(self.TEST_NOW_DATETIME.replace(tzinfo=None))
-        assert any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
+        args = self.get_default_args_dict()
+        args['send_time'] = self.TEST_NOW_DATETIME.replace(tzinfo=None)
+
+        with Mocker() as mocker:
+            mocker.post(f'{self.BASE_URL}api/report', status_code=200, text='{"score": 1.0}')
+
+            output = plugin.run(args)
+
+        assert 'Warning: No timezone' in output.output
 
     def test_date_with_timezone_doesnt_throw_warning(self) -> None:
         plugin = ManytaskPlugin()
-        plugin._output = []
-        plugin._format_time(self.TEST_NOW_DATETIME.astimezone())
-        assert not any(output_str.startswith('Warning: No timezone') for output_str in plugin._output)
+        args = self.get_default_args_dict()
+        args['send_time'] = self.TEST_NOW_DATETIME.astimezone()
+
+        with Mocker() as mocker:
+            mocker.post(f'{self.BASE_URL}api/report', status_code=200, text='{"score": 1.0}')
+
+            output = plugin.run(args)
+
+        assert 'Warning: No timezone' not in output.output
 
     @pytest.mark.parametrize(
         'extensions_to_create, patterns_to_take, taken_files_num',
