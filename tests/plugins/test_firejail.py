@@ -14,6 +14,11 @@ from checker.exceptions import PluginExecutionFailed
 PATTERN_ENV = re.compile(r"(?P<name>\S+)=.*")
 PATH = "PATH"
 PYTHONPATH = "PYTHONPATH"
+HOME = Path.home()
+
+
+def in_home(path: str) -> Path:
+    return HOME.joinpath(path)
 
 
 class TestSafeRunScriptPlugin:
@@ -26,9 +31,7 @@ class TestSafeRunScriptPlugin:
             ({"origin": "/tmp/123", "script": "echo Hello", "timeout": 10}, None),
         ],
     )
-    def test_plugin_args(
-        self, parameters: dict[str, Any], expected_exception: Exception | None
-    ) -> None:
+    def test_plugin_args(self, parameters: dict[str, Any], expected_exception: Exception | None) -> None:
         if expected_exception:
             with pytest.raises(expected_exception):
                 SafeRunScriptPlugin.Args(**parameters)
@@ -45,9 +48,7 @@ class TestSafeRunScriptPlugin:
             ("echo Hello && false", "Hello", PluginExecutionFailed),
         ],
     )
-    def test_run_script(
-        self, script: str, output: str, expected_exception: Exception | None
-    ) -> None:
+    def test_run_script(self, script: str, output: str, expected_exception: Exception | None) -> None:
         plugin = SafeRunScriptPlugin()
         args = SafeRunScriptPlugin.Args(origin="/tmp", script=script)
 
@@ -68,9 +69,7 @@ class TestSafeRunScriptPlugin:
             ("sleep 2", 1, PluginExecutionFailed),
         ],
     )
-    def test_timeout(
-        self, script: str, timeout: float, expected_exception: Exception | None
-    ) -> None:
+    def test_timeout(self, script: str, timeout: float, expected_exception: Exception | None) -> None:
         # TODO: check if timeout float
         plugin = SafeRunScriptPlugin()
         args = SafeRunScriptPlugin.Args(origin="/tmp", script=script, timeout=timeout)
@@ -91,9 +90,7 @@ class TestSafeRunScriptPlugin:
     )
     def test_hide_evns(self, allow_envs: list[str]) -> None:
         plugin = SafeRunScriptPlugin()
-        args = SafeRunScriptPlugin.Args(
-            origin="/tmp", script="printenv", allow_envs=allow_envs
-        )
+        args = SafeRunScriptPlugin.Args(origin="/tmp", script="printenv", allow_envs=allow_envs)
 
         res_lines = [line.strip() for line in plugin._run(args).output.splitlines()]
         envs: list[str] = []
@@ -125,57 +122,32 @@ class TestSafeRunScriptPlugin:
     @pytest.mark.parametrize(
         "origin, allow_paths, access_file, expected_exception",
         [
-            ("/tmp", [], Path("/tmp/tmp.txt"), None),
-            (
-                "/tmp",
-                [],
-                Path.home().joinpath("tmp", "tmp.txt"),
-                None,
-            ),  # this is a trick!!! origin /tmp is replaced by ~/tmp
-            ("/tmp", [], Path.home().joinpath("tmp.txt"), PluginExecutionFailed),
-            ("/tmp", ["~"], Path.home().joinpath("tmp.txt"), None),
-            ("~", [], Path.home().joinpath("tmp.txt"), None),
-            (
-                "/tmp",
-                [],
-                Path.home().joinpath("not_tmp", "tmp.txt"),
-                PluginExecutionFailed,
-            ),
-            ("/tmp", ["~/not_tmp"], Path.home().joinpath("not_tmp", "tmp.txt"), None),
-            ("~/not_tmp", [], Path.home().joinpath("not_tmp", "tmp.txt"), None),
-            ("~", [], Path.home().joinpath("tmp.txt"), None),
-            ("~/not_tmp", [], Path.home().joinpath("tmp.txt"), PluginExecutionFailed),
-            ("~/not_tmp", ["~"], Path.home().joinpath("tmp.txt"), None),
-            ("~", [], Path.home().joinpath("tmp", "tmp.txt"), None),
-            ("~/not_tmp", ["~"], Path.home().joinpath("tmp", "tmp.txt"), None),
-            ("~", [], Path.home().joinpath("not_tmp", "tmp.txt"), None),
-            ("~/tmp", [], Path.home().joinpath("tmp", "tmp.txt"), None),
-            ("~/not_tmp", ["~/tmp"], Path.home().joinpath("tmp", "tmp.txt"), None),
-            ("~/tmp", [], Path.home().joinpath("tmp.txt"), PluginExecutionFailed),
-            (
-                "~/not_tmp",
-                ["~/tmp"],
-                Path.home().joinpath("tmp.txt"),
-                PluginExecutionFailed,
-            ),
-            (
-                "~/tmp",
-                [],
-                Path.home().joinpath("not_tmp", "tmp.txt"),
-                PluginExecutionFailed,
-            ),
-            (
-                "/tmp",
-                ["~/tmp"],
-                Path.home().joinpath("not_tmp", "tmp.txt"),
-                PluginExecutionFailed,
-            ),
+            (Path("/tmp"), [], Path("/tmp/tmp.txt"), None),
+            (Path("/tmp"), [], in_home("tmp/tmp.txt"), None),  # this is a trick!!! origin /tmp is replaced by ~/tmp
+            (Path("/tmp"), [], in_home("tmp.txt"), PluginExecutionFailed),
+            (Path("/tmp"), [HOME], in_home("tmp.txt"), None),
+            (HOME, [], in_home("tmp.txt"), None),
+            (Path("/tmp"), [], in_home("not_tmp/tmp.txt"), PluginExecutionFailed),
+            (Path("/tmp"), [in_home("not_tmp")], in_home("not_tmp/tmp.txt"), None),
+            (in_home("not_tmp"), [], in_home("not_tmp/tmp.txt"), None),
+            (HOME, [], in_home("tmp.txt"), None),
+            (in_home("not_tmp"), [], in_home("tmp.txt"), PluginExecutionFailed),
+            (in_home("not_tmp"), [HOME], in_home("tmp.txt"), None),
+            (HOME, [], in_home("tmp/tmp.txt"), None),
+            (in_home("not_tmp"), [HOME], in_home("tmp/tmp.txt"), None),
+            (HOME, [], in_home("not_tmp/tmp.txt"), None),
+            (in_home("tmp"), [], in_home("tmp/tmp.txt"), None),
+            (in_home("not_tmp"), [in_home("tmp")], in_home("tmp/tmp.txt"), None),
+            (in_home("tmp"), [], in_home("tmp.txt"), PluginExecutionFailed),
+            (in_home("not_tmp"), [in_home("tmp")], in_home("tmp.txt"), PluginExecutionFailed),
+            (in_home("tmp"), [], in_home("not_tmp/tmp.txt"), PluginExecutionFailed),
+            (Path("/tmp"), [in_home("tmp")], in_home("not_tmp/tmp.txt"), PluginExecutionFailed),
         ],
     )
     def test_file_system_access(
         self,
-        origin: str,
-        allow_paths: list[str],
+        origin: Path,
+        allow_paths: list[Path],
         access_file: Path,
         expected_exception: Exception | None,
     ) -> None:
@@ -183,12 +155,12 @@ class TestSafeRunScriptPlugin:
         access_file_path.parent.mkdir(parents=True, exist_ok=True)
         access_file_path.touch()
 
-        Path(origin).mkdir(parents=True, exist_ok=True)
+        origin.mkdir(parents=True, exist_ok=True)
 
         plugin = SafeRunScriptPlugin()
         args = SafeRunScriptPlugin.Args(
             origin=str(origin),
-            allow_paths=allow_paths,
+            allow_paths=[str(path) for path in allow_paths],
             script=f"cat {str(access_file)}",
         )
 
