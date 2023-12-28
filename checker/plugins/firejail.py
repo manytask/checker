@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from .base import PluginOutput
 from .scripts import RunScriptPlugin
 
 
@@ -23,7 +24,7 @@ class SafeRunScriptPlugin(RunScriptPlugin):
         allow_paths: set[str] = set()
 
     # TODO: at the moment "--queit" option of firejail may stil put extra strings in the output
-    def _run(self, args: Args, *, verbose: bool = False) -> str:
+    def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         command = ["firejail", "--quiet", "--noprofile"]
         # lock network access
         if args.lock_network:
