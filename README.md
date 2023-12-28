@@ -96,6 +96,6 @@ Please check [docker hub](https://hub.docker.com/r/manytask/checker) for availab
 ## Contributing
 
 Really appreciate any contributions!  
-For guidance on setting up a development environment see the [development guide](./docs/6_development).
+For guidance on setting up a development environment see the [development guide](./docs/6_development.md).
 For styleguide see organization [contribution guide](https://github.com/manytask/.github/CONTRIBUTING.md).
 
