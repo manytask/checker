@@ -4,13 +4,13 @@ import os
 from pathlib import Path
 
 from .base import PluginOutput
-from .scripts import RunScriptPlugin
+from .scripts import RunScriptPlugin, PluginABC
 
 
 HOME_PATH = str(Path.home())
 
 
-class SafeRunScriptPlugin(RunScriptPlugin):
+class SafeRunScriptPlugin(PluginABC):
     """Wrapper over RunScriptPlugin to run students scripts safety.
     Plugin uses Firejail tool to create sandbox for the running process.
     He allows hide environment variables and control access to network and file system.
@@ -56,4 +56,4 @@ class SafeRunScriptPlugin(RunScriptPlugin):
             origin=args.origin, script=" ".join(command), timeout=args.timeout
         )
 
-        return super()._run(args=run_args, verbose=verbose)
+        return RunScriptPlugin()._run(args=run_args, verbose=verbose)
