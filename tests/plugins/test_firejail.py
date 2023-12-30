@@ -196,9 +196,9 @@ class TestSafeRunScriptPlugin:
         def _generate_random_content() -> str:
             return "".join([RANDOM_LINES[randrange(0, len(RANDOM_LINES))] for _ in range(0, randrange(0, 100))])
 
-        tmp_dir = in_home('tmp')
+        tmp_dir = in_home("tmp")
         tmp_dir.mkdir(parents=True, exist_ok=True)
-        file_path = tmp_dir.joinpath('tmp.txt')
+        file_path = tmp_dir.joinpath("tmp.txt")
         file_content = test_file_content if test_file_content != RANDOM_CONTENT else _generate_random_content()
         with open(file_path, "w") as f:
             f.write(file_content)

@@ -51,8 +51,6 @@ class SafeRunScriptPlugin(PluginABC):
         else:
             assert isinstance(args.script, list)
             command.extend(args.script)
-        run_args = RunScriptPlugin.Args(
-            origin=args.origin, script=" ".join(command), timeout=args.timeout
-        )
+        run_args = RunScriptPlugin.Args(origin=args.origin, script=" ".join(command), timeout=args.timeout)
 
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
