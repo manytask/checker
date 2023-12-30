@@ -8,8 +8,8 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from checker.plugins.firejail import SafeRunScriptPlugin
 from checker.exceptions import PluginExecutionFailed
+from checker.plugins.firejail import SafeRunScriptPlugin
 
 
 PATTERN_ENV = re.compile(r"(?P<name>\S+)=.*")

@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from .base import PluginOutput
-from .scripts import RunScriptPlugin, PluginABC
+from .scripts import PluginABC, RunScriptPlugin
 
 
 HOME_PATH = str(Path.home())
