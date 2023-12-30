@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from random import randrange
 from typing import Any
 
 import pytest
@@ -15,6 +16,12 @@ PATTERN_ENV = re.compile(r"(?P<name>\S+)=.*")
 PATH = "PATH"
 PYTHONPATH = "PYTHONPATH"
 HOME = Path.home()
+RANDOM_CONTENT = "### random content ###"
+RANDOM_LINES = [
+    "some words ",
+    "new line\n",
+    "\t\t\ttabbed block",
+]
 
 
 def in_home(path: str) -> Path:
@@ -171,3 +178,37 @@ class TestSafeRunScriptPlugin:
             plugin._run(args)
 
         access_file_path.unlink()
+
+    @pytest.mark.parametrize(
+        "test_file_content",
+        [
+            "",
+            "       ",
+            "\n",
+            "single line",
+            "single line\n",
+            "multiple lines\n" * 3,
+            "many maltiple lines\n" * 100,
+            RANDOM_CONTENT,
+        ],
+    )
+    def test_no_extra_output(self, test_file_content: str) -> None:
+        def _generate_random_content() -> str:
+            return "".join([RANDOM_LINES[randrange(0, len(RANDOM_LINES))] for _ in range(0, randrange(0, 100))])
+
+        tmp_dir = in_home('tmp')
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        file_path = tmp_dir.joinpath('tmp.txt')
+        file_content = test_file_content if test_file_content != RANDOM_CONTENT else _generate_random_content()
+        with open(file_path, "w") as f:
+            f.write(file_content)
+
+        plugin = SafeRunScriptPlugin()
+        args = SafeRunScriptPlugin.Args(
+            origin=str(tmp_dir),
+            allow_paths=[],
+            script=f"cat {str(file_path)}",
+        )
+        assert plugin._run(args).output == file_content
+
+        file_path.unlink()

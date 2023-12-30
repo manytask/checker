@@ -23,7 +23,6 @@ class SafeRunScriptPlugin(PluginABC):
         lock_network: bool = True
         allow_paths: set[str] = set()
 
-    # TODO: at the moment "--queit" option of firejail may stil put extra strings in the output
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         command = ["firejail", "--quiet", "--noprofile"]
         # lock network access
