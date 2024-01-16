@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Students' solution checker"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Typing :: Typed",
@@ -18,49 +18,63 @@ classifiers = [
     "Topic :: Education",
     "Topic :: Education :: Testing",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "Jinja2 >=3.0.0,<4.0.0",
     "PyYAML >=5.0.0,<7.0.0",
     "click >=8.0,<9.0",
     "python-gitlab >=3.0.0,<5.0.0",
+    "pydantic >=2.0.0,<3.0.0",
+    "rich >=13.0.0,<14.0.0",
     "requests >=2.20.0,<3.0.0",
-    "unshare >=0.22,<0.30; sys_platform != 'darwin'",
+    "pytz >=2022.0,<2023.4; python_version < '3.9'",
+    "urllib3 >=2.0.0,<3.0.0",
 ]
 dynamic = ["version"]
 
 [project.urls]
 Source = "https://github.com/yandexdataschool/checker"
+Documentation = "https://manytask.github.io/checker/"
 
 [project.optional-dependencies]
 test = [
     "pytest >=6.0.0,<8.0.0",
     "pytest-cov >=4.0.0,<5.0.0",
     "pytest-mock >=3.0.0,<4.0.0",
-    "black ==23.10.1",
+    "requests-mock >=1.0.0,<2.0.0",
+    "black ==23.12.1",
     "mypy >=1.0.0",
-    "flake8 >=4.0.0,<7.0.0",
+    "flake8 >=4.0.0,<8.0.0",
     "isort >=5.0.0,<7.0.0",
-    "ruff ==0.1.3",
+    "ruff ==0.1.7",
     "types-requests >=2.20.0,<3.0.0",
     "types-PyYAML >=6.0.0,<7.0.0",
     "wheel >=0.40.0",
+]
+docs = [
+    "mike >=1.1.0,<3.0.0",
+    "mkdocs >=1.4.0,<2.0.0",
+    "mkdocs-autorefs ==0.5.0",
+    "mkdocs-click >=0.8.0",
+    "mkdocs-include-markdown-plugin >=4.0.0,<7.0.0",
+    "mkdocs-material >=9.0.0,<10.0.0",
+    "mkdocs-material-extensions ==1.3.1",
+    "mkdocstrings[python] ==0.24.0",
+    "mkdocs-mermaid2-plugin ==1.1.1",
 ]
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
 
 [project.scripts]
-checker = "checker.__main__:main"
+checker = "checker.__main__:cli"
 
 [tool.setuptools.packages.find]
 exclude = ["tests*"]
-
-
-# --------------------------------------------------------------------------- #
 
 
 [tool.mypy]
@@ -97,7 +111,7 @@ exclude = [
 [tool.pytest.ini_options]
 minversion = "6.0"
 python_files = "test_*.py"
-addopts = "--cov=checker/ --cov-report=term-missing tests/"
+addopts = "--cov=checker/ --cov-report=term-missing --cov-report=xml tests/"
 testpaths = [
     "tests",
     ".tmp"
@@ -137,7 +151,8 @@ exclude = [
     "venv",
 
     "tests",
-    ".tmp"
+    ".tmp",
+    "__init__.py",
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
@@ -154,3 +169,7 @@ lines_after_imports = 2
 combine_as_imports = true
 default_section = "THIRDPARTY"
 known_first_party = "checker,tests"
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
