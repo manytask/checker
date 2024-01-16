@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main, new-1.x.x ]
+    branches: [ main ]
 
 
 concurrency:
