@@ -6,11 +6,11 @@ FROM python:${PYTHON_VERSION}-alpine as builder
 WORKDIR /usr/src/app
 
 # Install build tools for cpp and rust
-RUN apk add --no-cache --virtual .build-deps \ && \
-    apk add --no-cache --virtual .build-deps gcc g++ make cmake musl-dev && \
-    apk add --no-cache --virtual .build-deps rust cargo \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /tmp/*
+RUN apk update && apk add --no-cache \
+    build-base \
+    cargo \
+    rust \
+    && rm -rf /var/cache/apk/*
 
 # Copy source code
 COPY pyproject.toml VERSION Makefile setup.py README.md ./
