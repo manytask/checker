@@ -1,12 +1,7 @@
-from collections.abc import Callable
-from pathlib import Path
-from typing import Any
-
 from .conftest import T_GENERATE_FILE_STRUCTURE
 
 
 class TestGenerateFileStructure:
-
     def test_simple_case(self, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
         files_content = {
             "test.py": "print('Hello')\n",

@@ -8,6 +8,7 @@ import pytest
 from checker.configs.deadlines import DeadlinesConfig
 from checker.course import Course, FileSystemGroup, FileSystemTask
 from checker.exceptions import BadConfig
+
 from .conftest import T_GENERATE_FILE_STRUCTURE
 
 
@@ -132,7 +133,14 @@ class TestCourse:
         with pytest.raises(BadConfig):
             Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
 
-    @pytest.mark.parametrize("enabled, expected_num_groups", [(None, 4), (True, 3), (False, 1),])
+    @pytest.mark.parametrize(
+        "enabled, expected_num_groups",
+        [
+            (None, 4),
+            (True, 3),
+            (False, 1),
+        ],
+    )
     def test_get_groups(self, enabled: bool | None, expected_num_groups, repository_root: Path) -> None:
         test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
 

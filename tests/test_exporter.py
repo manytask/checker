@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from inspect import cleandoc
 from pathlib import Path
 
 import pytest
@@ -9,6 +8,7 @@ from checker.configs import CheckerExportConfig, CheckerStructureConfig, Deadlin
 from checker.course import Course
 from checker.exceptions import BadConfig
 from checker.exporter import Exporter
+
 from .conftest import T_GENERATE_FILE_STRUCTURE
 
 
@@ -33,13 +33,20 @@ class TestExporter:
                 "group": "group",
                 "enabled": True,
                 "start": "2021-01-01 00:00:00",
-                "tasks": [{"task": "task1", "score": 1}, {"task": "task2", "score": 1}, {"task": "task3", "enabled": False, "score": 1}],
+                "tasks": [
+                    {"task": "task1", "score": 1},
+                    {"task": "task2", "score": 1},
+                    {"task": "task3", "enabled": False, "score": 1},
+                ],
             },
             {
                 "group": "disabled_group",
                 "enabled": False,
                 "start": "2021-01-01 00:00:00",
-                "tasks": [{"task": "task_disabled_1", "score": 1}, {"task": "task_disabled_2", "enabled": True, "score": 1}],
+                "tasks": [
+                    {"task": "task_disabled_1", "score": 1},
+                    {"task": "task_disabled_2", "enabled": True, "score": 1},
+                ],
             },
             {
                 "group": "no_folder_group",
@@ -55,28 +62,28 @@ class TestExporter:
         private_patterns=[".*", "private.*"],
     )
     SAMPLE_TEST_FILES = {
-        '.ignore_folder': {
-            'folder': {
-                'test.txt': 'Hello2\n',
-                'test.py': "print('Hello2')\n",
+        ".ignore_folder": {
+            "folder": {
+                "test.txt": "Hello2\n",
+                "test.py": "print('Hello2')\n",
             },
         },
-        '.private_folder': {
-            'test.txt': 'Hello3\n',
-            'folder': {
-                '.test.py': "print('Hello3')\n",
-                'test.txt': 'Hello4\n',
+        ".private_folder": {
+            "test.txt": "Hello3\n",
+            "folder": {
+                ".test.py": "print('Hello3')\n",
+                "test.txt": "Hello4\n",
             },
         },
-        'folder': {
-            'test.txt': 'Hello2\n',
-            '.test.py': "print('Hello2')\n",
-            'folder': {
-                'test.txt': 'Hello2\n',
+        "folder": {
+            "test.txt": "Hello2\n",
+            ".test.py": "print('Hello2')\n",
+            "folder": {
+                "test.txt": "Hello2\n",
             },
         },
-        'other_folder': {
-            'test.txt': 'Hello5\n',
+        "other_folder": {
+            "test.txt": "Hello5\n",
         },
         "group": {
             "task1": {
@@ -92,7 +99,7 @@ class TestExporter:
                 "valid.txt": "Valid\n",
             },
             "junk_file.py": "123",
-            '.group.yml': "version: 1\nstructure:\n    ignore_patterns: [junk_group_folder, junk_file.py]\n",
+            ".group.yml": "version: 1\nstructure:\n    ignore_patterns: [junk_group_folder, junk_file.py]\n",
         },
         "root_task_1": {
             ".task.yml": "version: 1\nstructure:\n    public_patterns: []\n",
@@ -107,7 +114,9 @@ class TestExporter:
         "private.py": "print('Private')\n",
     }
 
-    def test_validate_ok_no_task_configs(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
+    def test_validate_ok_no_task_configs(
+        self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE
+    ) -> None:
         structure_config = CheckerStructureConfig(
             ignore_patterns=[".gitignore"],
             private_patterns=[".*"],
@@ -115,8 +124,8 @@ class TestExporter:
         )
         generate_file_structure(
             {
-                'folder': {"test.txt": "Hello\n"},
-                'test.py': "print('Hello')\n",
+                "folder": {"test.txt": "Hello\n"},
+                "test.py": "print('Hello')\n",
             },
             root=Path(tmpdir / "repository"),
         )
@@ -140,8 +149,8 @@ class TestExporter:
         )
         generate_file_structure(
             {
-                'folder': {".task.yml": "version: 1\n", "test.txt": "Hello\n"},
-                'test.py': "print('Hello')\n",
+                "folder": {".task.yml": "version: 1\n", "test.txt": "Hello\n"},
+                "test.py": "print('Hello')\n",
             },
             root=Path(tmpdir / "repository"),
         )
@@ -158,16 +167,18 @@ class TestExporter:
 
         exporter.validate()
 
-    def test_validate_fail_wrong_task_config(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
-        structure_config = CheckerStructureConfig(
+    def test_validate_fail_wrong_task_config(
+        self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE
+    ) -> None:
+        _ = CheckerStructureConfig(
             ignore_patterns=[".gitignore"],
             private_patterns=[".*"],
             public_patterns=["*"],
         )
         generate_file_structure(
             {
-                'folder': {".task.yml": "wrong_field: HEHE\n", "test.txt": "Hello\n"},
-                'test.py': "print('Hello')\n",
+                "folder": {".task.yml": "wrong_field: HEHE\n", "test.txt": "Hello\n"},
+                "test.py": "print('Hello')\n",
             },
             root=Path(tmpdir / "repository"),
         )

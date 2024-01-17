@@ -43,17 +43,17 @@ test:
 .PHONY: lint
 lint:
 	@echo "[make] Linting and typechecking the code..."
-	ruff check checker tests
-	mypy checker
-	black --check checker tests
-	isort --check-only checker tests
+	ruff check -- checker tests
+	mypy -- checker
+	black --check -- checker tests
+	isort --check-only -- checker tests
 
 # Format the code with black and isort
 .PHONY: format
 format:
 	@echo "[make] Formatting the code..."
-	black checker tests
-	isort checker tests
+	black -- checker tests
+	isort -- checker tests
 
 # Deploy the documentation
 .PHONY: docs-deploy

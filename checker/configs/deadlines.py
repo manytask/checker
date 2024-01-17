@@ -151,17 +151,17 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
         groups = self.get_groups()
 
         if enabled is True:
-            groups = [group for group in groups if group.enabled == True]
+            groups = [group for group in groups if group.enabled]
             extra_tasks = []
         elif enabled is False:
             groups = groups
-            extra_tasks = [task for group in groups for task in group.tasks if group.enabled == False]
+            extra_tasks = [task for group in groups for task in group.tasks if not group.enabled]
         else:  # None
             groups = groups
             extra_tasks = []
 
         tasks = [task for group in groups for task in group.tasks]
-        print(f'-> all {tasks=}')
+        print(f"-> all {tasks=}")
 
         if enabled is not None:
             tasks = [task for task in tasks if task.enabled == enabled]

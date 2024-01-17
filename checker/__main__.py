@@ -11,7 +11,7 @@ from checker.exporter import Exporter
 from checker.tester import Tester
 from checker.utils import print_info
 
-from .configs import CheckerConfig, DeadlinesConfig, CheckerSubConfig
+from .configs import CheckerConfig, CheckerSubConfig, DeadlinesConfig
 from .exceptions import BadConfig, TestingError
 
 

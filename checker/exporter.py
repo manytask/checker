@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import copy
 import shutil
 import tempfile
-from pathlib import Path, PosixPath
-from typing import Iterable
+from pathlib import Path
 
 from checker.configs import CheckerExportConfig, CheckerStructureConfig
 from checker.course import Course
@@ -36,11 +34,11 @@ class Exporter:
 
         self.sub_config_files = {}
         for group in self.course.get_groups(enabled=True):
-            relative_path = PosixPath(group.relative_path)
+            relative_path = Path(group.relative_path)
             if group.config.structure:
                 self.sub_config_files[relative_path] = group.config.structure
         for task in self.course.get_tasks(enabled=True):
-            relative_path = PosixPath(task.relative_path)
+            relative_path = Path(task.relative_path)
             if task.config.structure:
                 self.sub_config_files[relative_path] = task.config.structure
 
@@ -130,8 +128,8 @@ class Exporter:
         copy_public: bool,
         copy_private: bool,
         copy_other: bool,
-        global_root: Path = None,
-        global_destination: Path = None,
+        global_root: Path | None = None,
+        global_destination: Path | None = None,
     ) -> None:
         """
         Copy files from `root` to `destination` according to `config`.
@@ -159,7 +157,9 @@ class Exporter:
             # print(f" - {path.relative_to(global_root)}")
             # ignore if match the patterns
             if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
-                print(f"    - Skip <{path.relative_to(global_root)}> because ignore patterns=[{config.ignore_patterns}]")
+                print(
+                    f"    - Skip <{path.relative_to(global_root)}> because ignore patterns=[{config.ignore_patterns}]"
+                )
                 continue
 
             # If matches public patterns AND copy_public is False - skip
@@ -167,30 +167,43 @@ class Exporter:
             if config.public_patterns and any(path.match(public_pattern) for public_pattern in config.public_patterns):
                 is_public = True
                 if not copy_public:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because skip public_patterns=[{config.public_patterns}]")
+                    print(
+                        f"    - Skip <{path.relative_to(global_root)}> because skip "
+                        f"public_patterns=[{config.public_patterns}]"
+                    )
                     continue
 
             # If matches private patterns AND copy_private is False - skip
             # If it is public file - never consider it as private
             is_private = False
-            if not is_public and config.private_patterns and any(path.match(private_pattern) for private_pattern in config.private_patterns):
+            if (
+                not is_public
+                and config.private_patterns
+                and any(path.match(private_pattern) for private_pattern in config.private_patterns)
+            ):
                 is_private = True
                 if not copy_private:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because skip private_patterns=[{config.private_patterns}]")
+                    print(
+                        f"    - Skip <{path.relative_to(global_root)}> because skip "
+                        f"private_patterns=[{config.private_patterns}]"
+                    )
                     continue
 
             # if not match public and not match private and copy_other is False - skip
             # Note: never skip "other" directories, look inside them first
             if not is_public and not is_private and not path.is_dir():
                 if not copy_other:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because skip other files not enabled")
+                    print(f"    - Skip <{path.relative_to(global_root)}> because " f"skip other files not enabled")
                     continue
 
             # If the file is a directory, recursively call this function
             if path.is_dir():
                 # if folder public or private - just copy it
                 if is_public or is_private:
-                    print(f"    - Fully Copy <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                    print(
+                        f"    - Fully Copy <{path.relative_to(global_root)}> to "
+                        f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                    )
                     # TODO: think call recursive function with =True for all to apply ignore
                     # shutil.copytree(
                     #     path,
@@ -212,15 +225,24 @@ class Exporter:
                 if path.relative_to(global_root) in self.sub_config_files:
                     declared_sub_config = self.sub_config_files[path.relative_to(global_root)]
                     sub_config = CheckerStructureConfig(
-                        ignore_patterns=declared_sub_config.ignore_patterns if declared_sub_config.ignore_patterns is not None else config.ignore_patterns,
-                        private_patterns=declared_sub_config.private_patterns if declared_sub_config.private_patterns is not None else config.private_patterns,
-                        public_patterns=declared_sub_config.public_patterns if declared_sub_config.public_patterns is not None else config.public_patterns,
+                        ignore_patterns=declared_sub_config.ignore_patterns
+                        if declared_sub_config.ignore_patterns is not None
+                        else config.ignore_patterns,
+                        private_patterns=declared_sub_config.private_patterns
+                        if declared_sub_config.private_patterns is not None
+                        else config.private_patterns,
+                        public_patterns=declared_sub_config.public_patterns
+                        if declared_sub_config.public_patterns is not None
+                        else config.public_patterns,
                     )
                 else:
                     sub_config = config
 
                 # Recursively call this function
-                print(f"    -- Recursively copy from <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                print(
+                    f"    -- Recursively copy from <{path.relative_to(global_root)}> to "
+                    f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                )
                 self._copy_files_with_config(
                     path,
                     destination / path.relative_to(root),
@@ -233,7 +255,10 @@ class Exporter:
                 )
             # If the file is a normal file, copy it
             else:
-                print(f"    - Copy <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                print(
+                    f"    - Copy <{path.relative_to(global_root)}> to "
+                    f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                )
                 (destination / path.relative_to(root)).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(
                     path,

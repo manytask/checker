@@ -12,7 +12,7 @@ T_GENERATE_FILE_STRUCTURE = Callable[[dict[str, Any], Path | None], Path]
 
 @pytest.fixture
 def generate_file_structure(
-        tmp_path_factory: pytest.TempPathFactory,
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> T_GENERATE_FILE_STRUCTURE:
     """
     Generate file structure in temporary folder.

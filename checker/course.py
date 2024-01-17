@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-import warnings
 
-from .configs import DeadlinesConfig, CheckerSubConfig
+from .configs import CheckerSubConfig, DeadlinesConfig
 from .exceptions import BadConfig
 
 
@@ -45,7 +45,9 @@ class Course:
         self.repository_root = repository_root
         self.reference_root = reference_root or repository_root
 
-        self.potential_groups = {group.name: group for group in self._search_for_groups_by_configs(self.repository_root)}
+        self.potential_groups = {
+            group.name: group for group in self._search_for_groups_by_configs(self.repository_root)
+        }
         self.potential_tasks = {task.name: task for task in self._search_for_tasks_by_configs(self.repository_root)}
 
     def validate(self) -> None:
