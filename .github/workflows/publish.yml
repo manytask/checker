@@ -89,7 +89,7 @@ jobs:
       fail-fast: false
     uses: manytask/workflows/.github/workflows/reusable-docker-build-push.yml@main
     with:
-      tags: manytask/checker:${{ github.ref_name }}-${{ matrix.python-version }}-${{ github.sha }}
+      tags: manytask/checker:${{ github.ref_name }}-${{ matrix.python-version }}
       push: true
     secrets:
       registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
