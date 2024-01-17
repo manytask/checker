@@ -91,6 +91,30 @@ jobs:
       tags: manytask/checker:${{ matrix.python-version }}-${{ github.sha }}
       artifact: true
       artifact_name: manytask-checker-${{ matrix.python-version }}.tar
+
+  docker-test:
+    needs: [docker-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: manytask-checker-${{ matrix.python-version }}.tar
+          path: /tmp/
+      - name: Load Docker Image
+        run: |
+          docker load --input /tmp/mantask-checker-${{ matrix.python-version }}.tar
+      - name: Check private repo
+        run: |
+          # RUN: python -m /opt/checker --help
+          docker run \
+            --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            manytask/checker:${{ matrix.python-version }}-${{ github.sha }} \
+            --help
   
   docs-test:
     runs-on: ubuntu-latest
