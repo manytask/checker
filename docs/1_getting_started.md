@@ -30,6 +30,9 @@ A good starting point is to check out the [course-template](https://github.com/m
 The private repository layout is crucial for the checker to function correctly. 
 Each task should be organized into dedicated folders within group directories. 
 Also, there are 2 config files `.course.yml` and `.deadlines.yml` that are required for checker to work.
+
+Each task location detected by `.task.yml` file (can be just empty). Each group, if any, detected by `.group.yml` file (can be empty). 
+
 Here's a detailed breakdown:
 
 ```yaml
@@ -43,6 +46,7 @@ group_1/
       .task.yml  # task config with default parameters overwriting
     task_2/
         ...
+    .group.yml  # optional, group config  with default parameters overwriting
 group_2/
     task_3/
         ...
@@ -53,10 +57,10 @@ group_2/
 ```
 
 !!! warning  
-    Group and files naming have to be unique.
+    Groups and tasks names have to be unique.
 
 !!! note  
-    By default ".*" files are considered as private and not copied to public repo, but you can change it in config.
+    By default ".*" files are considered as private and not copied to public repo, but you can change it in the config.
 
 Additionally, you can have any files in like `group_1/.lecture` folder or `tools/my_course_tools` folder.  
 Also, probably you want to have `.docker` file with your test environment and `.gitlab-ci-students.yml` file to run tests in CI.

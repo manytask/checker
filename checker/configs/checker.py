@@ -88,6 +88,7 @@ class CheckerTestingConfig(CustomBaseModel):
 class CheckerConfig(CustomBaseModel, YamlLoaderMixin["CheckerConfig"]):
     """
     Checker configuration.
+
     :ivar version: config version
     :ivar default_parameters: default parameters for task pipeline
     :ivar structure: describe the structure of the repo - private/public and allowed for change files
@@ -96,13 +97,43 @@ class CheckerConfig(CustomBaseModel, YamlLoaderMixin["CheckerConfig"]):
     :ivar testing: describe testing/checking - pipeline, isolation etc
     """
 
-    version: int
+    version: int  # if config exists, version is always present
 
     default_parameters: CheckerParametersConfig = Field(default_factory=dict)
 
     structure: CheckerStructureConfig
     export: CheckerExportConfig
     testing: CheckerTestingConfig
+
+    @field_validator("version")
+    @classmethod
+    def check_version(cls, v: int) -> None:
+        if v != 1:
+            raise ValidationError(f"Only version 1 is supported for {cls.__name__}")
+
+
+class CheckerSubConfig(CustomBaseModel, YamlLoaderMixin["CheckerSubConfig"]):
+    """
+    Configuration file overwriting CheckerConfig for some folder and subfolders
+
+    :ivar version: config version
+    :ivar structure: describe the structure of the repo - private/public and allowed for change files
+    :ivar parameters: parameters for task pipeline
+    :ivar task_pipeline: pipeline run for each task
+    :ivar report_pipeline: pipeline run for each task if task_pipeline succeeded
+    """
+
+    version: int  # if config exists, version is always present
+
+    # Note: use Optional[...] instead of ... | None as pydantic does not support | in older python versions
+    structure: Optional[CheckerStructureConfig] = None
+    parameters: Optional[CheckerParametersConfig] = None
+    task_pipeline: Optional[list[PipelineStageConfig]] = None
+    report_pipeline: Optional[list[PipelineStageConfig]] = None
+
+    @classmethod
+    def default(cls) -> "CheckerSubConfig":
+        return CheckerSubConfig(version=1)
 
     @field_validator("version")
     @classmethod

@@ -124,7 +124,7 @@ class DeadlinesGroupConfig(CustomBaseModel):
 class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
     """Deadlines configuration."""
 
-    version: int
+    version: int  # if config exists, version is always present
 
     settings: DeadlinesSettingsConfig
     schedule: list[DeadlinesGroupConfig]
@@ -146,10 +146,29 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
         self,
         enabled: bool | None = None,
     ) -> list[DeadlinesTaskConfig]:
-        tasks = [task for group in self.get_groups(enabled=enabled) for task in group.tasks]
+        # TODO: refactor
+
+        groups = self.get_groups()
+
+        if enabled is True:
+            groups = [group for group in groups if group.enabled]
+            extra_tasks = []
+        elif enabled is False:
+            groups = groups
+            extra_tasks = [task for group in groups for task in group.tasks if not group.enabled]
+        else:  # None
+            groups = groups
+            extra_tasks = []
+
+        tasks = [task for group in groups for task in group.tasks]
+        print(f"-> all {tasks=}")
 
         if enabled is not None:
             tasks = [task for task in tasks if task.enabled == enabled]
+
+        for extra_task in extra_tasks:
+            if extra_task not in tasks:
+                tasks.append(extra_task)
 
         # TODO: check time
 
