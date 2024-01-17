@@ -85,12 +85,14 @@ class TestExporter:
                 ".test.py": "print('Hello')\n",  # not private anymore, override
             },
             "task2": {
+                "junk_group_folder": {"some_junk_file.txt": "Junk\n"},
                 ".task.yml": "version: 1",
                 "private.txt": "Private\n",
                 "private.py": "print('Private')\n",
                 "valid.txt": "Valid\n",
             },
-            '.group.yml': "",
+            "junk_file.py": "123",
+            '.group.yml': "version: 1\nstructure:\n    ignore_patterns: [junk_group_folder, junk_file.py]\n",
         },
         "root_task_1": {
             ".task.yml": "version: 1\nstructure:\n    public_patterns: []\n",

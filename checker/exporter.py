@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import shutil
 import tempfile
-from pathlib import Path
+from pathlib import Path, PosixPath
 from typing import Iterable
 
 from checker.configs import CheckerExportConfig, CheckerStructureConfig
@@ -34,14 +34,15 @@ class Exporter:
         self._temporary_dir_manager = tempfile.TemporaryDirectory()
         self.temporary_dir = Path(self._temporary_dir_manager.name)
 
-        self.sub_config_files = {
-            (self.repository_root / task.relative_path).resolve().relative_to(self.repository_root):
-                task.config.structure
-            for task in self.course.get_tasks(enabled=True)
-            if task.config.structure
-        }
-        for i in self.sub_config_files:
-            print(f"{i=} {self.sub_config_files[i]=}")
+        self.sub_config_files = {}
+        for group in self.course.get_groups(enabled=True):
+            relative_path = PosixPath(group.relative_path)
+            if group.config.structure:
+                self.sub_config_files[relative_path] = group.config.structure
+        for task in self.course.get_tasks(enabled=True):
+            relative_path = PosixPath(task.relative_path)
+            if task.config.structure:
+                self.sub_config_files[relative_path] = task.config.structure
 
         self.cleanup = cleanup
         self.verbose = verbose
