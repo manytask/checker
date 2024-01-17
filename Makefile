@@ -12,6 +12,8 @@ help:
 	@echo "lint             - Lint and typecheck the code"
 	@echo "format           - Format the code with black"
 	@echo "docs-build       - Build the documentation"
+	@echo "docs-deploy      - Deploy the documentation"
+	@echo "docs-deploy-main - Deploy dev (main branch) version of the documentation"
 	@echo "docs-serve       - Serve the documentation in development mode"
 	@echo "help             - Display this help"
 
