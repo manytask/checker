@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import pytest
 
 
-T_GENERATE_FILE_STRUCTURE = Callable[[dict[str, Any], Path | None], Path]
+T_GENERATE_FILE_STRUCTURE = Callable[[dict[str, Any], Optional[Path]], Path]
 
 
 @pytest.fixture
