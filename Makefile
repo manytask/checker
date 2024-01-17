@@ -63,10 +63,10 @@ docs-deploy:
 	mike set-default `cat VERSION`
 
 # Deploy dev version of the documentation
-.PHONY: docs-deploy-dev
-docs-deploy-dev:
-	@echo "[make] Deploying the documentation (dev)..."
-	mike deploy -b gh-pages dev --push --message "docs(auto): deploy docs for dev"
+.PHONY: docs-deploy-main
+docs-deploy-main:
+	@echo "[make] Deploying the documentation (main)..."
+	mike deploy -b gh-pages main --push --message "docs(auto): deploy docs for main branch"
 
 # Build the documentation
 .PHONY: docs-build
