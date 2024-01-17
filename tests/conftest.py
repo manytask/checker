@@ -1,6 +1,53 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
 import pytest
+
+
+T_GENERATE_FILE_STRUCTURE = Callable[[dict[str, Any], Path | None], Path]
+
+
+@pytest.fixture
+def generate_file_structure(
+        tmp_path_factory: pytest.TempPathFactory,
+) -> T_GENERATE_FILE_STRUCTURE:
+    """
+    Generate file structure in temporary folder.
+
+    :param tmp_path_factory: pytest fixture
+    :return: function that generates file structure
+    """
+
+    tmpdir = tmp_path_factory.mktemp("test")
+
+    def _generate_file_structure(files_content: dict[str, Any], root: Path = tmpdir) -> Path:
+        """
+        Generate file structure in temporary folder.
+        Recursively iterate over files_content and create files and folders.
+
+        :param files_content: dictionary with file names as keys and file content as values
+        :param root: root folder to generate file in
+        :return: path to temporary folder
+        """
+        root.mkdir(parents=True, exist_ok=True)
+
+        for filename, content in files_content.items():
+            file = Path(root / filename)
+
+            if isinstance(content, dict):
+                _generate_file_structure(content, root=file)
+            elif isinstance(content, str):
+                with open(file, "w") as f:
+                    f.write(content)
+            else:
+                raise ValueError(f"Unknown type of file content: {type(content)}")
+
+        return tmpdir
+
+    return _generate_file_structure
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

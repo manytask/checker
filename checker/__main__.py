@@ -11,7 +11,7 @@ from checker.exporter import Exporter
 from checker.tester import Tester
 from checker.utils import print_info
 
-from .configs import CheckerConfig, DeadlinesConfig, TaskConfig
+from .configs import CheckerConfig, DeadlinesConfig, CheckerSubConfig
 from .exceptions import BadConfig, TestingError
 
 
@@ -356,7 +356,7 @@ def schema(
     """Generate json schema for the checker configs."""
     checker_schema = CheckerConfig.get_json_schema()
     deadlines_schema = DeadlinesConfig.get_json_schema()
-    task_schema = TaskConfig.get_json_schema()
+    task_schema = CheckerSubConfig.get_json_schema()
 
     with open(output_folder / "schema-checker.json", "w") as f:
         json.dump(checker_schema, f, indent=2)

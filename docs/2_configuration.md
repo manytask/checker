@@ -1,6 +1,6 @@
 # Configuration
 
-This page describes how to configure checker with `.checker.yml`, `.deadlines.yml` and `.task.yml` files.
+This page describes how to configure checker with `.checker.yml`, `.deadlines.yml` and `.group.yml`/`.task.yml` files.
 
 You can refer to the [course-template](https://github.com/manytask/course-template) repository for examples of configuration files.
 
@@ -140,9 +140,10 @@ schedule:
 ```
 
 
-## `.task.yml`
+## `.group.yml`/`.task.yml`
 
-This optional file describes task parameters. In used by checker when running `tasks_pipeline` to override default parameters, pipeline or layout (public or private files).
+This config files override parameters for the current folder and all subfolders.  
+When some field is not defined (e.g. only version present) the default parameter from the main config or from the folder above applied.
 
 [//]: # (TODO: Add json schema)
 

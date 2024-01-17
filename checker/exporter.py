@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import shutil
 import tempfile
 from pathlib import Path
@@ -33,6 +34,15 @@ class Exporter:
         self._temporary_dir_manager = tempfile.TemporaryDirectory()
         self.temporary_dir = Path(self._temporary_dir_manager.name)
 
+        self.sub_config_files = {
+            (self.repository_root / task.relative_path).resolve().relative_to(self.repository_root):
+                task.config.structure
+            for task in self.course.get_tasks(enabled=True)
+            if task.config.structure
+        }
+        for i in self.sub_config_files:
+            print(f"{i=} {self.sub_config_files[i]=}")
+
         self.cleanup = cleanup
         self.verbose = verbose
         self.dry_run = dry_run
@@ -49,55 +59,14 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
-        tasks = self.course.get_tasks(enabled=True)
-
-        global_ignore_patterns = self.structure_config.ignore_patterns or []
-        global_public_patterns = self.structure_config.public_patterns or []
-        global_private_patterns = self.structure_config.private_patterns or []
-
-        # TODO: implement template searcher
-
-        print("REFERENCE")
-        print(f"Copy files from {self.reference_root} to {target}")
-        self._copy_files_accounting_sub_rules(
+        print(f"Copy from {self.reference_root} to {target}")
+        self._copy_files_with_config(
             self.reference_root,
             target,
-            search_pattern="*",
-            copy_patterns=[
-                "*",
-                *global_public_patterns,
-            ],
-            ignore_patterns=[
-                *global_private_patterns,
-                *global_ignore_patterns,
-            ],
-            sub_rules={
-                self.reference_root
-                / task.relative_path: (
-                    [
-                        "*",
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.public_patterns) is not None
-                            else global_public_patterns
-                        ),
-                    ],
-                    [
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.private_patterns) is not None
-                            else global_private_patterns
-                        ),
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns) is not None
-                            else global_ignore_patterns
-                        ),
-                    ],
-                )
-                for task in tasks
-                if task.config is not None and task.config.structure is not None
-            },
+            self.structure_config,
+            copy_public=True,
+            copy_private=False,
+            copy_other=True,
         )
 
     def export_for_testing(
@@ -106,90 +75,24 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
-        tasks = self.course.get_tasks(enabled=True)
-
-        global_ignore_patterns = self.structure_config.ignore_patterns or []
-        global_public_patterns = self.structure_config.public_patterns or []
-        global_private_patterns = self.structure_config.private_patterns or []
-
-        print("REPO")
-        print(f"Copy files from {self.repository_root} to {target}")
-        self._copy_files_accounting_sub_rules(
+        print(f"Copy from {self.repository_root} to {target}")
+        self._copy_files_with_config(
             self.repository_root,
             target,
-            search_pattern="*",
-            copy_patterns=["*"],
-            ignore_patterns=[
-                *global_ignore_patterns,
-                *global_public_patterns,
-                *global_private_patterns,
-            ],
-            sub_rules={
-                self.repository_root
-                / task.relative_path: (
-                    ["*"],
-                    [
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns) is not None
-                            else global_ignore_patterns
-                        ),
-                        *(
-                            task_public
-                            if (task_public := task.config.structure.public_patterns) is not None
-                            else global_public_patterns
-                        ),
-                        *(
-                            task_private
-                            if (task_private := task.config.structure.private_patterns) is not None
-                            else global_private_patterns
-                        ),
-                    ],
-                )
-                for task in tasks
-                if task.config is not None and task.config.structure is not None
-            },
+            self.structure_config,
+            copy_public=False,
+            copy_private=False,
+            copy_other=True,
         )
 
-        print("REFERENCE")
-        print(f"Copy files from {self.reference_root} to {target}")
-        self._copy_files_accounting_sub_rules(
+        print(f"Copy from {self.reference_root} to {target}")
+        self._copy_files_with_config(
             self.reference_root,
             target,
-            search_pattern="*",
-            copy_patterns=[
-                *global_public_patterns,
-                *global_private_patterns,
-            ],
-            ignore_patterns=[
-                *global_ignore_patterns,
-            ],
-            sub_rules={
-                self.reference_root
-                / task.relative_path: (
-                    [
-                        *(
-                            task_public
-                            if (task_public := task.config.structure.public_patterns) is not None
-                            else global_public_patterns
-                        ),
-                        *(
-                            task_private
-                            if (task_private := task.config.structure.private_patterns) is not None
-                            else global_private_patterns
-                        ),
-                    ],
-                    [
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns) is not None
-                            else global_ignore_patterns
-                        ),
-                    ],
-                )
-                for task in tasks
-                if task.config is not None and task.config.structure is not None
-            },
+            self.structure_config,
+            copy_public=True,
+            copy_private=True,
+            copy_other=False,
         )
 
     def export_for_contribution(
@@ -198,137 +101,143 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
-        tasks = self.course.get_tasks(enabled=True)
-
-        global_ignore_patterns = self.structure_config.ignore_patterns or []
-        global_public_patterns = self.structure_config.public_patterns or []
-        global_private_patterns = self.structure_config.private_patterns or []  # noqa: F841
-
-        print("REPO")
-        print(f"Copy files from {self.repository_root} to {target}")
-        self._copy_files_accounting_sub_rules(
+        print(f"Copy from {self.repository_root} to {target}")
+        self._copy_files_with_config(
             self.repository_root,
             target,
-            search_pattern="*",
-            copy_patterns=[
-                *global_public_patterns,
-            ],
-            ignore_patterns=[
-                *global_ignore_patterns,
-            ],
-            sub_rules={
-                self.repository_root
-                / task.relative_path: (
-                    [
-                        *(
-                            task_public
-                            if (task_public := task.config.structure.public_patterns) is not None
-                            else global_public_patterns
-                        ),
-                    ],
-                    [
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns) is not None
-                            else global_ignore_patterns
-                        ),
-                    ],
-                )
-                for task in tasks
-                if task.config is not None and task.config.structure is not None
-            },
+            self.structure_config,
+            copy_public=True,
+            copy_private=False,
+            copy_other=True,
         )
 
-        print("REFERENCE")
-        print(f"Copy files from {self.reference_root} to {target}")
-        self._copy_files_accounting_sub_rules(
+        print(f"Copy from {self.reference_root} to {target}")
+        self._copy_files_with_config(
             self.reference_root,
             target,
-            search_pattern="*",
-            copy_patterns=["*"],
-            ignore_patterns=[
-                *global_public_patterns,
-                *global_ignore_patterns,
-            ],
-            sub_rules={
-                self.reference_root
-                / task.relative_path: (
-                    ["*"],
-                    [
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.public_patterns) is not None
-                            else global_public_patterns
-                        ),
-                        *(
-                            task_ignore
-                            if (task_ignore := task.config.structure.ignore_patterns) is not None
-                            else global_ignore_patterns
-                        ),
-                    ],
-                )
-                for task in tasks
-                if task.config is not None and task.config.structure is not None
-            },
+            self.structure_config,
+            copy_public=False,
+            copy_private=True,
+            copy_other=True,
         )
 
-    def _copy_files_accounting_sub_rules(
+    def _copy_files_with_config(
         self,
         root: Path,
         destination: Path,
-        search_pattern: str,
-        copy_patterns: Iterable[str],
-        ignore_patterns: Iterable[str],
-        sub_rules: dict[Path, tuple[Iterable[str], Iterable[str]]],
+        config: CheckerStructureConfig,
+        copy_public: bool,
+        copy_private: bool,
+        copy_other: bool,
+        global_root: Path = None,
+        global_destination: Path = None,
     ) -> None:
         """
-        Copy files as usual, if face some folder from `sub_rules`, apply patterns from `sub_rules[folder]`.
+        Copy files from `root` to `destination` according to `config`.
+        When face `sub_config_files`, apply it to the folder and all subfolders.
+
         :param root: Copy files from this directory
         :param destination: Copy files to this directory
-        :param search_pattern: Glob pattern to search files (then apply to ignore or copy)
-        :param copy_patterns: List of glob patterns to copy, None to have *. Apply recursively
-        :param ignore_patterns: List of glob patterns to ignore, None to have []. Apply recursively
-        :param sub_rules: dict of folder -> [patterns, ignore_patterns] to apply to this folder (and recursively)
+        :param config: Config to apply to this folder (and recursively)
+        :param copy_public: Copy public files
+        :param copy_private: Copy private files
+        :param copy_other: Copy other - not public and not private files
+        :param global_root: Starting root directory
+        :param global_destination: Starting destination directory
         """
-        copy_patterns = copy_patterns or ["*"]
-        ignore_patterns = ignore_patterns or []
+        # TODO: implement template searcher
 
-        for path in root.glob(search_pattern):
-            # check if the file name matches the patterns
-            if any(path.match(ignore_pattern) for ignore_pattern in ignore_patterns):
-                print(f"    - Skip {path} because of ignore patterns")
+        global_root = global_root or root
+        global_destination = global_destination or destination
+
+        print(f"Copy files from <{root.relative_to(global_root)}> to <{destination.relative_to(global_destination)}>")
+        print(f"  {config=}")
+
+        # Iterate over all files in the root directory
+        for path in root.iterdir():
+            # print(f" - {path.relative_to(global_root)}")
+            # ignore if match the patterns
+            if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
+                print(f"    - Skip <{path.relative_to(global_root)}> because ignore patterns=[{config.ignore_patterns}]")
                 continue
 
-            relative_filename = str(path.relative_to(root))
+            # If matches public patterns AND copy_public is False - skip
+            is_public = False
+            if config.public_patterns and any(path.match(public_pattern) for public_pattern in config.public_patterns):
+                is_public = True
+                if not copy_public:
+                    print(f"    - Skip <{path.relative_to(global_root)}> because skip public_patterns=[{config.public_patterns}]")
+                    continue
+
+            # If matches private patterns AND copy_private is False - skip
+            # If it is public file - never consider it as private
+            is_private = False
+            if not is_public and config.private_patterns and any(path.match(private_pattern) for private_pattern in config.private_patterns):
+                is_private = True
+                if not copy_private:
+                    print(f"    - Skip <{path.relative_to(global_root)}> because skip private_patterns=[{config.private_patterns}]")
+                    continue
+
+            # if not match public and not match private and copy_other is False - skip
+            # Note: never skip "other" directories, look inside them first
+            if not is_public and not is_private and not path.is_dir():
+                if not copy_other:
+                    print(f"    - Skip <{path.relative_to(global_root)}> because skip other files not enabled")
+                    continue
+
+            # If the file is a directory, recursively call this function
             if path.is_dir():
-                if path in sub_rules:
-                    print(f"    - Check Dir {path} to {destination / relative_filename} with sub rules (rec)")
-                    self._copy_files_accounting_sub_rules(
+                # if folder public or private - just copy it
+                if is_public or is_private:
+                    print(f"    - Fully Copy <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                    # TODO: think call recursive function with =True for all to apply ignore
+                    # shutil.copytree(
+                    #     path,
+                    #     destination / path.relative_to(root),
+                    # )
+                    # continue
+                    self._copy_files_with_config(
                         path,
-                        destination / relative_filename,
-                        search_pattern="*",
-                        copy_patterns=sub_rules[path][0],
-                        ignore_patterns=sub_rules[path][1],
-                        sub_rules=sub_rules,
+                        destination / path.relative_to(root),
+                        config,
+                        copy_public=True,
+                        copy_private=True,
+                        copy_other=True,
+                        global_root=global_root,
+                        global_destination=global_destination,
+                    )
+
+                # If have sub-config - update config with sub-config
+                if path.relative_to(global_root) in self.sub_config_files:
+                    declared_sub_config = self.sub_config_files[path.relative_to(global_root)]
+                    sub_config = CheckerStructureConfig(
+                        ignore_patterns=declared_sub_config.ignore_patterns if declared_sub_config.ignore_patterns is not None else config.ignore_patterns,
+                        private_patterns=declared_sub_config.private_patterns if declared_sub_config.private_patterns is not None else config.private_patterns,
+                        public_patterns=declared_sub_config.public_patterns if declared_sub_config.public_patterns is not None else config.public_patterns,
                     )
                 else:
-                    print(f"    - Check Dir {path} to {destination / relative_filename} (rec)")
-                    self._copy_files_accounting_sub_rules(
-                        path,
-                        destination / relative_filename,
-                        search_pattern="*",
-                        copy_patterns=copy_patterns,
-                        ignore_patterns=ignore_patterns,
-                        sub_rules=sub_rules,
-                    )
+                    sub_config = config
+
+                # Recursively call this function
+                print(f"    -- Recursively copy from <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                self._copy_files_with_config(
+                    path,
+                    destination / path.relative_to(root),
+                    sub_config,
+                    copy_public,
+                    copy_private,
+                    copy_other,
+                    global_root=global_root,
+                    global_destination=global_destination,
+                )
+            # If the file is a normal file, copy it
             else:
-                if any(path.match(copy_pattern) for copy_pattern in copy_patterns):
-                    print(f"    - Copy File {path} to {destination / relative_filename}")
-                    destination.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(
-                        path,
-                        destination / relative_filename,
-                    )
+                print(f"    - Copy <{path.relative_to(global_root)}> to <{(destination / path.relative_to(root)).relative_to(global_destination)}>")
+                (destination / path.relative_to(root)).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(
+                    path,
+                    destination / path.relative_to(root),
+                )
 
     def __del__(self) -> None:
         if self.__dict__.get("cleanup") and self._temporary_dir_manager:
