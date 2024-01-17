@@ -106,7 +106,7 @@ jobs:
       - name: Load Docker Image
         run: |
           docker load --input /tmp/mantask-checker-${{ matrix.python-version }}.tar
-      - name: Check private repo
+      - name: Check docker image operatable
         run: |
           # RUN: python -m /opt/checker --help
           docker run \
