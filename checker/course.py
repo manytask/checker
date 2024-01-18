@@ -6,8 +6,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .configs import CheckerSubConfig, DeadlinesConfig
-from .exceptions import BadConfig
+import git
+
+from .configs import CheckerSubConfig, CheckerTestingConfig, DeadlinesConfig
+from .exceptions import BadConfig, CheckerException
+from .utils import print_info
 
 
 @dataclass
@@ -130,3 +133,66 @@ class Course:
                 config=group_config,
                 tasks=group_tasks,
             )
+
+    def detect_changes(
+        self,
+        detection_type: CheckerTestingConfig.ChangesDetectionType,
+    ) -> list[FileSystemTask]:
+        """
+        Detects changes in the repository based on the provided detection type.
+
+        :param detection_type: detection type, see CheckerTestingConfig.ChangesDetectionType
+            - BRANCH_NAME: task name == branch name (single task)
+            - COMMIT_MESSAGE: task name in commit message (can be multiple tasks)
+            - LAST_COMMIT_CHANGES: task relative path in last commit changes (can be multiple tasks)
+        :return: list of changed tasks
+        :raises CheckerException: if repository is not a git repository
+        """
+        print_info(f"Detecting changes by {detection_type}")
+        potential_tasks = self.get_tasks(enabled=True)
+
+        try:
+            repo = git.Repo(self.repository_root)
+        except git.exc.InvalidGitRepositoryError:
+            raise CheckerException(f"Git Repository in {self.repository_root} not found")
+
+        if detection_type == CheckerTestingConfig.ChangesDetectionType.BRANCH_NAME:
+            branch_name = repo.active_branch.name
+            print_info(f"Branch name: {branch_name}", color="grey")
+
+            changed_tasks = [task for task in potential_tasks if task.name == branch_name]
+            print_info(f"Changed tasks: {changed_tasks} (task name == branch name)", color="grey")
+            if not changed_tasks:
+                warnings.warn(f"No active tasks found for branch {branch_name}")
+
+            return changed_tasks
+
+        elif detection_type == CheckerTestingConfig.ChangesDetectionType.COMMIT_MESSAGE:
+            commit_message = repo.head.commit.message
+            if isinstance(commit_message, bytes):
+                commit_message = commit_message.decode("utf-8")
+            print_info(f"Commit message: {commit_message}", color="grey")
+
+            changed_tasks = [task for task in potential_tasks if task.name in commit_message]
+            print_info(f"Changed tasks: {changed_tasks} (task name in commit message)", color="grey")
+            if not changed_tasks:
+                warnings.warn(f"No active tasks found for commit message {commit_message}")
+
+            return changed_tasks
+
+        elif detection_type == CheckerTestingConfig.ChangesDetectionType.LAST_COMMIT_CHANGES:
+            last_commit = repo.head.commit
+            changed_files = [item.a_path for item in last_commit.diff("HEAD~1")]
+            print_info(f"Last commit changes: {changed_files}", color="grey")
+
+            changed_tasks = [
+                task for task in potential_tasks if any(task.relative_path in file for file in changed_files)
+            ]
+            print_info(f"Changed tasks: {changed_tasks} (changed files in last commit)", color="grey")
+            if not changed_tasks:
+                warnings.warn(f"No active tasks found for last commit changes {changed_files}")
+
+            return changed_tasks
+
+        else:  # pragma: no cover
+            assert False, "Unreachable code"
