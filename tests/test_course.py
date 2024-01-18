@@ -93,6 +93,9 @@ def repository_root(generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> Path:
 def git_init_repository_root(repository_root: Path) -> Path:
     # init git repo
     repo = git.Repo.init(repository_root)
+    # setup local config
+    repo.config_writer().set_value("user", "name", "test_user").release()
+    repo.config_writer().set_value("user", "email", "not@val.id").release()
     # commit changes
     repo.git.add(".")
     repo.git.commit("-m", "initial commit")
