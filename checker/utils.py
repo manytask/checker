@@ -6,6 +6,7 @@ from typing import Any
 
 
 def print_ascii_tag(
+    version: str | None = None,
     file: Any = None,
     color: str = "pink",
     **kwargs: Any,
@@ -26,6 +27,8 @@ def print_ascii_tag(
     """
     )
     print_info(ascii_tag, color=color, file=file, **kwargs)
+    if version:
+        print_info(f"{version}", color=color, file=file, **kwargs)
 
 
 def print_info(

@@ -40,7 +40,7 @@ def cli(
     deadlines_config: Path,
 ) -> None:
     """Manytask checker - automated tests for students' assignments."""
-    print_ascii_tag()
+    print_ascii_tag()  # TODO: print version
 
     ctx.ensure_object(dict)
     ctx.obj = {
