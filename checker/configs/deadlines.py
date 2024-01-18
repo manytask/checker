@@ -161,7 +161,6 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
             extra_tasks = []
 
         tasks = [task for group in groups for task in group.tasks]
-        print(f"-> all {tasks=}")
 
         if enabled is not None:
             tasks = [task for task in tasks if task.enabled == enabled]

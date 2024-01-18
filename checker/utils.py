@@ -1,7 +1,34 @@
 from __future__ import annotations
 
 import sys
+from inspect import cleandoc
 from typing import Any
+
+
+def print_ascii_tag(
+    version: str | None = None,
+    file: Any = None,
+    color: str = "pink",
+    **kwargs: Any,
+) -> None:
+    # https://patorjk.com/software/taag/#p=display&f=Doom&t=%20%20%20%20Manytask%20%20Checker
+    ascii_tag = cleandoc(
+        r"""
+    
+    ___  ___                  _            _       _____ _               _             
+    |  \/  |                 | |          | |     /  __ \ |             | |            
+    | .  . | __ _ _ __  _   _| |_ __ _ ___| | __  | /  \/ |__   ___  ___| | _____ _ __ 
+    | |\/| |/ _` | '_ \| | | | __/ _` / __| |/ /  | |   | '_ \ / _ \/ __| |/ / _ \ '__|
+    | |  | | (_| | | | | |_| | || (_| \__ \   <   | \__/\ | | |  __/ (__|   <  __/ |   
+    \_|  |_/\__,_|_| |_|\__, |\__\__,_|___/_|\_\   \____/_| |_|\___|\___|_|\_\___|_|   
+                         __/ |                                                         
+                        |___/                                                          
+    
+    """
+    )
+    print_info(ascii_tag, color=color, file=file, **kwargs)
+    if version:
+        print_info(f"{version}", color=color, file=file, **kwargs)
 
 
 def print_info(
