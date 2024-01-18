@@ -107,6 +107,9 @@ jobs:
         with:
           name: manytask-checker-${{ matrix.python-version }}.tar
           path: /tmp/
+      - name: List tmp folder
+        run: |
+          ls -la /tmp/
       - name: Load Docker Image
         run: |
           docker load --input /tmp/mantask-checker-${{ matrix.python-version }}.tar
