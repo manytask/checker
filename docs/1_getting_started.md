@@ -27,6 +27,9 @@ A good starting point is to check out the [course-template](https://github.com/m
 
 ## Layout
 
+!!! note  
+    tl;dr:  `.checker.yml` and `.deadlines.yml` in the root of the repo, `.task.yml` and `.group.yml` in each tasks and group (can be empty).
+
 The private repository layout is crucial for the checker to function correctly. 
 Each task should be organized into dedicated folders within group directories. 
 Also, there are 2 config files `.course.yml` and `.deadlines.yml` that are required for checker to work.
@@ -46,7 +49,7 @@ group_1/
       .task.yml  # task config with default parameters overwriting
     task_2/
         ...
-    .group.yml  # optional, group config  with default parameters overwriting
+    .group.yml  # group config with default parameters overwriting
 group_2/
     task_3/
         ...
@@ -55,6 +58,7 @@ group_2/
 .checker.yml  # checker config with default parameters and pipelines
 .deadlines.yml  # deadlines config with task scores to send to manytask
 ```
+
 
 !!! warning  
     Groups and tasks names have to be unique.
@@ -70,6 +74,10 @@ After [Configuration](#configuration), you can validate your layout with `checke
 
 ## Testing environment
 
+!!! note  
+    tl;dr:  You somehow need to run checker in your CI. Build docker with `checker` and your course-specific pkgs.
+
+
 To run tests you need to have a docker testing environment that includes your course's specific environment and the pre-installed checker. Here’s how you can prepare and utilize it: 
 
 You have 2 options:
@@ -84,8 +92,6 @@ You have 2 options:
 
     ```shell
     FROM manytask/checker:0.0.1-python3.8
-   
-    RUN pip install -r requirements.txt
     ...
     ```
 
@@ -96,16 +102,20 @@ The configuration of the checker and Manytask requires setting up 2 main files: 
 Here is the short overview of the configuration files:
 
 * **Checker Configuration** (`.checker.yml`):  
-  This file specifies the default parameters for the checker script and defines the pipelines for task checking and exporting.
+    This file specifies the default parameters for the checker script and defines the pipelines for task checking and exporting.
 
 
 * **Deadlines Configuration** (`.deadlines.yml`):
-  This file outlines the deadlines for each group, task max score and etc.  
-  In the checker it is used a) to validate deadlines integrity and b) to send scores to manytask.
+    This file outlines the deadlines for each group, task max score and etc.  
+    In the checker it is used a) to validate deadlines integrity and b) to send scores to manytask.
 
+
+* **Group Configuration** (`.group.yml`):  
+    Optional file located in group directory, this file allows for task-specific settings. It can override default parameters, private/public files and pipelines set in .checker.yml for individual groups.  
+    (apply to any subdirectory)
 
 * **Task Configuration** (`.task.yml`):
-  Optional file located in task directory, this file allows for task-specific settings. It can override default parameters, private/public files and pipelines set in .checker.yml for individual tasks.
+    Optional file located in task directory, this file allows for task-specific settings. It can override default parameters, private/public files and pipelines set in .checker.yml for individual tasks.
 
 
 For the full guide on configuration, see the [Configuration docs](./2_configuration.md) page.
@@ -132,11 +142,9 @@ For local testing of private repo you have 2 options:
 
 
 2. Use test environment docker you made before in interactive mode
-   
-    [//]: # (TODO: add pre-build docker image ref )
     ```shell
     # run docker in interactive mode mounting your repo as /course
-    docker run -it --rm -v $(pwd):/course -w /course manytask/checker:latest bash
+    docker run -it --rm -v $(pwd):/course -w /course manytask/checker:0.0.1-python3.8 bash
     ```
     And use it as a cli application from inside your private repo
     ```shell
@@ -151,6 +159,9 @@ For local testing of private repo you have 2 options:
 
 
 ## Infrastructure
+
+!!! note  
+    tl;dr:  You need to set up gitlab, gitlab runner, docker registry, manytask instance and prepare gitlab token.
 
 Setting up the infrastructure for Manytask and checker involves configuring the runtime environment:
 
@@ -192,6 +203,9 @@ So the checker extends it with the following:
 
 
 ## CI set up
+
+!!! note  
+    tl;dr:  Setup private and public CI to run tests. 
 
 Configuring Continuous Integration (CI) is essential for automating the testing and deployment processes. Here's how to set it up for both private and public repositories.  
 
