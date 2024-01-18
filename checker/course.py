@@ -169,7 +169,7 @@ class Course:
 
         elif detection_type == CheckerTestingConfig.ChangesDetectionType.COMMIT_MESSAGE:
             commit_message = repo.head.commit.message
-            if isinstance(commit_message, bytes):
+            if isinstance(commit_message, bytes):  # pragma: no cover
                 commit_message = commit_message.decode("utf-8")
             print_info(f"Commit message: {commit_message}", color="grey")
 

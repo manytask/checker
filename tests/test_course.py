@@ -9,7 +9,7 @@ import pytest
 from checker.configs import CheckerTestingConfig
 from checker.configs.deadlines import DeadlinesConfig
 from checker.course import Course, FileSystemGroup, FileSystemTask
-from checker.exceptions import BadConfig
+from checker.exceptions import BadConfig, CheckerException
 
 from .conftest import T_GENERATE_FILE_STRUCTURE
 
@@ -179,6 +179,11 @@ class TestCourse:
         assert isinstance(tasks, list)
         assert all(isinstance(task, FileSystemTask) for task in tasks)
         assert len(tasks) == expected_num_tasks
+
+    def test_detect_changes_not_a_repo(self, repository_root: Path) -> None:
+        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        with pytest.raises(CheckerException):
+            test_course.detect_changes(CheckerTestingConfig.ChangesDetectionType.COMMIT_MESSAGE)
 
     @pytest.mark.parametrize(
         "branch_name, changed_files, expected_changed_tasks",
