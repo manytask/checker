@@ -6,13 +6,12 @@ from pathlib import Path
 
 import click
 
-from checker.course import Course, FileSystemTask
-from checker.exporter import Exporter
-from checker.tester import Tester
-from checker.utils import print_info
-
 from .configs import CheckerConfig, CheckerSubConfig, DeadlinesConfig
+from .course import Course, FileSystemTask
 from .exceptions import BadConfig, TestingError
+from .exporter import Exporter
+from .tester import Tester
+from .utils import print_ascii_tag, print_info
 
 
 ClickReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_type=Path)
@@ -41,6 +40,8 @@ def cli(
     deadlines_config: Path,
 ) -> None:
     """Manytask checker - automated tests for students' assignments."""
+    print_ascii_tag()
+
     ctx.ensure_object(dict)
     ctx.obj = {
         "course_config_path": checker_config,
