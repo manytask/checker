@@ -288,9 +288,7 @@ def grade(
     exporter.export_for_testing(exporter.temporary_dir)
 
     # detect changes to test
-    filesystem_tasks: list[FileSystemTask] = list()
-    # TODO: detect changes
-    filesystem_tasks = [task for task in course.get_tasks(enabled=True) if task.name == "hello_world"]
+    changed_tasks = course.detect_changes(checker_config.testing.changes_detection)
 
     # create tester to... to test =)
     tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
@@ -300,7 +298,7 @@ def grade(
     try:
         tester.run(
             exporter.temporary_dir,
-            filesystem_tasks,
+            changed_tasks,
             report=True,
         )
     except TestingError as e:

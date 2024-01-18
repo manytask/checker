@@ -53,6 +53,7 @@ export:
 
 # settings for Tester, uses .checker.yml and `params` and each task params (in .task.yml)
 testing:
+  changes_detection: branch_name  # branch_name, commit_message, last_commit_changes
   search_plugins: ["tools/plugins"]
 
   # run once per repo
@@ -66,6 +67,14 @@ testing:
   report_pipeline:
     - ...
 ```
+
+!!! note  
+    `changes_detection` parameter select how to detect changes in the repo during testing (`checker grade` command).  
+    It can be one of the following:
+    * `branch_name` - check if the branch name == task name (select only one task)
+    * `commit_message` - check if the commit message contains task name (can select multiple tasks)
+    * `last_commit_changes` - check if the last commit contains changes in the task folder (can select multiple tasks)
+    * `files` - (NOT IMPLEMENTED) check actual file difference between current state and the previous commit (can select multiple tasks)
 
 
 ## `.deadlines.yml`
