@@ -82,9 +82,11 @@ You have 2 options:
 
 2. Use checker pre-built base-docker image to base on. This way you can save some time and effort and just add your course-specific environment to the image.
 
-    [//]: # (TODO: add pre-build docker image ref )
     ```shell
-    FROM TBA:1.2.3
+    FROM manytask/checker:0.0.1-python3.8
+   
+    RUN pip install -r requirements.txt
+    ...
     ```
 
 
