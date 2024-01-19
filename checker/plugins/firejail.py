@@ -5,9 +5,10 @@ import subprocess
 from pathlib import Path
 from typing import Union
 
+from ..exceptions import PluginExecutionFailed
 from .base import PluginOutput
 from .scripts import PluginABC, RunScriptPlugin
-from ..exceptions import PluginExecutionFailed
+
 
 HOME_PATH = str(Path.home())
 
@@ -48,7 +49,7 @@ class SafeRunScriptPlugin(PluginABC):
                 raise PluginExecutionFailed("Firejail is not installed", output=result.stderr.decode("utf-8"))
 
         # Construct firejail command
-        command = ["firejail", "--quiet", "--noprofile"]
+        command: list[str] = ["firejail", "--quiet", "--noprofile"]
 
         # lock network access
         if args.lock_network:
@@ -74,12 +75,14 @@ class SafeRunScriptPlugin(PluginABC):
             command.append(f'{env}="{os.environ.get(env, "")}"')
 
         # create actual command
+        run_command: str | list[str]
         if isinstance(args.script, str):
-            command = " ".join(command) + " " + args.script
+            run_command = " ".join(command) + " " + args.script
+        elif isinstance(args.script, list):
+            run_command = command + args.script
         else:
-            assert isinstance(args.script, list)
-            command.extend(args.script)
+            assert False, "Now Reachable"
 
         # Will use RunScriptPlugin to run Firejail+command
-        run_args = RunScriptPlugin.Args(origin=args.origin, script=command, timeout=args.timeout)
+        run_args = RunScriptPlugin.Args(origin=args.origin, script=run_command, timeout=args.timeout)
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
