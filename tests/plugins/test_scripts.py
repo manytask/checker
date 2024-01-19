@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -82,3 +83,22 @@ class TestRunScriptPlugin:
                 plugin._run(args)
         else:
             plugin._run(args)
+
+    @pytest.mark.parametrize(
+        "script, env_whitelist, mocked_env",
+        [
+            ("env", ["CUSTOM_VAR"], {"FILTERED_ONE": "1", "CUSTOM_VAR": "test_value"}),
+            # TODO: expand this test
+        ],
+    )
+    def test_run_with_environment_variable(
+        self, script: str, env_whitelist: list[str], mocked_env: dict[str, str]
+    ) -> None:
+        plugin = RunScriptPlugin()
+        args = RunScriptPlugin.Args(origin="/tmp", script=script, env_whitelist=env_whitelist)
+
+        with patch.dict("os.environ", mocked_env, clear=True):
+            result = plugin._run(args)
+        assert "CUSTOM_VAR" in result.output
+        assert mocked_env["CUSTOM_VAR"] in result.output
+        assert "FILTERED_ONE" not in result.output
