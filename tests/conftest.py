@@ -52,6 +52,14 @@ def generate_file_structure(
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
+        "--skip-firejail",
+        action="store_true",
+        dest="skip_firejail",
+        default=False,
+        help="skip firejail tests",
+    )
+
+    parser.addoption(
         "--skip-integration",
         action="store_true",
         dest="skip_integration",
@@ -86,6 +94,8 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Item],
 ) -> None:
+    skip_firejail = pytest.mark.skip(reason="--skip-firejail option was provided")
+
     skip_integration = pytest.mark.skip(reason="--skip-integration option was provided")
     skip_unit = pytest.mark.skip(reason="--skip-unit option was provided")
     skip_doctest = pytest.mark.skip(reason="--skip-doctest option was provided")
@@ -93,6 +103,9 @@ def pytest_collection_modifyitems(
     for item in items:
         if isinstance(item, pytest.DoctestItem):
             item.add_marker(skip_doctest)
+        elif "firejail" in item.keywords:
+            if config.getoption("--skip-firejail"):
+                item.add_marker(skip_firejail)
         elif "integration" in item.keywords:
             if config.getoption("--skip-integration"):
                 item.add_marker(skip_integration)
