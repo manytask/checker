@@ -67,6 +67,7 @@ class CheckerExportConfig(CustomBaseModel):
         :ivar SEARCH_OR_CREATE: try to search for files/folder with name `some_file.template`
             if not found try to create it using template comments.
         """
+
         SEARCH = "search"
         CREATE = "create"
         SEARCH_OR_CREATE = "search_or_create"

@@ -100,19 +100,24 @@ class Exporter:
                         task_has_template_comments = True
 
                         # check have equal num of comments
-                        if (file_content.count(self.TEMPLATE_START_COMMENT) != file_content.count(self.TEMPLATE_END_COMMENT)):
+                        if file_content.count(self.TEMPLATE_START_COMMENT) != file_content.count(
+                            self.TEMPLATE_END_COMMENT
+                        ):
                             task_has_valid_template_comments = False
                             raise BadStructure(
                                 f"Task {task.name} has invalid template comments in file {potential_comments_file}. "
-                                f"The number of <{self.TEMPLATE_START_COMMENT}> and <{self.TEMPLATE_END_COMMENT}> do not match"
+                                f"The number of <{self.TEMPLATE_START_COMMENT}> and "
+                                f"<{self.TEMPLATE_END_COMMENT}> do not match"
                             )
                         # check between comments no other comment pair
                         for match in self.TEMPLATE_COMMENT_REGEX.finditer(file_content):
-                            if self.TEMPLATE_START_COMMENT in match.group(1) or self.TEMPLATE_END_COMMENT in match.group(1):
+                            if self.TEMPLATE_START_COMMENT in match.group(
+                                1
+                            ) or self.TEMPLATE_END_COMMENT in match.group(1):
                                 task_has_valid_template_comments = False
                                 raise BadStructure(
-                                    f"Task {task.name} has invalid template comments in file {potential_comments_file}. "
-                                    f"There is <{self.TEMPLATE_START_COMMENT}> or <{self.TEMPLATE_END_COMMENT}> "
+                                    f"Task {task.name} has invalid template comments in file {potential_comments_file}."
+                                    f" There is <{self.TEMPLATE_START_COMMENT}> or <{self.TEMPLATE_END_COMMENT}> "
                                     f"between valid pair of comments"
                                 )
 
@@ -153,16 +158,16 @@ class Exporter:
                 assert False, "Not Reachable"
 
     def _search_for_exclude_due_to_templates(
-            self,
-            root: Path,
-            ignore_templates: bool,
+        self,
+        root: Path,
+        ignore_templates: bool,
     ) -> list[str]:
         """Search for files/folder should be ignored due to templating in the current directory only"""
         exclude_paths = []
 
         if (
-                self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
-                or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+            self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
+            or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
         ):
             for template_file_or_folder in root.glob(f"*{self.TEMPLATE_SUFFIX}"):
                 if ignore_templates:
@@ -171,8 +176,8 @@ class Exporter:
                     exclude_paths.append(template_file_or_folder.stem)
 
         if (
-                self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
-                or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+            self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
+            or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
         ):
             # if got empty file after template comments deletion - exclude it
             for potential_comments_file in root.glob("*"):
@@ -180,9 +185,8 @@ class Exporter:
                     continue
                 with potential_comments_file.open("r") as f:
                     file_content = f.read().strip()
-                    if (
-                            file_content.startswith(self.TEMPLATE_START_COMMENT)
-                            and file_content.endswith(self.TEMPLATE_END_COMMENT)
+                    if file_content.startswith(self.TEMPLATE_START_COMMENT) and file_content.endswith(
+                        self.TEMPLATE_END_COMMENT
                     ):
                         exclude_paths.append(potential_comments_file.name)
 
@@ -304,8 +308,19 @@ class Exporter:
         for path in root.iterdir():
             path_destination = destination / path.relative_to(root)
             # check if file template
-            is_path_template_file = (self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE) and path.name.endswith(self.TEMPLATE_SUFFIX)
-            is_path_template_comment = (self.export_config.templates == CheckerExportConfig.TemplateType.CREATE or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE) and not path.is_dir() and self.TEMPLATE_START_COMMENT in path.read_text() and self.TEMPLATE_END_COMMENT in path.read_text()
+            is_path_template_file = (
+                self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
+                or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+            ) and path.name.endswith(self.TEMPLATE_SUFFIX)
+            is_path_template_comment = (
+                (
+                    self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
+                    or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+                )
+                and not path.is_dir()
+                and self.TEMPLATE_START_COMMENT in path.read_text()
+                and self.TEMPLATE_END_COMMENT in path.read_text()
+            )
 
             # if will replace with template - ignore file
             if path.name in exclude_paths:
