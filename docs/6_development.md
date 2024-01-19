@@ -80,6 +80,14 @@ Really appreciate any contributions!
 Feel free to open issues and PRs. Please check on existing issues and PRs before opening new ones.
 
 
+
+## Git hooks
+
+This project uses pre-commit hooks to:
+
+* `commit-msg` - check commit message format to follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+
+
 ## CI
 
 This project uses GitHub actions to run tests and build docs on each push and pull request.
