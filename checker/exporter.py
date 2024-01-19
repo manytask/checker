@@ -1,21 +1,33 @@
 from __future__ import annotations
 
+import re
 import shutil
 import tempfile
 from pathlib import Path
 
 from checker.configs import CheckerExportConfig, CheckerStructureConfig
 from checker.course import Course
+from checker.exceptions import BadStructure
 
 
 class Exporter:
+    """
+    The Exporter class is responsible for moving course files.
+    1. It validates and manage templates
+    2. Select files to be exported public/testing/contribution
+    """
+
+    TEMPLATE_SUFFIX = ".template"
+    TEMPLATE_START_COMMENT = "SOLUTION BEGIN"
+    TEMPLATE_END_COMMENT = "SOLUTION END"
+    TEMPLATE_REPLACE_COMMENT = "TODO: Your solution"
+    TEMPLATE_COMMENT_REGEX = re.compile(f"{TEMPLATE_START_COMMENT}(.*?){TEMPLATE_END_COMMENT}", re.DOTALL)
+
     def __init__(
         self,
         course: Course,
         structure_config: CheckerStructureConfig,
         export_config: CheckerExportConfig,
-        repository_root: Path,
-        reference_root: Path | None = None,
         *,
         cleanup: bool = True,
         verbose: bool = False,
@@ -26,8 +38,8 @@ class Exporter:
         self.structure_config = structure_config
         self.export_config = export_config
 
-        self.repository_root = repository_root
-        self.reference_root = reference_root or repository_root
+        self.repository_root = course.repository_root
+        self.reference_root = course.reference_root
 
         self._temporary_dir_manager = tempfile.TemporaryDirectory()
         self.temporary_dir = Path(self._temporary_dir_manager.name)
@@ -47,8 +59,143 @@ class Exporter:
         self.dry_run = dry_run
 
     def validate(self) -> None:
-        # TODO: implement validation
-        pass
+        # validate course
+        self.course.validate()
+
+        # TODO: validate structure correct glob patterns
+
+        # validate templates
+        # `original.template` files/folders need to have `original` file/folder
+        # template comments have to be paired
+        # template comments can not be one inside another
+        # if `templates` is set to `SEARCH` - only `.template` allowed
+        # if `templates` is set to `CREATE` - only template comments allowed
+        # if `templates` is set to `SEARCH_OR_CREATE` - both allowed, but one inside one task
+        for task in self.course.get_tasks(enabled=True):
+            # TODO: check template not public and not private file
+
+            task_folder = self.reference_root / task.relative_path
+            task_has_template_files, task_has_valid_template_files = False, False
+            task_has_template_comments, task_has_valid_template_comments = False, False
+
+            # search for all `.template` files or folders
+            for template_file_or_folder in task_folder.glob(f"**/*{self.TEMPLATE_SUFFIX}"):
+                task_has_template_files = True
+                # check that all files have original files
+                if not (template_file_or_folder.parent / template_file_or_folder.stem).exists():
+                    raise BadStructure(
+                        f"Template file/folder {template_file_or_folder} does not have "
+                        f"original file/folder {self.reference_root / template_file_or_folder.stem}"
+                    )
+                task_has_valid_template_files = True
+
+            # check all (not binary) files for template comments
+            for potential_comments_file in task_folder.glob("**/*"):
+                if potential_comments_file.is_dir():
+                    continue
+                with potential_comments_file.open("r") as f:
+                    # skip binary files
+                    try:
+                        file_content = f.read()
+                    except UnicodeDecodeError:
+                        continue
+
+                    # validate using regex and count matches of start and end comments
+                    if self.TEMPLATE_START_COMMENT in file_content or self.TEMPLATE_END_COMMENT in file_content:
+                        task_has_template_comments = True
+
+                        # check have equal num of comments
+                        if file_content.count(self.TEMPLATE_START_COMMENT) != file_content.count(
+                            self.TEMPLATE_END_COMMENT
+                        ):
+                            task_has_valid_template_comments = False
+                            raise BadStructure(
+                                f"Task {task.name} has invalid template comments in file {potential_comments_file}. "
+                                f"The number of <{self.TEMPLATE_START_COMMENT}> and "
+                                f"<{self.TEMPLATE_END_COMMENT}> do not match"
+                            )
+                        # check between comments no other comment pair
+                        for match in self.TEMPLATE_COMMENT_REGEX.finditer(file_content):
+                            if self.TEMPLATE_START_COMMENT in match.group(
+                                1
+                            ) or self.TEMPLATE_END_COMMENT in match.group(1):
+                                task_has_valid_template_comments = False
+                                raise BadStructure(
+                                    f"Task {task.name} has invalid template comments in file {potential_comments_file}."
+                                    f" There is <{self.TEMPLATE_START_COMMENT}> or <{self.TEMPLATE_END_COMMENT}> "
+                                    f"between valid pair of comments"
+                                )
+
+                        task_has_valid_template_comments = True
+
+            if self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH:
+                if task_has_template_comments:
+                    raise BadStructure(
+                        f"Templating set to {self.export_config.templates} but task {task.name} has "
+                        f"template comments <{self.TEMPLATE_START_COMMENT}> and <{self.TEMPLATE_END_COMMENT}>"
+                    )
+                if not task_has_valid_template_files:
+                    raise BadStructure(
+                        f"Task {task.name} does not have `.template` file/folder. Have to include at least one"
+                    )
+            elif self.export_config.templates == CheckerExportConfig.TemplateType.CREATE:
+                if task_has_template_files:
+                    raise BadStructure(
+                        f"Templating set to {self.export_config.templates} but task {task.name} has "
+                        f"`.template` file/folder"
+                    )
+                if not task_has_valid_template_comments:
+                    raise BadStructure(
+                        f"Task {task.name} does not have template comments. Have to include at least one pair of "
+                        f"<{self.TEMPLATE_START_COMMENT}> and <{self.TEMPLATE_END_COMMENT}>"
+                    )
+            elif self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE:
+                if task_has_template_files and task_has_template_comments:
+                    raise BadStructure(
+                        f"Task {task.name} can not use both `.template` file/folder and template comments"
+                    )
+                if not task_has_valid_template_files and not task_has_valid_template_comments:
+                    raise BadStructure(
+                        f"Task {task.name} does not have `.template` file/folder or at least one pair of "
+                        f"<{self.TEMPLATE_START_COMMENT}> and <{self.TEMPLATE_END_COMMENT}>"
+                    )
+            else:  # pragma: no cover
+                assert False, "Not Reachable"
+
+    def _search_for_exclude_due_to_templates(
+        self,
+        root: Path,
+        ignore_templates: bool,
+    ) -> list[str]:
+        """Search for files/folder should be ignored due to templating in the current directory only"""
+        exclude_paths = []
+
+        if (
+            self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
+            or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+        ):
+            for template_file_or_folder in root.glob(f"*{self.TEMPLATE_SUFFIX}"):
+                if ignore_templates:
+                    exclude_paths.append(template_file_or_folder.name)
+                else:
+                    exclude_paths.append(template_file_or_folder.stem)
+
+        if (
+            self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
+            or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+        ):
+            # if got empty file after template comments deletion - exclude it
+            for potential_comments_file in root.glob("*"):
+                if potential_comments_file.is_dir():
+                    continue
+                with potential_comments_file.open("r") as f:
+                    file_content = f.read().strip()
+                    if file_content.startswith(self.TEMPLATE_START_COMMENT) and file_content.endswith(
+                        self.TEMPLATE_END_COMMENT
+                    ):
+                        exclude_paths.append(potential_comments_file.name)
+
+        return exclude_paths
 
     def export_public(
         self,
@@ -66,6 +213,7 @@ class Exporter:
             copy_public=True,
             copy_private=False,
             copy_other=True,
+            fill_templates=True,
         )
 
     def export_for_testing(
@@ -82,6 +230,7 @@ class Exporter:
             copy_public=False,
             copy_private=False,
             copy_other=True,
+            fill_templates=False,
         )
 
         print(f"Copy from {self.reference_root} to {target}")
@@ -92,6 +241,7 @@ class Exporter:
             copy_public=True,
             copy_private=True,
             copy_other=False,
+            fill_templates=False,
         )
 
     def export_for_contribution(
@@ -108,6 +258,7 @@ class Exporter:
             copy_public=True,
             copy_private=False,
             copy_other=True,
+            fill_templates=False,
         )
 
         print(f"Copy from {self.reference_root} to {target}")
@@ -118,6 +269,7 @@ class Exporter:
             copy_public=False,
             copy_private=True,
             copy_other=True,
+            fill_templates=False,
         )
 
     def _copy_files_with_config(
@@ -128,6 +280,7 @@ class Exporter:
         copy_public: bool,
         copy_private: bool,
         copy_other: bool,
+        fill_templates: bool,
         global_root: Path | None = None,
         global_destination: Path | None = None,
     ) -> None:
@@ -141,6 +294,7 @@ class Exporter:
         :param copy_public: Copy public files
         :param copy_private: Copy private files
         :param copy_other: Copy other - not public and not private files
+        :param fill_templates: Fill templates (`.template` or template comments), if false will delete them
         :param global_root: Starting root directory
         :param global_destination: Starting destination directory
         """
@@ -152,14 +306,35 @@ class Exporter:
         print(f"Copy files from <{root.relative_to(global_root)}> to <{destination.relative_to(global_destination)}>")
         print(f"  {config=}")
 
+        # select paths to ignore - original to replace or templates to ignore
+        exclude_paths = self._search_for_exclude_due_to_templates(root, not fill_templates)
+
         # Iterate over all files in the root directory
         for path in root.iterdir():
-            # print(f" - {path.relative_to(global_root)}")
-            # ignore if match the patterns
-            if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
-                print(
-                    f"    - Skip <{path.relative_to(global_root)}> because ignore patterns=[{config.ignore_patterns}]"
+            path_destination = destination / path.relative_to(root)
+            # check if file template
+            is_path_template_file = (
+                self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
+                or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
+            ) and path.name.endswith(self.TEMPLATE_SUFFIX)
+            is_path_template_comment = (
+                (
+                    self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
+                    or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
                 )
+                and not path.is_dir()
+                and self.TEMPLATE_START_COMMENT in path.read_text()
+                and self.TEMPLATE_END_COMMENT in path.read_text()
+            )
+
+            # if will replace with template - ignore file
+            if path.name in exclude_paths:
+                print(f"    - Skip <{path.relative_to(global_root)}> because of templating")
+                continue
+
+            # ignore if match ignore patterns
+            if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
+                print(f"    - Skip <{path.relative_to(global_root)}> because ignore patterns={config.ignore_patterns}")
                 continue
 
             # If matches public patterns AND copy_public is False - skip
@@ -169,7 +344,7 @@ class Exporter:
                 if not copy_public:
                     print(
                         f"    - Skip <{path.relative_to(global_root)}> because skip "
-                        f"public_patterns=[{config.public_patterns}]"
+                        f"public_patterns={config.public_patterns}"
                     )
                     continue
 
@@ -185,7 +360,7 @@ class Exporter:
                 if not copy_private:
                     print(
                         f"    - Skip <{path.relative_to(global_root)}> because skip "
-                        f"private_patterns=[{config.private_patterns}]"
+                        f"private_patterns={config.private_patterns}"
                     )
                     continue
 
@@ -193,7 +368,22 @@ class Exporter:
             # Note: never skip "other" directories, look inside them first
             if not is_public and not is_private and not path.is_dir():
                 if not copy_other:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because " f"skip other files not enabled")
+                    print(f"    - Skip <{path.relative_to(global_root)}> because copy other files not enabled")
+                    continue
+
+            # if file is empty file/folder - just do not copy (delete original file due to exclude_paths)
+            if fill_templates and is_path_template_file:
+                if path.is_dir() and not any((path_destination / file).exists() for file in path.iterdir()):
+                    print(
+                        f"    - Skip <{path.relative_to(global_root)}> because it is empty folder and "
+                        f"templating is set to {self.export_config.templates}"
+                    )
+                    continue
+                if path.is_file() and path.stat().st_size == 0:
+                    print(
+                        f"    - Skip <{path.relative_to(global_root)}> because it is empty file and "
+                        f"templating is set to {self.export_config.templates}"
+                    )
                     continue
 
             # If the file is a directory, recursively call this function
@@ -202,24 +392,24 @@ class Exporter:
                 if is_public or is_private:
                     print(
                         f"    - Fully Copy <{path.relative_to(global_root)}> to "
-                        f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                        f"<{path_destination.relative_to(global_destination)}>"
                     )
-                    # TODO: think call recursive function with =True for all to apply ignore
-                    # shutil.copytree(
-                    #     path,
-                    #     destination / path.relative_to(root),
-                    # )
-                    # continue
                     self._copy_files_with_config(
                         path,
-                        destination / path.relative_to(root),
+                        path_destination,
                         config,
                         copy_public=True,
                         copy_private=True,
                         copy_other=True,
+                        fill_templates=fill_templates,
                         global_root=global_root,
                         global_destination=global_destination,
                     )
+                    continue
+
+                # If directory `origin.template` - copy from this folder to `origin`
+                if fill_templates and is_path_template_file:
+                    path_destination = path_destination.parent / path_destination.stem
 
                 # If have sub-config - update config with sub-config
                 if path.relative_to(global_root) in self.sub_config_files:
@@ -241,15 +431,16 @@ class Exporter:
                 # Recursively call this function
                 print(
                     f"    -- Recursively copy from <{path.relative_to(global_root)}> to "
-                    f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                    f"<{path_destination.relative_to(global_destination)}>"
                 )
                 self._copy_files_with_config(
                     path,
-                    destination / path.relative_to(root),
+                    path_destination,
                     sub_config,
                     copy_public,
                     copy_private,
                     copy_other,
+                    fill_templates,
                     global_root=global_root,
                     global_destination=global_destination,
                 )
@@ -257,13 +448,26 @@ class Exporter:
             else:
                 print(
                     f"    - Copy <{path.relative_to(global_root)}> to "
-                    f"<{(destination / path.relative_to(root)).relative_to(global_destination)}>"
+                    f"<{path_destination.relative_to(global_destination)}>"
                 )
-                (destination / path.relative_to(root)).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(
-                    path,
-                    destination / path.relative_to(root),
-                )
+                path_destination.parent.mkdir(parents=True, exist_ok=True)
+
+                # if `origin.template` - copy from this file as `origin`
+                if fill_templates and is_path_template_file:
+                    path_destination = path_destination.parent / path_destination.stem
+
+                # if template comments in file - replace them, not greedy
+                if fill_templates and is_path_template_comment:
+                    with path.open("r") as f:
+                        file_content = f.read()
+                    file_content = self.TEMPLATE_COMMENT_REGEX.sub(self.TEMPLATE_REPLACE_COMMENT, file_content)
+                    path_destination.touch(exist_ok=True)
+                    path_destination.write_text(file_content)
+                else:
+                    shutil.copyfile(
+                        path,
+                        path_destination,
+                    )
 
     def __del__(self) -> None:
         if self.__dict__.get("cleanup") and self._temporary_dir_manager:

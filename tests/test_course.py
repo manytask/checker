@@ -26,7 +26,7 @@ TEST_FILE_STRUCTURE = {
     "group2": {
         "task2_1": {".task.yml": "", "file2_1_1": "", "file2_1_2": ""},
         "task2_2": {".task.yml": "version: 1"},
-        "task2_3": {".task.yml": "\n", "file2_3_1": "", "file2_3_2": "", "file2_3_3": "", "file2_3_4": ""},
+        "task2_3": {".task.yml": " \n  \n", "file2_3_1": "", "file2_3_2": "", "file2_3_3": "", "file2_3_4": ""},
         "random_folder": {"file1": "", "file2": ""},
         ".group.yml": "version: 1",
     },

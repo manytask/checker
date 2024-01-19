@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 
 import click
 
 from .configs import CheckerConfig, CheckerSubConfig, DeadlinesConfig
 from .course import Course, FileSystemTask
-from .exceptions import BadConfig, TestingError
+from .exceptions import CheckerValidationError, TestingError
 from .exporter import Exporter
 from .tester import Tester
 from .utils import print_ascii_tag, print_info
@@ -69,7 +70,7 @@ def validate(
     try:
         checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
         deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Configuration Failed", color="red")
         print_info(e)
         exit(1)
@@ -79,7 +80,7 @@ def validate(
     try:
         course = Course(deadlines_config, root)
         course.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Course Validation Failed", color="red")
         print_info(e)
         exit(1)
@@ -91,12 +92,11 @@ def validate(
             course,
             checker_config.structure,
             checker_config.export,
-            root,
             verbose=True,
             dry_run=True,
         )
         exporter.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Exporter Validation Failed", color="red")
         print_info(e)
         exit(1)
@@ -106,7 +106,7 @@ def validate(
     try:
         tester = Tester(course, checker_config, verbose=verbose)
         tester.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Tester Validation Failed", color="red")
         print_info(e)
         exit(1)
@@ -190,7 +190,6 @@ def check(
         course,
         checker_config.structure,
         checker_config.export,
-        root,
         verbose=True,
         cleanup=not no_clean,
         dry_run=dry_run,
@@ -280,7 +279,6 @@ def grade(
         course,
         checker_config.structure,
         checker_config.export,
-        root,
         verbose=False,
         cleanup=not no_clean,
         dry_run=dry_run,
@@ -333,16 +331,26 @@ def export(
     # read filesystem, check existing tasks
     course = Course(deadlines_config, reference_root)
 
+    # if export_root not empty - delete all except git folder
+    if export_root.exists():
+        for path in export_root.iterdir():
+            if path.name == ".git":
+                continue
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+
     # create exporter and export files for public
     exporter = Exporter(
         course,
         checker_config.structure,
         checker_config.export,
-        reference_root,
         verbose=True,
         dry_run=dry_run,
     )
-    exporter.export_for_testing(exporter.temporary_dir)
+    export_root.mkdir(exist_ok=True, parents=True)
+    exporter.export_public(export_root, push=commit, commit_message=checker_config.export.commit_message)
 
 
 @cli.command(hidden=True)
