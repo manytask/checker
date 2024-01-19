@@ -368,7 +368,7 @@ class Exporter:
             # Note: never skip "other" directories, look inside them first
             if not is_public and not is_private and not path.is_dir():
                 if not copy_other:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because skip other files not enabled")
+                    print(f"    - Skip <{path.relative_to(global_root)}> because copy other files not enabled")
                     continue
 
             # if file is empty file/folder - just do not copy (delete original file due to exclude_paths)

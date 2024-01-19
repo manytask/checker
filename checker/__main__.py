@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 
 import click
@@ -330,6 +331,16 @@ def export(
     # read filesystem, check existing tasks
     course = Course(deadlines_config, reference_root)
 
+    # if export_root not empty - delete all except git folder
+    if export_root.exists():
+        for path in export_root.iterdir():
+            if path.name == ".git":
+                continue
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+
     # create exporter and export files for public
     exporter = Exporter(
         course,
@@ -338,7 +349,8 @@ def export(
         verbose=True,
         dry_run=dry_run,
     )
-    exporter.export_for_testing(exporter.temporary_dir)
+    export_root.mkdir(exist_ok=True, parents=True)
+    exporter.export_public(export_root, push=commit, commit_message=checker_config.export.commit_message)
 
 
 @cli.command(hidden=True)
