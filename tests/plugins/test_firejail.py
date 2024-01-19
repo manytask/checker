@@ -89,16 +89,16 @@ class TestSafeRunScriptPlugin:
             plugin._run(args)
 
     @pytest.mark.parametrize(
-        "allow_envs",
+        "env_whitelist",
         [
             ([]),
             ([PATH]),
             ([PATH, PYTHONPATH]),
         ],
     )
-    def test_hide_evns(self, allow_envs: list[str]) -> None:
+    def test_hide_evns(self, env_whitelist) -> None:
         plugin = SafeRunScriptPlugin()
-        args = SafeRunScriptPlugin.Args(origin="/tmp", script="printenv", allow_envs=allow_envs)
+        args = SafeRunScriptPlugin.Args(origin="/tmp", script="printenv", env_whitelist=env_whitelist)
 
         res_lines = [line.strip() for line in plugin._run(args).output.splitlines()]
         envs: list[str] = []
@@ -108,9 +108,9 @@ class TestSafeRunScriptPlugin:
                 envs.append(match.group("name"))
 
         # check if environment has only two items: PATH and PYTHONPATH
-        assert len(envs) == len(allow_envs)
+        assert len(envs) == len(env_whitelist)
         for env in envs:
-            assert env in allow_envs
+            assert env in env_whitelist
 
     @pytest.mark.parametrize(
         "query",
@@ -128,7 +128,7 @@ class TestSafeRunScriptPlugin:
             plugin._run(args)
 
     @pytest.mark.parametrize(
-        "origin, allow_paths, access_file, expected_exception",
+        "origin, paths_whitelist, access_file, expected_exception",
         [
             (Path("/tmp"), [], Path("/tmp/tmp.txt"), None),
             (Path("/tmp"), [], in_home("tmp/tmp.txt"), None),  # this is a trick!!! origin /tmp is replaced by ~/tmp
@@ -155,7 +155,7 @@ class TestSafeRunScriptPlugin:
     def test_file_system_access(
         self,
         origin: Path,
-        allow_paths: list[Path],
+        paths_whitelist: list[Path],
         access_file: Path,
         expected_exception: Exception | None,
     ) -> None:
@@ -168,7 +168,7 @@ class TestSafeRunScriptPlugin:
         plugin = SafeRunScriptPlugin()
         args = SafeRunScriptPlugin.Args(
             origin=str(origin),
-            allow_paths=[str(path) for path in allow_paths],
+            paths_whitelist=[str(path) for path in paths_whitelist],
             script=f"cat {str(access_file)}",
         )
 
@@ -207,7 +207,7 @@ class TestSafeRunScriptPlugin:
         plugin = SafeRunScriptPlugin()
         args = SafeRunScriptPlugin.Args(
             origin=str(tmp_dir),
-            allow_paths=[],
+            path_whitelist=[],
             script=f"cat {str(file_path)}",
         )
         assert plugin._run(args).output == file_content

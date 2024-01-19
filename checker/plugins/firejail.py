@@ -26,8 +26,8 @@ class SafeRunScriptPlugin(PluginABC):
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
 
-        env_whitelist: set[str] = set()
-        paths_whitelist: set[str] = set()
+        env_whitelist: list[str] = list()
+        paths_whitelist: list[str] = list()
         lock_network: bool = True
         allow_fallback: bool = False
 
@@ -40,7 +40,7 @@ class SafeRunScriptPlugin(PluginABC):
         if result.returncode != 0:
             if args.allow_fallback:
                 # fallback to RunScriptPlugin
-                run_args = RunScriptPlugin.Args(origin=args.origin, script=args.script, timeout=args.timeout)
+                run_args = RunScriptPlugin.Args(origin=args.origin, script=args.script, timeout=args.timeout, env_whitelist=env_whitelist)
                 output = RunScriptPlugin()._run(args=run_args, verbose=verbose)
                 if verbose:
                     output.output = f"Firejail is not installed. Fallback to RunScriptPlugin.\n{output.output}"
@@ -85,5 +85,5 @@ class SafeRunScriptPlugin(PluginABC):
             assert False, "Now Reachable"
 
         # Will use RunScriptPlugin to run Firejail+command
-        run_args = RunScriptPlugin.Args(origin=args.origin, script=run_command, timeout=args.timeout)
+        run_args = RunScriptPlugin.Args(origin=args.origin, script=run_command, timeout=args.timeout, env_whitelist=None)
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
