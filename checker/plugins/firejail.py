@@ -40,7 +40,9 @@ class SafeRunScriptPlugin(PluginABC):
         if result.returncode != 0:
             if args.allow_fallback:
                 # fallback to RunScriptPlugin
-                run_args = RunScriptPlugin.Args(origin=args.origin, script=args.script, timeout=args.timeout, env_whitelist=env_whitelist)
+                run_args = RunScriptPlugin.Args(
+                    origin=args.origin, script=args.script, timeout=args.timeout, env_whitelist=args.env_whitelist
+                )
                 output = RunScriptPlugin()._run(args=run_args, verbose=verbose)
                 if verbose:
                     output.output = f"Firejail is not installed. Fallback to RunScriptPlugin.\n{output.output}"
@@ -85,5 +87,7 @@ class SafeRunScriptPlugin(PluginABC):
             assert False, "Now Reachable"
 
         # Will use RunScriptPlugin to run Firejail+command
-        run_args = RunScriptPlugin.Args(origin=args.origin, script=run_command, timeout=args.timeout, env_whitelist=None)
+        run_args = RunScriptPlugin.Args(
+            origin=args.origin, script=run_command, timeout=args.timeout, env_whitelist=None
+        )
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
