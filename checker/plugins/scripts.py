@@ -23,6 +23,9 @@ class RunScriptPlugin(PluginABC):
         def set_up_env_sandbox() -> None:  # pragma: nocover
             import os
 
+            if args.env_whitelist is None:
+                return
+
             env = os.environ.copy()
             os.environ.clear()
             for variable in args.env_whitelist:
