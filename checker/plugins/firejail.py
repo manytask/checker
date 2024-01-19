@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import subprocess
 from pathlib import Path
 from typing import Union
 
@@ -27,12 +26,14 @@ class SafeRunScriptPlugin(PluginABC):
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
 
-        allow_envs: set[str] = set()
+        env_whitelist: set[str] = set()
+        paths_whitelist: set[str] = set()
         lock_network: bool = True
-        allow_paths: set[str] = set()
         allow_fallback: bool = False
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
+        import subprocess
+
         # test if firejail script is available
         # TODO: test fallback
         result = subprocess.run(["firejail", "--version"], capture_output=True)
@@ -56,7 +57,7 @@ class SafeRunScriptPlugin(PluginABC):
             command.append("--net=none")
 
         # Collect all allow paths
-        allow_paths = {*args.allow_paths, args.origin}
+        allow_paths = {*args.paths_whitelist, args.origin}
         # a bit tricky but if paths is only /tmp add ~/tmp instead of it
         if "/tmp" in allow_paths and len(allow_paths) == 1:
             allow_paths.add("~/tmp")
@@ -71,7 +72,7 @@ class SafeRunScriptPlugin(PluginABC):
 
         # Hide all environment variables except allowed
         command.append("env -i")
-        for env in args.allow_envs:
+        for env in args.env_whitelist:
             command.append(f'{env}="{os.environ.get(env, "")}"')
 
         # create actual command
