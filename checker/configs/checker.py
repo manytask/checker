@@ -51,15 +51,15 @@ class CheckerExportConfig(CustomBaseModel):
             For example:
             ```python
             a = 1
-            # TEMPLATE START
+            # SOLUTION BEGIN
             a = 2
-            # TEMPLATE END
+            # SOLUTION END
             b = 3
             ```
             will be converted to:
             ```python
             a = 1
-            # TODO: Your code
+            # TODO: Your solution
             b = 3
             ```
             Delete file if it is empty after template comments deletion.

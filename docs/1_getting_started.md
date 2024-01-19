@@ -89,26 +89,28 @@ You have to provide solution templates for each task. You have 3 options to setu
     If you have an empty file/folder with `.template` extension, checker will just delete original file/folder.
 
 * `templates: "create"` - checker will search for the template comments in your gold solution and will delete everything except the template.  
-    For example, if you have `task_1/solution.py` file with a pair of comments `BEGIN SOLUTION` and `END SOLUTION`:
+    For example, if you have `task_1/solution.py` file with a pair of comments `SOLUTION BEGIN` and `SOLUTION END`:
     ```python
     a = 1
-    # BEGIN SOLUTION
+    # SOLUTION BEGIN
     print(a)
-    # END SOLUTION
+    # SOLUTION END
     b = a + 1
-    # BEGIN SOLUTION
+    b += 1
+    # SOLUTION BEGIN
     print(b)
-    # END SOLUTION
+    # SOLUTION END
     ```
-    When exporting to public checker will replace it with `TODO: Your solution`:
+    When exporting to public checker will replace it with `TODO: Your solution` in NOT-greedy way:
     ```python
     a = 1
     # TODO: Your solution
     b = a + 1
+    b += 1
     # TODO: Your solution
     ```
     Note: You can have multiple templates in one file.  
-    Note2: If you write both `BEGIN SOLUTION` and `END SOLUTION` as comments, resulting `TODO: Your solution` will be a comment as well.
+    Note2: If you write both `SOLUTION BEGIN` and `SOLUTION END` as comments, resulting `TODO: Your solution` will be a comment as well.
     
     If after templating the file is empty, checker will delete it.
   

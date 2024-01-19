@@ -8,7 +8,7 @@ import click
 
 from .configs import CheckerConfig, CheckerSubConfig, DeadlinesConfig
 from .course import Course, FileSystemTask
-from .exceptions import BadConfig, TestingError
+from .exceptions import CheckerValidationError, TestingError
 from .exporter import Exporter
 from .tester import Tester
 from .utils import print_ascii_tag, print_info
@@ -69,7 +69,7 @@ def validate(
     try:
         checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
         deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Configuration Failed", color="red")
         print_info(e)
         exit(1)
@@ -79,7 +79,7 @@ def validate(
     try:
         course = Course(deadlines_config, root)
         course.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Course Validation Failed", color="red")
         print_info(e)
         exit(1)
@@ -95,7 +95,7 @@ def validate(
             dry_run=True,
         )
         exporter.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Exporter Validation Failed", color="red")
         print_info(e)
         exit(1)
@@ -105,7 +105,7 @@ def validate(
     try:
         tester = Tester(course, checker_config, verbose=verbose)
         tester.validate()
-    except BadConfig as e:
+    except CheckerValidationError as e:
         print_info("Tester Validation Failed", color="red")
         print_info(e)
         exit(1)

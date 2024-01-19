@@ -63,7 +63,7 @@ class TestExporterOnSimple:
         layout = {
             "task1": {
                 ".task.yml": "version: 1\nstructure:\n    ignore_patterns: [extra_ignore_me]\n",
-                "test.txt": "Some TEMPLATE START\nHello\nTEMPLATE END\n",
+                "test.txt": "Some SOLUTION BEGIN\nHello\nSOLUTION END\n",
                 "public_file.py": "print('Hello')\n",
                 "extra_ignore_me": "",
             },
@@ -124,7 +124,7 @@ class TestExporterOnSimple:
         Path(tmpdir / "repository" / "task1" / "new.txt.template").touch()
         Path(tmpdir / "repository" / "task2" / "new.txt").touch()
         Path(tmpdir / "repository" / "task2" / "new.txt").write_text(
-            "Some\n TEMPLATE START\nHello\nTEMPLATE END\n", encoding="utf-8"
+            "Some\n SOLUTION BEGIN\nHello\nSOLUTION END\n", encoding="utf-8"
         )
 
         with pytest.raises(BadStructure) as exc_info:
@@ -176,13 +176,13 @@ class TestExporterOnSimple:
     @pytest.mark.parametrize(
         "file_content",
         [
-            "TEM!PLATE START\nHello\nTEMPLATE END\n",
-            "TEMPLATE START\nHello\nTEMPL!ATE END\n",
+            "WRONG_START\nHello\nSOLUTION END\n",
+            "SOLUTION BEGIN\nHello\nWRONG\n",
             "Hello\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE START\nHello\nTEMP!LATE END\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\n\nHello\nTEMPLATE END\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE START\nHello\n",
-            "TEMPLATE START\nTEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE END",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION BEGIN\nHello\nWRONG\n",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\n\nHello\nSOLUTION END\n",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION BEGIN\nHello\n",
+            "SOLUTION BEGIN\nSOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION END",
         ],
     )
     def test_simple_validate_wrong_template_comment(
@@ -216,7 +216,7 @@ class TestExporterOnSimple:
                 {
                     "some_folder": {
                         "some_file.txt": "123",
-                        "not_in_the_root_folder.py": "TEMPLATE START\nTEMPLATE END",
+                        "not_in_the_root_folder.py": "SOLUTION BEGIN\nSOLUTION END",
                     },
                     "other_file": "123",
                 },
@@ -225,14 +225,14 @@ class TestExporterOnSimple:
             (
                 {
                     "some_folder": {"some_file.txt": "123"},
-                    "empty_after_template_file.py": "TEMPLATE START\nTEMPLATE END",
+                    "empty_after_template_file.py": "SOLUTION BEGIN\nSOLUTION END",
                 },
                 ["empty_after_template_file.py"],
             ),
             (
                 {
                     "some_folder": {"some_file.txt": "123"},
-                    "empty_after_template_file.py": "   \n\n  TEMPLATE START\n\nTEMPLATE END\n\t\n",
+                    "empty_after_template_file.py": "   \n\n  SOLUTION BEGIN\n\nSOLUTION END\n\t\n",
                 },
                 ["empty_after_template_file.py"],
             ),
@@ -258,7 +258,7 @@ class TestExporterOnSimple:
             (
                 {
                     "some_folder": {"some_file.txt.template": "123", "some_file.txt": "321", "empty_file.py": ""},
-                    "other_file": "TEMPLATE START\nTEMPLATE END",
+                    "other_file": "SOLUTION BEGIN\nSOLUTION END",
                     "other_other_file": "",
                     "other_other_file.template": "",
                 },
@@ -394,7 +394,7 @@ class TestExporterOnSimple:
             ],
         )
         # check templates was resolved if needed (all here)
-        assert (tmpdir / "export" / "task1" / "test.txt").read_text(encoding="utf-8") == "Some TODO: Your code\n"
+        assert (tmpdir / "export" / "task1" / "test.txt").read_text(encoding="utf-8") == "Some TODO: Your solution\n"
         assert (tmpdir / "export" / "task2" / "test.txt").read_text(encoding="utf-8") == "Will replace the file"
 
     def test_export_for_testing(self, tmpdir: Path, simple_exporter: Exporter) -> None:
@@ -444,7 +444,7 @@ class TestExporterOnSimple:
         # check templates was resolved if needed (non here)
         assert (tmpdir / "export" / "task1" / "test.txt").read_text(
             encoding="utf-8"
-        ) == "Some TEMPLATE START\nHello\nTEMPLATE END\n"
+        ) == "Some SOLUTION BEGIN\nHello\nSOLUTION END\n"
         assert (tmpdir / "export" / "task2" / "test.txt").read_text(encoding="utf-8") == "Some"
         assert (tmpdir / "export" / "public_folder" / "file_in_public_folder").read_text(
             encoding="utf-8"
@@ -522,7 +522,7 @@ class _TestExporter:
         "group": {
             "task1": {
                 ".task.yml": "version: 1\nstructure:\n    private_patterns: []\n",
-                "test.txt": "TEMPLATE START\nHello\nTEMPLATE END\n",
+                "test.txt": "SOLUTION BEGIN\nHello\nSOLUTION END\n",
                 ".test.py": "print('Hello')\n",  # not private anymore, override
             },
             "task2": {
@@ -559,7 +559,7 @@ class _TestExporter:
         )
         generate_file_structure(
             {
-                "task1": {".task.yml": "version: 1\n", "test.txt": "TEMPLATE START\nHello\nTEMPLATE END\n"},
+                "task1": {".task.yml": "version: 1\n", "test.txt": "SOLUTION BEGIN\nHello\nSOLUTION END\n"},
                 "test.py": "print('Hello')\n",
             },
             root=Path(tmpdir / "repository"),
@@ -615,13 +615,13 @@ class _TestExporter:
     @pytest.mark.parametrize(
         "file_content",
         [
-            "TEM!PLATE START\nHello\nTEMPLATE END\n",
-            "TEMPLATE START\nHello\nTEMPL!ATE END\n",
+            "TEM!PLATE START\nHello\nSOLUTION END\n",
+            "SOLUTION BEGIN\nHello\nTEMPL!ATE END\n",
             "Hello\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE START\nHello\nTEMP!LATE END\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\n\nHello\nTEMPLATE END\n",
-            "TEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE START\nHello\n",
-            "TEMPLATE START\nTEMPLATE START\nHello\nTEMPLATE END\nTEMPLATE END",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION BEGIN\nHello\nTEMP!LATE END\n",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\n\nHello\nSOLUTION END\n",
+            "SOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION BEGIN\nHello\n",
+            "SOLUTION BEGIN\nSOLUTION BEGIN\nHello\nSOLUTION END\nSOLUTION END",
         ],
     )
     def test_validate_template_wrong_template_comments(

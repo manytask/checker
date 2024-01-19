@@ -18,9 +18,9 @@ class Exporter:
     """
 
     TEMPLATE_SUFFIX = ".template"
-    TEMPLATE_START_COMMENT = "TEMPLATE START"
-    TEMPLATE_END_COMMENT = "TEMPLATE END"
-    TEMPLATE_REPLACE_COMMENT = "TODO: Your code"
+    TEMPLATE_START_COMMENT = "SOLUTION BEGIN"
+    TEMPLATE_END_COMMENT = "SOLUTION END"
+    TEMPLATE_REPLACE_COMMENT = "TODO: Your solution"
     TEMPLATE_COMMENT_REGEX = re.compile(f"{TEMPLATE_START_COMMENT}(.*?){TEMPLATE_END_COMMENT}", re.DOTALL)
 
     def __init__(
@@ -94,7 +94,12 @@ class Exporter:
                 if potential_comments_file.is_dir():
                     continue
                 with potential_comments_file.open("r") as f:
-                    file_content = f.read()
+                    # skip binary files
+                    try:
+                        file_content = f.read()
+                    except UnicodeDecodeError:
+                        continue
+
                     # validate using regex and count matches of start and end comments
                     if self.TEMPLATE_START_COMMENT in file_content or self.TEMPLATE_END_COMMENT in file_content:
                         task_has_template_comments = True
