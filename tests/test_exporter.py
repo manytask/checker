@@ -59,7 +59,7 @@ class TestExporterOnSimple:
         )
 
     @pytest.fixture()
-    def simple_private_layout(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> Path:
+    def simple_private_folder(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> Path:
         layout = {
             "task1": {
                 ".task.yml": "version: 1\nstructure:\n    ignore_patterns: [extra_ignore_me]\n",
@@ -83,7 +83,7 @@ class TestExporterOnSimple:
         return Path(tmpdir / "repository")
 
     @pytest.fixture()
-    def simple_student_layout(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> Path:
+    def simple_student_folder(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> Path:
         layout = {
             "task1": {"test.txt": "Some Changes", "public_file.py": "print('Hello LOL this too')\n"},
             "task2": {"test.txt": "Student changed it"},
@@ -95,19 +95,23 @@ class TestExporterOnSimple:
         return Path(tmpdir / "student")
 
     @pytest.fixture()
+    def simple_export_folder(self, tmpdir: Path) -> Path:
+        return Path(tmpdir / "export")
+
+    @pytest.fixture()
     def simple_exporter(
         self,
         tmpdir: Path,
-        simple_private_layout: Path,
-        simple_student_layout: Path,
+        simple_private_folder: Path,
+        simple_student_folder: Path,
         simple_deadlines: DeadlinesConfig,
         simple_structure: CheckerStructureConfig,
         simple_export_config: CheckerExportConfig,
     ) -> Exporter:
         course = Course(
             deadlines=simple_deadlines,
-            repository_root=simple_student_layout,
-            reference_root=simple_private_layout,
+            repository_root=simple_student_folder,
+            reference_root=simple_private_folder,
         )
         return Exporter(
             course,
@@ -118,12 +122,14 @@ class TestExporterOnSimple:
     def test_simple_validate_ok(self, tmpdir: Path, simple_exporter: Exporter) -> None:
         simple_exporter.validate()
 
-    def test_simple_validate_mix_templates_in_task(self, tmpdir: Path, simple_exporter: Exporter) -> None:
+    def test_simple_validate_mix_templates_in_task(
+        self, tmpdir: Path, simple_exporter: Exporter, simple_private_folder: Path, simple_export_folder: Path
+    ) -> None:
         # add other time to existing tasks
-        Path(tmpdir / "repository" / "task1" / "new.txt").touch()
-        Path(tmpdir / "repository" / "task1" / "new.txt.template").touch()
-        Path(tmpdir / "repository" / "task2" / "new.txt").touch()
-        Path(tmpdir / "repository" / "task2" / "new.txt").write_text(
+        (simple_private_folder / "task1" / "new.txt").touch()
+        (simple_private_folder / "task1" / "new.txt.template").touch()
+        (simple_private_folder / "task2" / "new.txt").touch()
+        (simple_private_folder / "task2" / "new.txt").write_text(
             "Some\n SOLUTION BEGIN\nHello\nSOLUTION END\n", encoding="utf-8"
         )
 
@@ -134,12 +140,19 @@ class TestExporterOnSimple:
     @pytest.mark.parametrize(
         "template_type", [CheckerExportConfig.TemplateType.CREATE, CheckerExportConfig.TemplateType.SEARCH]
     )
-    def test_simple_validate_no_templates(self, tmpdir: Path, simple_exporter: Exporter, template_type: str) -> None:
+    def test_simple_validate_no_templates(
+        self,
+        tmpdir: Path,
+        simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+        template_type: str,
+    ) -> None:
         simple_exporter.export_config.templates = template_type
 
         # delete comment template, make wrong .template file
-        Path(tmpdir / "repository" / "task1" / "test.txt").write_text("Some\n")
-        Path(tmpdir / "repository" / "task2" / "not_original_file.txt.template").touch()
+        (simple_private_folder / "task1" / "test.txt").write_text("Some\n")
+        (simple_private_folder / "task2" / "not_original_file.txt.template").touch()
 
         with pytest.raises(BadStructure) as exc_info:
             simple_exporter.validate()
@@ -149,13 +162,18 @@ class TestExporterOnSimple:
         "template_type", [CheckerExportConfig.TemplateType.SEARCH, CheckerExportConfig.TemplateType.SEARCH_OR_CREATE]
     )
     def test_simple_validate_no_original_file_for_templates(
-        self, tmpdir: Path, simple_exporter: Exporter, template_type: str
+        self,
+        tmpdir: Path,
+        simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+        template_type: str,
     ) -> None:
         simple_exporter.export_config.templates = template_type
 
         # delete all templates files
-        Path(tmpdir / "repository" / "task1" / "test.txt").unlink()
-        Path(tmpdir / "repository" / "task1" / "test.txt.template").touch()
+        (simple_private_folder / "task1" / "test.txt").unlink()
+        (simple_private_folder / "task1" / "test.txt.template").touch()
 
         with pytest.raises(BadStructure) as exc_info:
             simple_exporter.validate()
@@ -186,13 +204,18 @@ class TestExporterOnSimple:
         ],
     )
     def test_simple_validate_wrong_template_comment(
-        self, tmpdir: Path, simple_exporter: Exporter, file_content: str
+        self,
+        tmpdir: Path,
+        simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+        file_content: str,
     ) -> None:
         simple_exporter.export_config.templates = CheckerExportConfig.TemplateType.CREATE
 
         # remove .template and write comment-style template
-        Path(tmpdir / "repository" / "task2" / "test.txt.template").unlink()
-        (tmpdir / "repository" / "task2" / "test.txt").write_text(file_content, encoding="utf-8")
+        (simple_private_folder / "task2" / "test.txt.template").unlink()
+        (simple_private_folder / "task2" / "test.txt").write_text(file_content, encoding="utf-8")
 
         with pytest.raises(BadStructure) as exc_info:
             simple_exporter.validate()
@@ -296,35 +319,45 @@ class TestExporterOnSimple:
         self,
         tmpdir: Path,
         simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
         copy_public: bool,
         copy_private: bool,
         copy_other: bool,
         expected_files: list[str],
         fill_templates: bool,
     ) -> None:
-        source = Path(tmpdir / "repository")
-        destination = Path(tmpdir / "export")
-
         simple_exporter._copy_files_with_config(
-            source, destination, simple_exporter.structure_config, copy_public, copy_private, copy_other, fill_templates
+            simple_private_folder,
+            simple_export_folder,
+            simple_exporter.structure_config,
+            copy_public,
+            copy_private,
+            copy_other,
+            fill_templates,
         )
 
-        assert_files_in_folder(destination, expected_files)
+        assert_files_in_folder(simple_export_folder, expected_files)
 
     @pytest.mark.parametrize("is_file", [True, False])
     def test_copy_files_with_config_empty_template(
-        self, tmpdir: Path, simple_exporter: Exporter, is_file: bool
+        self,
+        tmpdir: Path,
+        simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+        is_file: bool,
     ) -> None:
         # set .template as empty file/folder will delete original file
         if is_file:
-            Path(tmpdir / "repository" / "task2" / "test.txt.template").write_text("", encoding="utf-8")
+            (simple_private_folder / "task2" / "test.txt.template").write_text("", encoding="utf-8")
         else:
-            Path(tmpdir / "repository" / "task2" / "test.txt.template").unlink()
-            Path(tmpdir / "repository" / "task2" / "test.txt.template").mkdir()
+            (simple_private_folder / "task2" / "test.txt.template").unlink()
+            (simple_private_folder / "task2" / "test.txt.template").mkdir()
 
         simple_exporter._copy_files_with_config(
-            Path(tmpdir / "repository"),
-            Path(tmpdir / "export"),
+            simple_private_folder,
+            simple_export_folder,
             simple_exporter.structure_config,
             False,
             False,
@@ -332,37 +365,42 @@ class TestExporterOnSimple:
             True,
         )
 
-        assert_files_in_folder(Path(tmpdir / "export"), ["task1/test.txt", "just_file"])
+        assert_files_in_folder(simple_export_folder, ["task1/test.txt", "just_file"])
 
     @pytest.mark.parametrize("is_source_file", [True, False])
     @pytest.mark.parametrize("is_destination_file", [True, False])
     def test_copy_files_with_config_template_is_file_or_folder(
-        self, tmpdir: Path, simple_exporter: Exporter, is_source_file: bool, is_destination_file: bool
+        self,
+        tmpdir: Path,
+        simple_exporter: Exporter,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+        is_source_file: bool,
+        is_destination_file: bool,
     ) -> None:
-        repository = Path(tmpdir / "repository")
-        export = Path(tmpdir / "export")
-
         # delete original template
-        Path(repository / "task2" / "test.txt").unlink()
-        Path(repository / "task2" / "test.txt.template").unlink()
+        Path(simple_private_folder / "task2" / "test.txt").unlink()
+        Path(simple_private_folder / "task2" / "test.txt.template").unlink()
 
         # make template folder or file
         if is_source_file:
-            Path(repository / "task2" / "test.txt.template").write_text("NEW TEXT", encoding="utf-8")
+            Path(simple_private_folder / "task2" / "test.txt.template").write_text("NEW TEXT", encoding="utf-8")
         else:
-            Path(repository / "task2" / "test.txt.template").mkdir()
-            Path(repository / "task2" / "test.txt.template" / "new_file.txt").write_text("NEW TEXT", encoding="utf-8")
+            Path(simple_private_folder / "task2" / "test.txt.template").mkdir()
+            Path(simple_private_folder / "task2" / "test.txt.template" / "new_file.txt").write_text(
+                "NEW TEXT", encoding="utf-8"
+            )
 
         # make original folder or file
         if is_destination_file:
-            Path(repository / "task2" / "test.txt").write_text("OLD TEXT", encoding="utf-8")
+            Path(simple_private_folder / "task2" / "test.txt").write_text("OLD TEXT", encoding="utf-8")
         else:
-            Path(repository / "task2" / "test.txt").mkdir()
-            Path(repository / "task2" / "test.txt" / "old_file.txt").write_text("OLD TEXT", encoding="utf-8")
+            Path(simple_private_folder / "task2" / "test.txt").mkdir()
+            Path(simple_private_folder / "task2" / "test.txt" / "old_file.txt").write_text("OLD TEXT", encoding="utf-8")
 
         simple_exporter._copy_files_with_config(
-            repository,
-            export,
+            simple_private_folder,
+            simple_export_folder,
             simple_exporter.structure_config,
             False,
             False,
@@ -372,18 +410,22 @@ class TestExporterOnSimple:
 
         # regardless of original file - just copy there template
         if is_source_file:
-            assert (export / "task2" / "test.txt").is_file()
-            assert (export / "task2" / "test.txt").read_text(encoding="utf-8") == "NEW TEXT"
+            assert (simple_export_folder / "task2" / "test.txt").is_file()
+            assert (simple_export_folder / "task2" / "test.txt").read_text(encoding="utf-8") == "NEW TEXT"
         else:
-            assert (export / "task2" / "test.txt").is_dir()
-            assert (export / "task2" / "test.txt" / "new_file.txt").is_file()
-            assert (export / "task2" / "test.txt" / "new_file.txt").read_text(encoding="utf-8") == "NEW TEXT"
+            assert (simple_export_folder / "task2" / "test.txt").is_dir()
+            assert (simple_export_folder / "task2" / "test.txt" / "new_file.txt").is_file()
+            assert (simple_export_folder / "task2" / "test.txt" / "new_file.txt").read_text(
+                encoding="utf-8"
+            ) == "NEW TEXT"
 
-    def test_export_public(self, tmpdir: Path, simple_exporter: Exporter) -> None:
-        simple_exporter.export_public(Path(tmpdir / "export"))
+    def test_export_public(
+        self, tmpdir: Path, simple_exporter: Exporter, simple_private_folder: Path, simple_export_folder: Path
+    ) -> None:
+        simple_exporter.export_public(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 "task1/test.txt",
                 "task1/public_file.py",
@@ -394,14 +436,16 @@ class TestExporterOnSimple:
             ],
         )
         # check templates was resolved if needed (all here)
-        assert (tmpdir / "export" / "task1" / "test.txt").read_text(encoding="utf-8") == "Some TODO: Your solution\n"
-        assert (tmpdir / "export" / "task2" / "test.txt").read_text(encoding="utf-8") == "Will replace the file"
+        assert (simple_export_folder / "task1" / "test.txt").read_text(encoding="utf-8") == "Some TODO: Your solution\n"
+        assert (simple_export_folder / "task2" / "test.txt").read_text(encoding="utf-8") == "Will replace the file"
 
-    def test_export_for_testing(self, tmpdir: Path, simple_exporter: Exporter) -> None:
-        simple_exporter.export_for_testing(Path(tmpdir / "export"))
+    def test_export_for_testing(
+        self, tmpdir: Path, simple_exporter: Exporter, simple_private_folder: Path, simple_export_folder: Path
+    ) -> None:
+        simple_exporter.export_for_testing(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 "task1/.task.yml",
                 "task1/test.txt",
@@ -416,18 +460,20 @@ class TestExporterOnSimple:
             ],
         )
         # check templates was resolved if needed (non here)
-        assert (tmpdir / "export" / "task1" / "test.txt").read_text(encoding="utf-8") == "Some Changes"
-        assert (tmpdir / "export" / "task2" / "test.txt").read_text(encoding="utf-8") == "Student changed it"
-        assert (tmpdir / "export" / "just_file").read_text(encoding="utf-8") == "hey"
+        assert (simple_export_folder / "task1" / "test.txt").read_text(encoding="utf-8") == "Some Changes"
+        assert (simple_export_folder / "task2" / "test.txt").read_text(encoding="utf-8") == "Student changed it"
+        assert (simple_export_folder / "just_file").read_text(encoding="utf-8") == "hey"
         # overwritten to public tests
-        assert (tmpdir / "export" / "public_folder" / "file_in_public_folder").read_text(encoding="utf-8") == "file"
-        assert (tmpdir / "export" / "task1" / "public_file.py").read_text(encoding="utf-8") == "print('Hello')\n"
+        assert (simple_export_folder / "public_folder" / "file_in_public_folder").read_text(encoding="utf-8") == "file"
+        assert (simple_export_folder / "task1" / "public_file.py").read_text(encoding="utf-8") == "print('Hello')\n"
 
-    def test_export_for_contribution(self, tmpdir: Path, simple_exporter: Exporter) -> None:
-        simple_exporter.export_for_contribution(Path(tmpdir / "export"))
+    def test_export_for_contribution(
+        self, tmpdir: Path, simple_exporter: Exporter, simple_private_folder: Path, simple_export_folder: Path
+    ) -> None:
+        simple_exporter.export_for_contribution(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 "task1/.task.yml",
                 "task1/test.txt",
@@ -442,14 +488,14 @@ class TestExporterOnSimple:
             ],
         )
         # check templates was resolved if needed (non here)
-        assert (tmpdir / "export" / "task1" / "test.txt").read_text(
+        assert (simple_export_folder / "task1" / "test.txt").read_text(
             encoding="utf-8"
         ) == "Some SOLUTION BEGIN\nHello\nSOLUTION END\n"
-        assert (tmpdir / "export" / "task2" / "test.txt").read_text(encoding="utf-8") == "Some"
-        assert (tmpdir / "export" / "public_folder" / "file_in_public_folder").read_text(
+        assert (simple_export_folder / "task2" / "test.txt").read_text(encoding="utf-8") == "Some"
+        assert (simple_export_folder / "public_folder" / "file_in_public_folder").read_text(
             encoding="utf-8"
         ) == "try to change"
-        assert (tmpdir / "export" / "task1" / "public_file.py").read_text(
+        assert (simple_export_folder / "task1" / "public_file.py").read_text(
             encoding="utf-8"
         ) == "print('Hello LOL this too')\n"
 
@@ -551,7 +597,13 @@ class _TestExporter:
         "private.py": "print('Private')\n",
     }
 
-    def test_validate_ok_simple(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
+    def test_validate_ok_simple(
+        self,
+        tmpdir: Path,
+        generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+    ) -> None:
         structure_config = CheckerStructureConfig(
             ignore_patterns=[".gitignore"],
             private_patterns=[".*"],
@@ -562,7 +614,7 @@ class _TestExporter:
                 "task1": {".task.yml": "version: 1\n", "test.txt": "SOLUTION BEGIN\nHello\nSOLUTION END\n"},
                 "test.py": "print('Hello')\n",
             },
-            root=Path(tmpdir / "repository"),
+            root=simple_private_folder,
         )
         course = Course(
             deadlines=DeadlinesConfig(
@@ -579,13 +631,13 @@ class _TestExporter:
                     },
                 ],
             ),
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             structure_config,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
         exporter.validate()
 
@@ -593,19 +645,21 @@ class _TestExporter:
         self,
         tmpdir: Path,
         generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
         file_structure: dict[str, Any],
         expected_excluded_paths: list[str],
     ) -> None:
-        generate_file_structure(self.SAMPLE_TEST_FILES, root=Path(tmpdir / "repository"))
+        generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             self.SAMPLE_TEST_STRUCTURE_CONFIG,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
 
         generate_file_structure(file_structure, root=Path(tmpdir / "test_data"))
@@ -628,6 +682,8 @@ class _TestExporter:
         self,
         tmpdir: Path,
         generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
         file_content: str,
     ) -> None:
         structure_config = CheckerStructureConfig(
@@ -640,7 +696,7 @@ class _TestExporter:
                 "task1": {".task.yml": "version: 1\n", "test.txt": file_content},
                 "test.py": "print('Hello')\n",
             },
-            root=Path(tmpdir / "repository"),
+            root=simple_private_folder,
         )
         course = Course(
             deadlines=DeadlinesConfig(
@@ -657,19 +713,23 @@ class _TestExporter:
                     },
                 ],
             ),
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             structure_config,
             CheckerExportConfig(destination="https://example.com", templates="create"),
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
         with pytest.raises(BadStructure):
             exporter.validate()
 
     def test_validate_template_search_ok(
-        self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE
+        self,
+        tmpdir: Path,
+        generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
     ) -> None:
         structure_config = CheckerStructureConfig(
             ignore_patterns=[".gitignore"],
@@ -681,38 +741,44 @@ class _TestExporter:
                 "folder": {"test.txt.template": "Hello\n"},
                 "test.py": "print('Hello')\n",
             },
-            root=Path(tmpdir / "repository"),
+            root=simple_private_folder,
         )
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             structure_config,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
 
         exporter.validate()
 
-    def test_export_public(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
-        generate_file_structure(self.SAMPLE_TEST_FILES, root=Path(tmpdir / "repository"))
+    def test_export_public(
+        self,
+        tmpdir: Path,
+        generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+    ) -> None:
+        generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             self.SAMPLE_TEST_STRUCTURE_CONFIG,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
 
-        exporter.export_public(Path(tmpdir / "export"))
+        exporter.export_public(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 "folder/test.txt",
                 "folder/folder/test.txt",
@@ -729,23 +795,29 @@ class _TestExporter:
             ],
         )
 
-    def test_export_for_testing(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
-        generate_file_structure(self.SAMPLE_TEST_FILES, root=Path(tmpdir / "repository"))
+    def test_export_for_testing(
+        self,
+        tmpdir: Path,
+        generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+    ) -> None:
+        generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             self.SAMPLE_TEST_STRUCTURE_CONFIG,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
 
-        exporter.export_for_testing(Path(tmpdir / "export"))
+        exporter.export_for_testing(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 ".private_folder/test.txt",
                 ".private_folder/folder/.test.py",
@@ -774,23 +846,29 @@ class _TestExporter:
             ],
         )
 
-    def test_export_for_contribution(self, tmpdir: Path, generate_file_structure: T_GENERATE_FILE_STRUCTURE) -> None:
-        generate_file_structure(self.SAMPLE_TEST_FILES, root=Path(tmpdir / "repository"))
+    def test_export_for_contribution(
+        self,
+        tmpdir: Path,
+        generate_file_structure: T_GENERATE_FILE_STRUCTURE,
+        simple_private_folder: Path,
+        simple_export_folder: Path,
+    ) -> None:
+        generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
             deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
-            repository_root=Path(tmpdir / "repository"),
+            repository_root=simple_private_folder,
         )
         exporter = Exporter(
             course,
             self.SAMPLE_TEST_STRUCTURE_CONFIG,
             self.SAMPLE_EXPORT_CONFIG,
-            Path(tmpdir / "repository"),
+            simple_private_folder,
         )
 
-        exporter.export_for_contribution(Path(tmpdir / "export"))
+        exporter.export_for_contribution(simple_export_folder)
 
         assert_files_in_folder(
-            Path(tmpdir / "export").resolve(),
+            simple_export_folder.resolve(),
             [
                 ".private_folder/test.txt",
                 ".private_folder/folder/.test.py",
