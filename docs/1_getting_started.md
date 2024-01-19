@@ -41,7 +41,7 @@ Here's a detailed breakdown:
 ```yaml
 group_1/
     task_1/
-      .template/  # optional, can extract from solution files
+      [solution files].template  # file or folder, if set templates="search" in .checker.yml
         [some files]
       [gold solution files]
       [some private tests]
@@ -59,9 +59,11 @@ group_2/
 .deadlines.yml  # deadlines config with task scores to send to manytask
 ```
 
-
 !!! warning  
     Groups and tasks names have to be unique.
+
+!!! warning  
+    You have to provide solution templates for each task. Please refer to [Templates](#templates) section for more details.
 
 !!! note  
     By default ".*" files are considered as private and not copied to public repo, but you can change it in the config.
@@ -69,7 +71,53 @@ group_2/
 Additionally, you can have any files in like `group_1/.lecture` folder or `tools/my_course_tools` folder.  
 Also, probably you want to have `.docker` file with your test environment and `.gitlab-ci-students.yml` file to run tests in CI.
 
+
 After [Configuration](#configuration), you can validate your layout with `checker validate` command.
+
+## Templates
+
+The aim of the checker to provide as close as possible environment for students and teachers to test solutions.  
+That's why we have templates. Teachers store the gold solution file the same place the student will and template applied only when exporting repo for students.
+
+You have to provide solution templates for each task. You have 3 options to setup in `.checker.yml` (see [Configuration](#configuration) for details):
+
+* `templates: "search"` - checker will search for files or folders with `.template` extension in the task directory and use them as templates.  
+    Original file/folder will be deleted and replaced with a template (`.template` extension will be removed).  
+    For example, if you have `task_1/solution.py.template` file, checker will use it as a template to replace gold solution `task_1/solution.py` file.  
+    This is the default option.
+    
+    If you have an empty file/folder with `.template` extension, checker will just delete original file/folder.
+
+* `templates: "create"` - checker will search for the template comments in your gold solution and will delete everything except the template.  
+    For example, if you have `task_1/solution.py` file with a pair of comments `BEGIN SOLUTION` and `END SOLUTION`:
+    ```python
+    a = 1
+    # BEGIN SOLUTION
+    print(a)
+    # END SOLUTION
+    b = a + 1
+    # BEGIN SOLUTION
+    print(b)
+    # END SOLUTION
+    ```
+    When exporting to public checker will replace it with `TODO: Your solution`:
+    ```python
+    a = 1
+    # TODO: Your solution
+    b = a + 1
+    # TODO: Your solution
+    ```
+    Note: You can have multiple templates in one file.  
+    Note2: If you write both `BEGIN SOLUTION` and `END SOLUTION` as comments, resulting `TODO: Your solution` will be a comment as well.
+    
+    If after templating the file is empty, checker will delete it.
+  
+* `templates: "search_or_create" - checker will try to use `search` and if it fails, it will use `create`.  
+   You CAN NOT have 2 types of templating in the same task, but can use any of them in different tasks.  
+    
+
+!!! warning  
+    Each task have to have at least one template file or folder.
 
 
 ## Testing environment
