@@ -91,7 +91,6 @@ def validate(
             course,
             checker_config.structure,
             checker_config.export,
-            root,
             verbose=True,
             dry_run=True,
         )
@@ -190,7 +189,6 @@ def check(
         course,
         checker_config.structure,
         checker_config.export,
-        root,
         verbose=True,
         cleanup=not no_clean,
         dry_run=dry_run,
@@ -280,7 +278,6 @@ def grade(
         course,
         checker_config.structure,
         checker_config.export,
-        root,
         verbose=False,
         cleanup=not no_clean,
         dry_run=dry_run,
@@ -338,7 +335,6 @@ def export(
         course,
         checker_config.structure,
         checker_config.export,
-        reference_root,
         verbose=True,
         dry_run=dry_run,
     )

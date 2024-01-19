@@ -41,8 +41,35 @@ class CheckerParametersConfig(RootModel[dict[str, TParamType]]):
 
 class CheckerExportConfig(CustomBaseModel):
     class TemplateType(Enum):
+        """Template type for export for each task.
+
+        :ivar SEARCH: search for files/folder with name `some_file.template` and override `some_file` with it.
+            If `some_file.template` is empty file/folder it will delete `some_file`.
+            For ALL `some_file.template` files original `some_file` HAVE TO exist.
+            At least one `some_file.template` HAVE TO exist for each task.
+        :ivar CREATE: for all files in the repo search for template comments and delete all code between them.
+            For example:
+            ```python
+            a = 1
+            # TEMPLATE START
+            a = 2
+            # TEMPLATE END
+            b = 3
+            ```
+            will be converted to:
+            ```python
+            a = 1
+            # TODO: Your code
+            b = 3
+            ```
+            Delete file if it is empty after template comments deletion.
+            Each task HAVE to contain at least one template comment pair.
+        :ivar SEARCH_OR_CREATE: try to search for files/folder with name `some_file.template`
+            if not found try to create it using template comments.
+        """
         SEARCH = "search"
         CREATE = "create"
+        SEARCH_OR_CREATE = "search_or_create"
 
     destination: AnyUrl
     default_branch: str = "main"

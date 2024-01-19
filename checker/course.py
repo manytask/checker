@@ -49,9 +49,9 @@ class Course:
         self.reference_root = reference_root or repository_root
 
         self.potential_groups = {
-            group.name: group for group in self._search_for_groups_by_configs(self.repository_root)
+            group.name: group for group in self._search_for_groups_by_configs(self.reference_root)
         }
-        self.potential_tasks = {task.name: task for task in self._search_for_tasks_by_configs(self.repository_root)}
+        self.potential_tasks = {task.name: task for task in self._search_for_tasks_by_configs(self.reference_root)}
 
     def validate(self) -> None:
         # check all groups and tasks mentioned in deadlines exists
@@ -63,7 +63,7 @@ class Course:
         deadlines_tasks = self.deadlines.get_tasks(enabled=True)
         for deadlines_task in deadlines_tasks:
             if deadlines_task.name not in self.potential_tasks:
-                raise BadConfig(f"Task {deadlines_task.name} of not found in repository")
+                raise BadConfig(f"Task {deadlines_task.name} not found in repository")
 
     def get_groups(
         self,
@@ -97,7 +97,7 @@ class Course:
             relative_task_path = task_config_path.parent.relative_to(root)
 
             # if empty file - use default
-            if task_config_path.read_text().strip() == "" or task_config_path.read_text().strip() == "\n":
+            if task_config_path.read_text().strip() == "":
                 task_config = CheckerSubConfig.default()
             # if any content - read yml
             else:
