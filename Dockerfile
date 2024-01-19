@@ -31,8 +31,9 @@ FROM python:${PYTHON_VERSION}-alpine
 
 WORKDIR /usr/src/app
 
-# Install git
-RUN apk update && apk add --no-cache git
+# Install additional tools
+RUN apk update && apk add --no-cache \
+    git
 
 # Copy python dependencies
 COPY --from=builder /opt/checker-venv /opt/checker-venv
