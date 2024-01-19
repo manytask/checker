@@ -28,6 +28,7 @@ def in_home(path: str) -> Path:
     return HOME.joinpath(path)
 
 
+@pytest.mark.firejail
 class TestSafeRunScriptPlugin:
     @pytest.mark.parametrize(
         "parameters, expected_exception",
