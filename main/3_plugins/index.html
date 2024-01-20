@@ -612,6 +612,75 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="How to use plugins">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.scripts.RunScriptPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.firejail.SafeRunScriptPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.regex.CheckRegexpsPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.aggregate.AggregatePlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.manytask.ManytaskPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -832,6 +901,75 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="How to use plugins">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.scripts.RunScriptPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.firejail.SafeRunScriptPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.regex.CheckRegexpsPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.aggregate.AggregatePlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.manytask.ManytaskPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args" class="md-nav__link">
+    <span class="md-ellipsis">
+      Args
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -865,6 +1003,23 @@
 <p>This page describes how to use and write plugins for checker pipelines.</p>
 <p>You can refer to the <a href="https://github.com/manytask/course-template">course-template</a> repository for examples of plugins usage and custom plugins development.</p>
 <h2 id="what-is-the-plugin">What is the Plugin</h2>
+<div class="language-yaml highlight"><pre><span></span><code><span class="w">  </span><span class="nt">tasks_pipeline</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Check</span><span class="nv"> </span><span class="s">forbidden</span><span class="nv"> </span><span class="s">regexps&quot;</span>
+<span class="w">      </span><span class="nt">fail</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fast</span><span class="w">  </span><span class="c1"># fast, after_all, never</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;check_regexps&quot;</span>
+<span class="w">      </span><span class="nt">args</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;${{</span><span class="nv"> </span><span class="s">global.temp_dir</span><span class="nv"> </span><span class="s">}}/${{</span><span class="nv"> </span><span class="s">task.task_sub_path</span><span class="nv"> </span><span class="s">}}&quot;</span>
+<span class="w">        </span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;**/*.py&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">regexps</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;exit(0)&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Run</span><span class="nv"> </span><span class="s">linter&quot;</span>
+<span class="w">      </span><span class="nt">run_if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ parameters.run_linting }}</span>
+<span class="w">      </span><span class="nt">fail</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">after_all</span><span class="w">  </span><span class="c1"># fast, after_all, never</span>
+<span class="w">      </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;run_script&quot;</span>
+<span class="w">      </span><span class="nt">args</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">origin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ global.temp_dir }}</span>
+<span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;python</span><span class="nv"> </span><span class="s">-m</span><span class="nv"> </span><span class="s">ruff</span><span class="nv"> </span><span class="s">--config=pyproject.toml</span><span class="nv"> </span><span class="s">${{</span><span class="nv"> </span><span class="s">task.task_sub_path</span><span class="nv"> </span><span class="s">}}&quot;</span>
+</code></pre></div>
 <p>Plugin is a single stage of the pipeline, have arguments, return exclusion result. 
 In a nutshell, it is a Python class overriding abstract class <code>checker.plugins.PluginABC</code>:</p>
 <blockquote>
@@ -1311,8 +1466,370 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 </div>
 <h2 id="how-to-use-plugins">How to use plugins</h2>
 <p>Plugins are used in the pipelines described in <code>.checker.yml</code> file. When running a pipeline the checker will validate plugin arguments and run it.</p>
-<p>The following plugins are available out of the box:</p>
-<p>TBA</p>
+<p>The following plugins are available out of the box, here is the list with their arguments:</p>
+<ul>
+<li>
+<p><code>run_script</code> - execute any script with given arguments  </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.scripts.RunScriptPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/scripts.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">script</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+    <span class="n">env_whitelist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>safe_run_script</code> - execute script withing firejail sandbox </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.firejail.SafeRunScriptPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.scripts.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/firejail.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">script</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+
+    <span class="n">env_whitelist</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">paths_whitelist</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">lock_network</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">allow_fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>check_regexps</code> - error if given regexps are found in the files  </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.regex.CheckRegexpsPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/regex.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">regexps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>aggregate</code> - aggregate results of other plugins (e.g. sum/mean/mul scores)  </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.aggregate.AggregatePlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/aggregate.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">scores</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+    <span class="n">strategy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;product&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>report_score_manytask</code> - report score to manytask  </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.manytask.ManytaskPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/manytask.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
+    <span class="n">patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">]</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">task_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># TODO: validate score is in [0, 1] (bonus score is higher than 1)</span>
+    <span class="n">report_url</span><span class="p">:</span> <span class="n">AnyUrl</span>
+    <span class="n">report_token</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">check_deadline</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">send_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">astimezone</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>check_gitlab_merge_request</code> - [WIP] check gitlab MR is valid (no conflicts, no extra files, has label etc.)</p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">task_dir</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">repo_url</span><span class="p">:</span> <span class="n">AnyUrl</span>
+    <span class="n">requre_approval</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">search_for_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+<li>
+<p><code>collect_score_gitlab_merge_request</code> - [WIP] search for score by tutor in gitlab MR comment    </p>
+<blockquote>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
+    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">task_dir</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">repo_url</span><span class="p">:</span> <span class="n">AnyUrl</span>
+    <span class="n">requre_approval</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">search_for_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div></blockquote>
+</li>
+</ul>
 <h2 id="how-to-write-a-custom-plugin">How to write a custom plugin</h2>
 <p>To write a custom plugin you need to create a class inheriting from <code>checker.plugins.PluginABC</code> and override <code>_run</code> method, <code>Args</code> inner class and set <code>name</code> class attribute.</p>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
