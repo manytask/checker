@@ -7,6 +7,25 @@ You can refer to the [course-template](https://github.com/manytask/course-templa
 
 ## What is the Plugin
 
+```yaml
+  tasks_pipeline:
+    - name: "Check forbidden regexps"
+      fail: fast  # fast, after_all, never
+      run: "check_regexps"
+      args:
+        origin: "${{ global.temp_dir }}/${{ task.task_sub_path }}"
+        patterns: ["**/*.py"]
+        regexps: ["exit(0)"]
+
+    - name: "Run linter"
+      run_if: ${{ parameters.run_linting }}
+      fail: after_all  # fast, after_all, never
+      run: "run_script"
+      args:
+        origin: ${{ global.temp_dir }}
+        script: "python -m ruff --config=pyproject.toml ${{ task.task_sub_path }}"
+```
+
 Plugin is a single stage of the pipeline, have arguments, return exclusion result. 
 In a nutshell, it is a Python class overriding abstract class `checker.plugins.PluginABC`:
 
@@ -33,9 +52,37 @@ In case of error, `checker.exceptions.PluginExecutionFailed` have to be raised.
 
 Plugins are used in the pipelines described in `.checker.yml` file. When running a pipeline the checker will validate plugin arguments and run it.
 
-The following plugins are available out of the box:
+The following plugins are available out of the box, here is the list with their arguments:
 
-TBA
+
+* `run_script` - execute any script with given arguments  
+
+    > ::: checker.plugins.scripts.RunScriptPlugin.Args
+
+* `safe_run_script` - execute script withing firejail sandbox 
+
+    > ::: checker.plugins.firejail.SafeRunScriptPlugin.Args
+
+* `check_regexps` - error if given regexps are found in the files  
+
+    > ::: checker.plugins.regex.CheckRegexpsPlugin.Args
+
+* `aggregate` - aggregate results of other plugins (e.g. sum/mean/mul scores)  
+
+    > ::: checker.plugins.aggregate.AggregatePlugin.Args
+
+* `report_score_manytask` - report score to manytask  
+
+    > ::: checker.plugins.manytask.ManytaskPlugin.Args
+
+* `check_gitlab_merge_request` - [WIP] check gitlab MR is valid (no conflicts, no extra files, has label etc.)
+
+    > ::: checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args
+
+* `collect_score_gitlab_merge_request` - [WIP] search for score by tutor in gitlab MR comment    
+
+    > ::: checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args
+
 
 [//]: # (::: checker.plugins)
 
