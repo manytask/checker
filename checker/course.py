@@ -140,14 +140,15 @@ class Course:
         Detects changes in the repository based on the provided detection type.
 
         :param detection_type: detection type, see CheckerTestingConfig.ChangesDetectionType
-            - BRANCH_NAME: task name == branch name (single task)
-            - COMMIT_MESSAGE: task name in commit message (can be multiple tasks)
+            - BRANCH_NAME: task name == branch name (single task/group)
+            - COMMIT_MESSAGE: task name in commit message (can be multiple tasks/groups)
             - LAST_COMMIT_CHANGES: task relative path in last commit changes (can be multiple tasks)
         :return: list of changed tasks
         :raises CheckerException: if repository is not a git repository
         """
         print_info(f"Detecting changes by {detection_type}")
         potential_tasks = self.get_tasks(enabled=True)
+        enabled_groups = self.deadlines.get_groups(enabled=True)  # 'cause we want to check no-folder groups as well
 
         try:
             repo = git.Repo(self.repository_root)
@@ -158,10 +159,20 @@ class Course:
             branch_name = repo.active_branch.name
             print_info(f"Branch name: {branch_name}", color="grey")
 
+            # try to get groups first
+            changed_enabled_groups = [group for group in enabled_groups if group.name == branch_name]
+            if changed_enabled_groups:
+                print_info(f"Changed groups: {changed_enabled_groups} (branch name == group name)", color="grey")
+                changed_enabled_tasks_names = {task.name for group in changed_enabled_groups for task in group.tasks}
+                changed_tasks = [task for task in potential_tasks if task.name in changed_enabled_tasks_names]
+                print_info(f"Changed tasks: {changed_tasks} (branch name == group name)", color="grey")
+                return changed_tasks
+
+            # if no groups found, try to get tasks
             changed_tasks = [task for task in potential_tasks if task.name == branch_name]
-            print_info(f"Changed tasks: {changed_tasks} (task name == branch name)", color="grey")
+            print_info(f"Changed tasks: {changed_tasks} (branch name == task/group name)", color="grey")
             if not changed_tasks:
-                warnings.warn(f"No active tasks found for branch {branch_name}")
+                print_info(f"No active task/group found for branch {branch_name}", color="yellow")
 
             return changed_tasks
 
@@ -171,10 +182,20 @@ class Course:
                 commit_message = commit_message.decode("utf-8")
             print_info(f"Commit message: {commit_message}", color="grey")
 
+            # try to get groups first
+            changed_enabled_groups = [group for group in enabled_groups if group.name in commit_message]
+            if changed_enabled_groups:
+                print_info(f"Changed groups: {changed_enabled_groups} (group name in commit message)", color="grey")
+                changed_enabled_tasks_names = {task.name for group in changed_enabled_groups for task in group.tasks}
+                changed_tasks = [task for task in potential_tasks if task.name in changed_enabled_tasks_names]
+                print_info(f"Changed tasks: {changed_tasks} (group name in commit message)", color="grey")
+                return changed_tasks
+
+            # if no groups found, try to get tasks
             changed_tasks = [task for task in potential_tasks if task.name in commit_message]
             print_info(f"Changed tasks: {changed_tasks} (task name in commit message)", color="grey")
             if not changed_tasks:
-                warnings.warn(f"No active tasks found for commit message {commit_message}")
+                print_info(f"No active tasks/groups found for commit message {commit_message}", color="yellow")
 
             return changed_tasks
 

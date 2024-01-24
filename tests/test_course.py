@@ -194,6 +194,13 @@ class TestCourse:
             ("not_a_task", ["group2/task2_1/file2_1_1"], []),
             ("root_task_1", ["root_task_1/file1"], ["root_task_1"]),
             ("root_task_1", [], ["root_task_1"]),
+            # group names
+            ("group1", ["group1/task1_1/file1_1_1"], ["task1_1", "task1_2"]),
+            ("group1", ["group2/task2_1/file1_1_1"], ["task1_1", "task1_2"]),
+            ("group1", [], ["task1_1", "task1_2"]),
+            ("group2", ["group2/task2_1/file1_1_1"], []),  # not enabled
+            ("group3", ["group1/task1_1/file1_1_1"], []),  # empty group
+            ("group_without_folder", [], ["root_task_1"]),
         ],
     )
     def test_detect_changes_by_branch_name(
@@ -242,6 +249,13 @@ class TestCourse:
             ),
             ("commit root_task_1", [], ["root_task_1"]),
             ("commit root_task_1 and some more", [], ["root_task_1"]),
+            # group names
+            ("commit with group1 group1 group1 group1", ["group1/task1_1/file1_1_1"], ["task1_1", "task1_2"]),
+            ("commit with group1", ["group2/task2_1/file1_1_1"], ["task1_1", "task1_2"]),
+            ("my solutions for group1 and group_without_folder", [], ["task1_1", "task1_2", "root_task_1"]),
+            ("group2 and group22", ["group2/task2_1/file1_1_1"], []),  # not enabled
+            ("group3", ["group1/task1_1/file1_1_1"], []),  # empty group
+            ("group_without_folder", [], ["root_task_1"]),
         ],
     )
     def test_detect_changes_by_commit_message(

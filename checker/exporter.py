@@ -206,8 +206,14 @@ class Exporter:
         target.mkdir(parents=True, exist_ok=True)
 
         disabled_groups_and_tasks_to_skip = [
-            *[str(Path(group.relative_path).relative_to(self.reference_root)) for group in self.course.get_groups(enabled=False)],
-            *[str(Path(task.relative_path).relative_to(self.reference_root)) for task in self.course.get_tasks(enabled=False)],
+            *[
+                str(Path(group.relative_path).relative_to(self.reference_root))
+                for group in self.course.get_groups(enabled=False)
+            ],
+            *[
+                str(Path(task.relative_path).relative_to(self.reference_root))
+                for task in self.course.get_tasks(enabled=False)
+            ],
         ]
 
         print(f"Copy from {self.reference_root} to {target}")
@@ -355,9 +361,7 @@ class Exporter:
             if config.public_patterns and any(path.match(public_pattern) for public_pattern in config.public_patterns):
                 is_public = True
                 if not copy_public:
-                    print(
-                        f"    - Skip <{path.relative_to(global_root)}> because of public patterns skip"
-                    )
+                    print(f"    - Skip <{path.relative_to(global_root)}> because of public patterns skip")
                     continue
 
             # If matches private patterns AND copy_private is False - skip
@@ -370,9 +374,7 @@ class Exporter:
             ):
                 is_private = True
                 if not copy_private:
-                    print(
-                        f"    - Skip <{path.relative_to(global_root)}> because of skip private patterns skip"
-                    )
+                    print(f"    - Skip <{path.relative_to(global_root)}> because of skip private patterns skip")
                     continue
 
             # if not match public and not match private and copy_other is False - skip

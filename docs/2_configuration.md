@@ -71,8 +71,8 @@ testing:
 !!! note  
     `changes_detection` parameter select how to detect changes in the repo during testing (`checker grade` command).  
     It can be one of the following:
-    * `branch_name` - check if the branch name == task name (select only one task)
-    * `commit_message` - check if the commit message contains task name (can select multiple tasks)
+    * `branch_name` - check if the branch name == task/group name (select only one task/group)
+    * `commit_message` - check if the commit message contains task/group name (can select multiple tasks/groups)
     * `last_commit_changes` - check if the last commit contains changes in the task folder (can select multiple tasks)
     * `files` - (NOT IMPLEMENTED) check actual file difference between current state and the previous commit (can select multiple tasks)
 
