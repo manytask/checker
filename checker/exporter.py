@@ -205,6 +205,11 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
+        disabled_groups_and_tasks_to_skip = [
+            *[str(Path(group.relative_path).relative_to(self.reference_root)) for group in self.course.get_groups(enabled=False)],
+            *[str(Path(task.relative_path).relative_to(self.reference_root)) for task in self.course.get_tasks(enabled=False)],
+        ]
+
         print(f"Copy from {self.reference_root} to {target}")
         self._copy_files_with_config(
             self.reference_root,
@@ -214,6 +219,7 @@ class Exporter:
             copy_private=False,
             copy_other=True,
             fill_templates=True,
+            extra_ignore_paths=disabled_groups_and_tasks_to_skip,
         )
 
     def export_for_testing(
@@ -281,6 +287,7 @@ class Exporter:
         copy_private: bool,
         copy_other: bool,
         fill_templates: bool,
+        extra_ignore_paths: list[str] | None = None,
         global_root: Path | None = None,
         global_destination: Path | None = None,
     ) -> None:
@@ -295,6 +302,7 @@ class Exporter:
         :param copy_private: Copy private files
         :param copy_other: Copy other - not public and not private files
         :param fill_templates: Fill templates (`.template` or template comments), if false will delete them
+        :param extra_ignore_paths: Extra paths to ignore to skip not-enables groups/tasks, relative to `global_root`
         :param global_root: Starting root directory
         :param global_destination: Starting destination directory
         """
@@ -305,6 +313,11 @@ class Exporter:
 
         print(f"Copy files from <{root.relative_to(global_root)}> to <{destination.relative_to(global_destination)}>")
         print(f"  {config=}")
+
+        if extra_ignore_paths is not None:
+            if str(root.relative_to(global_root)) in extra_ignore_paths:
+                print(f"    - Skip <{root.relative_to(global_root)}> because of extra ignore paths")
+                return
 
         # select paths to ignore - original to replace or templates to ignore
         exclude_paths = self._search_for_exclude_due_to_templates(root, not fill_templates)
@@ -334,7 +347,7 @@ class Exporter:
 
             # ignore if match ignore patterns
             if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
-                print(f"    - Skip <{path.relative_to(global_root)}> because ignore patterns={config.ignore_patterns}")
+                print(f"    - Skip <{path.relative_to(global_root)}> because of ignore patterns")
                 continue
 
             # If matches public patterns AND copy_public is False - skip
@@ -343,8 +356,7 @@ class Exporter:
                 is_public = True
                 if not copy_public:
                     print(
-                        f"    - Skip <{path.relative_to(global_root)}> because skip "
-                        f"public_patterns={config.public_patterns}"
+                        f"    - Skip <{path.relative_to(global_root)}> because of public patterns skip"
                     )
                     continue
 
@@ -359,8 +371,7 @@ class Exporter:
                 is_private = True
                 if not copy_private:
                     print(
-                        f"    - Skip <{path.relative_to(global_root)}> because skip "
-                        f"private_patterns={config.private_patterns}"
+                        f"    - Skip <{path.relative_to(global_root)}> because of skip private patterns skip"
                     )
                     continue
 
@@ -368,7 +379,7 @@ class Exporter:
             # Note: never skip "other" directories, look inside them first
             if not is_public and not is_private and not path.is_dir():
                 if not copy_other:
-                    print(f"    - Skip <{path.relative_to(global_root)}> because copy other files not enabled")
+                    print(f"    - Skip <{path.relative_to(global_root)}> because of copy other files not enabled")
                     continue
 
             # if file is empty file/folder - just do not copy (delete original file due to exclude_paths)
@@ -402,6 +413,7 @@ class Exporter:
                         copy_private=True,
                         copy_other=True,
                         fill_templates=fill_templates,
+                        extra_ignore_paths=extra_ignore_paths,
                         global_root=global_root,
                         global_destination=global_destination,
                     )
@@ -441,6 +453,7 @@ class Exporter:
                     copy_private,
                     copy_other,
                     fill_templates,
+                    extra_ignore_paths,
                     global_root=global_root,
                     global_destination=global_destination,
                 )

@@ -207,7 +207,8 @@ class Tester:
                     else:
                         print_info("->Reporting failed")
                 else:
-                    print_info("->Reporting disabled")
+                    _: PipelineResult = self.report_pipeline.run(context, dry_run=True)
+                    print_info("->Reporting disabled (dry-run)")
                 print_separator("-")
             else:
                 failed_tasks.append(task.name)
