@@ -188,6 +188,10 @@ class Exporter:
             for potential_comments_file in root.glob("*"):
                 if potential_comments_file.is_dir():
                     continue
+                try:
+                    open(potential_comments_file, "r").read()
+                except UnicodeDecodeError:
+                    continue
                 with potential_comments_file.open("r") as f:
                     file_content = f.read().strip()
                     if file_content.startswith(self.TEMPLATE_START_COMMENT) and file_content.endswith(
@@ -331,13 +335,22 @@ class Exporter:
         # Iterate over all files in the root directory
         for path in root.iterdir():
             path_destination = destination / path.relative_to(root)
+            # check if byte file
+            is_text_file = False
+            try:
+                if path.is_file():
+                    open(path, "r").read()
+                    is_text_file = True
+            except UnicodeDecodeError:
+                pass
             # check if file template
             is_path_template_file = (
                 self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH
                 or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
             ) and path.name.endswith(self.TEMPLATE_SUFFIX)
             is_path_template_comment = (
-                (
+                is_text_file
+                and (
                     self.export_config.templates == CheckerExportConfig.TemplateType.CREATE
                     or self.export_config.templates == CheckerExportConfig.TemplateType.SEARCH_OR_CREATE
                 )
