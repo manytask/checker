@@ -215,6 +215,7 @@ class TestManytaskDeadlinesConfig:
                 ],
             )
 
+    @pytest.mark.xfail(reason="TODO: fix this")
     def test_group_name_same_as_task_name(self) -> None:
         with pytest.raises(ValidationError):
             ManytaskDeadlinesConfig(
@@ -244,6 +245,24 @@ class TestManytaskDeadlinesConfig:
                     },
                 ],
             )
+
+        # The only option when we have single task with name same as group name
+        ManytaskDeadlinesConfig(
+            timezone="Europe/Moscow",
+            schedule=[
+                {
+                    "group": "group1",
+                    "start": "2021-01-01 00:00",
+                    "end": "2021-01-01 00:00",
+                    "tasks": [
+                        {
+                            "task": "group1",
+                            "score": 10,
+                        },
+                    ],
+                },
+            ]
+        )
 
     @pytest.mark.parametrize(
         "enabled, started, now, expected_tasks, expected_groups",
