@@ -26,10 +26,10 @@ class DeadlinesSettingsConfig(CustomBaseModel):
 
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
     deadlines: DeadlinesType = DeadlinesType.HARD
-    max_submissions: Optional[int] = None
+    max_submissions: int | None = None
     submission_penalty: float = 0
 
-    task_url: Optional[AnyUrl] = None  # $GROUP_NAME $TASK_NAME vars are available
+    task_url: AnyUrl | None = None  # $GROUP_NAME $TASK_NAME vars are available
 
     @field_validator("task_url")
     @classmethod
