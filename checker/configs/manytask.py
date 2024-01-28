@@ -27,7 +27,7 @@ class ManytaskSettingsConfig(CustomBaseModel):
 
 class ManytaskUiConfig(CustomBaseModel):
     task_url_template: str  # $GROUP_NAME $TASK_NAME vars are available
-    links: dict[str, str] | None = None
+    links: Optional[dict[str, str]] = None  # pedantic 3.9 require Optional, not | None
 
 
 class ManytaskDeadlinesType(Enum):
