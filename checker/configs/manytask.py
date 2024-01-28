@@ -125,11 +125,21 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
 
     schedule: list[ManytaskGroupConfig]  # list of groups with tasks
 
+    def get_now_with_timezone(self) -> datetime:
+        return datetime.now(tz=ZoneInfo(self.timezone))
+
     @field_validator("max_submissions")
     @classmethod
     def check_max_submissions(cls, data: int | None) -> int | None:
         if data is not None and data <= 0:
             raise ValueError("max_submissions should be positive")
+        return data
+
+    @field_validator("submission_penalty")
+    @classmethod
+    def check_submission_penalty(cls, data: float) -> float:
+        if data < 0:
+            raise ValueError("submission_penalty should be non-negative")
         return data
 
     @field_validator("timezone")
@@ -143,20 +153,27 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
 
     @field_validator("schedule")
     @classmethod
-    def check_group_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
-        groups = [group.name for group in data]
-        duplicates = [name for name in groups if groups.count(name) > 1]
-        if duplicates:
-            raise ValueError(f"Group names should be unique, duplicates: {duplicates}")
-        return data
-
-    @field_validator("schedule")
-    @classmethod
-    def check_task_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
+    def check_group_task_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
+        group_names = [group.name for group in data]
         tasks_names = [task.name for group in data for task in group.tasks]
-        duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
-        if duplicates:
-            raise ValueError(f"Task names should be unique, duplicates: {duplicates}")
+
+        # group names unique
+        group_names_duplicates = [name for name in group_names if group_names.count(name) > 1]
+        if group_names_duplicates:
+            raise ValueError(f"Group names should be unique, duplicates: {group_names_duplicates}")
+
+        # task names unique
+        tasks_names_duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
+        if tasks_names_duplicates:
+            raise ValueError(f"Task names should be unique, duplicates: {tasks_names_duplicates}")
+
+        # group names and task names not intersect
+        group_names_and_tasks_names_intersect = set(group_names) & set(tasks_names)
+        if group_names_and_tasks_names_intersect:
+            raise ValueError(
+                f"Group names and task names should not intersect, intersect: {group_names_and_tasks_names_intersect}"
+            )
+
         return data
 
     @model_validator(mode="after")
@@ -169,23 +186,38 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
     def get_groups(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskGroupConfig]:
+        if now is None:
+            now = self.get_now_with_timezone()
+
         groups = [group for group in self.schedule]
 
         if enabled is not None:
             groups = [group for group in groups if group.enabled == enabled]
 
-        # TODO: check time
+        if started is not None:
+            if started:
+                groups = [group for group in groups if group.start <= now]
+            else:
+                groups = [group for group in groups if group.start > now]
 
         return groups
 
     def get_tasks(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskTaskConfig]:
         # TODO: refactor
+        if now is None:
+            now = self.get_now_with_timezone()
 
-        groups = self.get_groups()
+        groups = self.get_groups(started=started, now=now)
 
         if enabled is True:
             groups = [group for group in groups if group.enabled]
@@ -205,8 +237,6 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
         for extra_task in extra_tasks:
             if extra_task not in tasks:
                 tasks.append(extra_task)
-
-        # TODO: check time
 
         return tasks
 
