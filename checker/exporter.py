@@ -215,8 +215,16 @@ class Exporter:
                 for group in self.course.get_groups(enabled=False)
             ],
             *[
+                str(Path(group.relative_path).relative_to(self.reference_root))
+                for group in self.course.get_groups(started=False)
+            ],
+            *[
                 str(Path(task.relative_path).relative_to(self.reference_root))
                 for task in self.course.get_tasks(enabled=False)
+            ],
+            *[
+                str(Path(task.relative_path).relative_to(self.reference_root))
+                for task in self.course.get_tasks(started=False)
             ],
         ]
 

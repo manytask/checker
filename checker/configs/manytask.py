@@ -29,44 +29,19 @@ class ManytaskUiConfig(CustomBaseModel):
     task_url_template: str  # $GROUP_NAME $TASK_NAME vars are available
     links: Optional[dict[str, str]] = None  # pedantic 3.9 require Optional, not | None
 
+    @field_validator("task_url_template")
+    @classmethod
+    def check_task_url_template(cls, data: str | None) -> str | None:
+        if data is not None and (not data.startswith("http://") and not data.startswith("https://")):
+            raise ValueError("task_url_template should be http or https")
+        # if data is not None and "$GROUP_NAME" not in data and "$TASK_NAME" not in data:
+        #     raise ValueError("task_url should contain at least one of $GROUP_NAME and $TASK_NAME vars")
+        return data
+
 
 class ManytaskDeadlinesType(Enum):
     HARD = "hard"
     INTERPOLATE = "interpolate"
-
-
-class ManytaskDeadlinesConfig(CustomBaseModel):
-    timezone: str
-
-    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
-    deadlines: ManytaskDeadlinesType = ManytaskDeadlinesType.HARD
-    max_submissions: Optional[int] = None
-    submission_penalty: float = 0
-
-    task_url: Optional[AnyUrl] = None  # $GROUP_NAME $TASK_NAME vars are available
-
-    @field_validator("task_url")
-    @classmethod
-    def check_task_url(cls, data: AnyUrl | None) -> AnyUrl | None:
-        if data is not None and data.scheme not in ("http", "https"):
-            raise ValueError("task_url should be http or https")
-        return data
-
-    @field_validator("max_submissions")
-    @classmethod
-    def check_max_submissions(cls, data: int | None) -> int | None:
-        if data is not None and data <= 0:
-            raise ValueError("max_submissions should be positive")
-        return data
-
-    @field_validator("timezone")
-    @classmethod
-    def check_valid_timezone(cls, timezone: str) -> str:
-        try:
-            ZoneInfo(timezone)
-        except ZoneInfoNotFoundError as e:
-            raise ValueError(str(e))
-        return timezone
 
 
 class ManytaskTaskConfig(CustomBaseModel):
@@ -102,6 +77,11 @@ class ManytaskGroupConfig(CustomBaseModel):
     def name(self) -> str:
         return self.group
 
+    def replace_timezone(self, timezone: ZoneInfo) -> None:
+        self.start = self.start.replace(tzinfo=timezone)
+        self.end = self.end.replace(tzinfo=timezone) if isinstance(self.end, datetime) else self.end
+        self.steps = {k: v.replace(tzinfo=timezone) for k, v in self.steps.items() if isinstance(v, datetime)}
+
     @model_validator(mode="after")
     def check_dates(self) -> "ManytaskGroupConfig":
         # check end
@@ -135,36 +115,106 @@ class ManytaskGroupConfig(CustomBaseModel):
         return self
 
 
-class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
-    """Manytask configuration."""
+class ManytaskDeadlinesConfig(CustomBaseModel):
+    timezone: str
 
-    version: int  # if config exists, version is always present
+    # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
+    deadlines: ManytaskDeadlinesType = ManytaskDeadlinesType.HARD
+    max_submissions: Optional[int] = None
+    submission_penalty: float = 0
 
-    settings: ManytaskSettingsConfig
-    ui: ManytaskUiConfig
-    deadlines: ManytaskDeadlinesConfig
-    schedule: list[ManytaskGroupConfig]
+    schedule: list[ManytaskGroupConfig]  # list of groups with tasks
+
+    def get_now_with_timezone(self) -> datetime:
+        return datetime.now(tz=ZoneInfo(self.timezone))
+
+    @field_validator("max_submissions")
+    @classmethod
+    def check_max_submissions(cls, data: int | None) -> int | None:
+        if data is not None and data <= 0:
+            raise ValueError("max_submissions should be positive")
+        return data
+
+    @field_validator("submission_penalty")
+    @classmethod
+    def check_submission_penalty(cls, data: float) -> float:
+        if data < 0:
+            raise ValueError("submission_penalty should be non-negative")
+        return data
+
+    @field_validator("timezone")
+    @classmethod
+    def check_valid_timezone(cls, timezone: str) -> str:
+        try:
+            ZoneInfo(timezone)
+        except ZoneInfoNotFoundError as e:
+            raise ValueError(str(e))
+        return timezone
+
+    @field_validator("schedule")
+    @classmethod
+    def check_group_task_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
+        group_names = [group.name for group in data]
+        tasks_names = [task.name for group in data for task in group.tasks]
+
+        # group names unique
+        group_names_duplicates = [name for name in group_names if group_names.count(name) > 1]
+        if group_names_duplicates:
+            raise ValueError(f"Group names should be unique, duplicates: {group_names_duplicates}")
+
+        # task names unique
+        tasks_names_duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
+        if tasks_names_duplicates:
+            raise ValueError(f"Task names should be unique, duplicates: {tasks_names_duplicates}")
+
+        # # group names and task names not intersect (except single task in a group with the same name)
+        # no_single_task_groups = [group for group in data if not (len(group.tasks) == 1
+        # and group.name == group.tasks[0].name)]
+
+        return data
+
+    @model_validator(mode="after")
+    def set_timezone(self) -> "ManytaskDeadlinesConfig":
+        timezone = ZoneInfo(self.timezone)
+        for group in self.schedule:
+            group.replace_timezone(timezone)
+        return self
 
     def get_groups(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskGroupConfig]:
+        if now is None:
+            now = self.get_now_with_timezone()
+
         groups = [group for group in self.schedule]
 
         if enabled is not None:
             groups = [group for group in groups if group.enabled == enabled]
 
-        # TODO: check time
+        if started is not None:
+            if started:
+                groups = [group for group in groups if group.start <= now]
+            else:
+                groups = [group for group in groups if group.start > now]
 
         return groups
 
     def get_tasks(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskTaskConfig]:
         # TODO: refactor
+        if now is None:
+            now = self.get_now_with_timezone()
 
-        groups = self.get_groups()
+        groups = self.get_groups(started=started, now=now)
 
         if enabled is True:
             groups = [group for group in groups if group.enabled]
@@ -185,31 +235,39 @@ class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
             if extra_task not in tasks:
                 tasks.append(extra_task)
 
-        # TODO: check time
-
         return tasks
+
+
+class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
+    """Manytask configuration."""
+
+    version: int  # if config exists, version is always present
+
+    settings: ManytaskSettingsConfig
+    ui: ManytaskUiConfig
+    deadlines: ManytaskDeadlinesConfig
+
+    def get_groups(
+        self,
+        enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
+    ) -> list[ManytaskGroupConfig]:
+        return self.deadlines.get_groups(enabled=enabled, started=started, now=now)
+
+    def get_tasks(
+        self,
+        enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
+    ) -> list[ManytaskTaskConfig]:
+        return self.deadlines.get_tasks(enabled=enabled, started=started, now=now)
 
     @field_validator("version")
     @classmethod
     def check_version(cls, data: int) -> int:
         if data != 1:
             raise ValueError(f"Only version 1 is supported for {cls.__name__}")
-        return data
-
-    @field_validator("schedule")
-    @classmethod
-    def check_group_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
-        groups = [group.name for group in data]
-        duplicates = [name for name in groups if groups.count(name) > 1]
-        if duplicates:
-            raise ValueError(f"Group names should be unique, duplicates: {duplicates}")
-        return data
-
-    @field_validator("schedule")
-    @classmethod
-    def check_task_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
-        tasks_names = [task.name for group in data for task in group.tasks]
-        duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
-        if duplicates:
-            raise ValueError(f"Task names should be unique, duplicates: {duplicates}")
         return data

@@ -48,46 +48,48 @@ TEST_MANYTASK_CONFIG = ManytaskConfig(
         "students_group": "students",
     },
     ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
-    deadlines={"timezone": TEST_TIMEZONE},
-    schedule=[
-        {
-            "group": "group1",
-            "start": "2020-10-10 00:00:00",
-            "enabled": True,
-            "tasks": [
-                {"task": "task1_1", "score": 10},
-                {"task": "task1_2", "score": 20},
-            ],
-        },
-        {
-            "group": "group2",
-            "start": "2020-10-10 00:00:00",
-            "enabled": False,
-            "tasks": [
-                {"task": "task2_1", "score": 30},
-                {"task": "task2_2", "score": 40},
-                {"task": "task2_3", "score": 50},
-            ],
-        },
-        {
-            "group": "group3",
-            "start": "2020-10-10 00:00:00",
-            "enabled": True,
-            "tasks": [],
-        },
-        {
-            "group": "group4",
-            "start": "2020-10-10 00:00:00",
-            "enabled": True,
-            "tasks": [{"task": "task4_1", "score": 50}],
-        },
-        {
-            "group": "group_without_folder",
-            "start": "2020-10-10 00:00:00",
-            "enabled": True,
-            "tasks": [{"task": "root_task_1", "score": 50}],
-        },
-    ],
+    deadlines={
+        "timezone": TEST_TIMEZONE,
+        "schedule": [
+            {
+                "group": "group1",
+                "start": "2020-10-10 00:00:00",
+                "enabled": True,
+                "tasks": [
+                    {"task": "task1_1", "score": 10},
+                    {"task": "task1_2", "score": 20},
+                ],
+            },
+            {
+                "group": "group2",
+                "start": "2020-10-10 00:00:00",
+                "enabled": False,
+                "tasks": [
+                    {"task": "task2_1", "score": 30},
+                    {"task": "task2_2", "score": 40},
+                    {"task": "task2_3", "score": 50},
+                ],
+            },
+            {
+                "group": "group3",
+                "start": "2020-10-10 00:00:00",
+                "enabled": True,
+                "tasks": [],
+            },
+            {
+                "group": "group4",
+                "start": "2020-10-10 00:00:00",
+                "enabled": True,
+                "tasks": [{"task": "task4_1", "score": 50}],
+            },
+            {
+                "group": "group_without_folder",
+                "start": "2020-10-10 00:00:00",
+                "enabled": True,
+                "tasks": [{"task": "root_task_1", "score": 50}],
+            },
+        ],
+    },
 )
 
 
