@@ -1,6 +1,6 @@
 # Configuration
 
-This page describes how to configure checker with `.checker.yml`, `.deadlines.yml` and `.group.yml`/`.task.yml` files.
+This page describes how to configure checker with `.checker.yml`, `.manytask.yml` and `.group.yml`/`.task.yml` files.
 
 You can refer to the [course-template](https://github.com/manytask/course-template) repository for examples of configuration files.
 
@@ -47,7 +47,7 @@ default_parameters:
   run_testing: true
   timeout: 10  # in seconds
 
-# settings for export command, uses .deadlines.yml and `params` and each task params (in .task.yml)
+# settings for export command, uses .manytask.yml and `params` and each task params (in .task.yml)
 export:
   destination: https://gitlab.manytask.org/test/public-test-repo
 
@@ -77,7 +77,7 @@ testing:
     * `files` - (NOT IMPLEMENTED) check actual file difference between current state and the previous commit (can select multiple tasks)
 
 
-## `.deadlines.yml`
+## `.manytask.yml`
 
 This file describes deadlines for tasks. It is used by `checker export` command to export only tasks that are started.  
 Additionally, it is used by `checker validate` to ensure integrity of the deadlines and local files.
@@ -91,9 +91,9 @@ Or [course-template](https://github.com/manytask/course-template) repository.
 
 [//]: # (TODO: include file directly from course-template)
 [//]: # (TODO: add pydantic validation for include files)
-The simple `.deadlines.yml` file is:
+The simple `.manytask.yml` file is:
 ```yaml
-# .deadlines.yml
+# .manytask.yml
 version: 1
 
 settings:

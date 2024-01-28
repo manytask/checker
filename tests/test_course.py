@@ -7,7 +7,7 @@ import git
 import pytest
 
 from checker.configs import CheckerTestingConfig
-from checker.configs.deadlines import DeadlinesConfig
+from checker.configs.manytask import ManytaskConfig
 from checker.course import Course, FileSystemGroup, FileSystemTask
 from checker.exceptions import BadConfig, CheckerException
 
@@ -39,9 +39,16 @@ TEST_FILE_STRUCTURE = {
     "root_task_1": {".task.yml": "version: 1", "file1": "", "file2": ""},
     "extra_file1": "",
 }
-TEST_DEADLINES_CONFIG = DeadlinesConfig(
+TEST_MANYTASK_CONFIG = ManytaskConfig(
     version=1,
-    settings={"timezone": TEST_TIMEZONE},
+    settings={
+        "course_name": "test",
+        "gitlab_base_url": "https://google.com",
+        "public_repo": "public",
+        "students_group": "students",
+    },
+    ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
+    deadlines={"timezone": TEST_TIMEZONE},
     schedule=[
         {
             "group": "group1",
@@ -104,12 +111,12 @@ def git_init_repository_root(repository_root: Path) -> Path:
 
 class TestCourse:
     def test_init(self, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
         assert test_course.repository_root == repository_root
-        assert test_course.deadlines == TEST_DEADLINES_CONFIG
+        assert test_course.manytask_config == TEST_MANYTASK_CONFIG
 
     def test_validate(self, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
 
         try:
             test_course.validate()
@@ -134,19 +141,19 @@ class TestCourse:
     def test_validate_missing_task(self, repository_root: Path) -> None:
         shutil.rmtree(repository_root / "group1" / "task1_1")
         with pytest.raises(BadConfig):
-            Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root).validate()
+            Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root).validate()
 
     def test_validate_missing_group(self, repository_root: Path) -> None:
         shutil.rmtree(repository_root / "group3")
         with pytest.warns():
-            Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root).validate()
+            Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root).validate()
 
     def test_init_task_bad_config(self, repository_root: Path) -> None:
         with open(repository_root / "group1" / "task1_1" / Course.TASK_CONFIG_NAME, "w") as f:
             f.write("bad_config")
 
         with pytest.raises(BadConfig):
-            Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+            Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
 
     @pytest.mark.parametrize(
         "enabled, expected_num_groups",
@@ -157,7 +164,7 @@ class TestCourse:
         ],
     )
     def test_get_groups(self, enabled: bool | None, expected_num_groups, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
 
         groups = test_course.get_groups(enabled=enabled)
         assert isinstance(groups, list)
@@ -173,7 +180,7 @@ class TestCourse:
         ],
     )
     def test_get_tasks(self, enabled: bool | None, expected_num_tasks, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
 
         tasks = test_course.get_tasks(enabled=enabled)
         assert isinstance(tasks, list)
@@ -181,7 +188,7 @@ class TestCourse:
         assert len(tasks) == expected_num_tasks
 
     def test_detect_changes_not_a_repo(self, repository_root: Path) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=repository_root)
         with pytest.raises(CheckerException):
             test_course.detect_changes(CheckerTestingConfig.ChangesDetectionType.COMMIT_MESSAGE)
 
@@ -210,7 +217,7 @@ class TestCourse:
         changed_files: list[str],
         expected_changed_tasks: list[str],
     ) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=git_init_repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=git_init_repository_root)
         repo = git.Repo(git_init_repository_root)
 
         # create new branch
@@ -265,7 +272,7 @@ class TestCourse:
         changed_files: list[str],
         expected_changed_tasks: list[str],
     ) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=git_init_repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=git_init_repository_root)
         repo = git.Repo(git_init_repository_root)
 
         # create or change files
@@ -300,7 +307,7 @@ class TestCourse:
     def test_detect_changes_by_last_commit_changes(
         self, git_init_repository_root: Path, changed_files: list[str], expected_changed_tasks: list[str]
     ) -> None:
-        test_course = Course(deadlines=TEST_DEADLINES_CONFIG, repository_root=git_init_repository_root)
+        test_course = Course(manytask_config=TEST_MANYTASK_CONFIG, repository_root=git_init_repository_root)
         repo = git.Repo(git_init_repository_root)
 
         # create or change files

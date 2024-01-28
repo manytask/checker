@@ -84,7 +84,7 @@ Also checker introduces the following inner concepts:
     It is described in the [Getting Started docs](./1_getting_started.md) page.
 
 
-* **Config-s** - a yaml files with configuration for checker - `.checker.yml` and `.deadlines.yml`.  
+* **Config-s** - a yaml files with configuration for checker - `.checker.yml` and `.manytask.yml`.  
     It is described in the [Configuration docs](./2_configuration.md) page.
 
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from .configs import CheckerConfig, CheckerSubConfig, DeadlinesConfig
+from .configs import CheckerConfig, CheckerSubConfig, ManytaskConfig
 from .course import Course, FileSystemTask
 from .exceptions import CheckerValidationError, TestingError
 from .exporter import Exporter
@@ -28,17 +28,17 @@ ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Pa
     help="Path to the checker config file.",
 )
 @click.option(
-    "--deadlines-config",
+    "--manytask-config",
     type=ClickReadableFile,
-    default=".deadlines.yml",
-    help="Path to the deadlines config file.",
+    default=".manytask.yml",
+    help="Path to the manytask config file.",
 )
 @click.version_option(package_name="manytask-checker")
 @click.pass_context
 def cli(
     ctx: click.Context,
     checker_config: Path,
-    deadlines_config: Path,
+    manytask_config: Path,
 ) -> None:
     """Manytask checker - automated tests for students' assignments."""
     print_ascii_tag()  # TODO: print version
@@ -46,7 +46,7 @@ def cli(
     ctx.ensure_object(dict)
     ctx.obj = {
         "course_config_path": checker_config,
-        "deadlines_config_path": deadlines_config,
+        "manytask_config_path": manytask_config,
     }
 
 
@@ -63,13 +63,13 @@ def validate(
 
     1. Validate the configuration files content.
     2. Validate mentioned plugins.
-    3. Check all tasks are valid and consistent with the deadlines.
+    3. Check all tasks are valid and consistent with the manytask.
     """
 
     print_info("Validating configuration files...")
     try:
         checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-        deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+        manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
     except CheckerValidationError as e:
         print_info("Configuration Failed", color="red")
         print_info(e)
@@ -78,7 +78,7 @@ def validate(
 
     print_info("Validating Course Structure (and tasks configs)...")
     try:
-        course = Course(deadlines_config, root)
+        course = Course(manytask_config, root)
         course.validate()
     except CheckerValidationError as e:
         print_info("Course Validation Failed", color="red")
@@ -180,10 +180,10 @@ def check(
 
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(deadlines_config, root)
+    course = Course(manytask_config, root)
 
     # create exporter and export files for testing
     exporter = Exporter(
@@ -269,10 +269,10 @@ def grade(
     """
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(deadlines_config, root, reference_root)
+    course = Course(manytask_config, root, reference_root)
 
     # create exporter and export files for testing
     exporter = Exporter(
@@ -326,10 +326,10 @@ def export(
     """Export tasks from reference to public repository."""
     # load configs
     checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    deadlines_config = DeadlinesConfig.from_yaml(ctx.obj["deadlines_config_path"])
+    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
 
     # read filesystem, check existing tasks
-    course = Course(deadlines_config, reference_root)
+    course = Course(manytask_config, reference_root)
 
     # if export_root not empty - delete all except git folder
     if export_root.exists():
@@ -362,13 +362,13 @@ def schema(
 ) -> None:
     """Generate json schema for the checker configs."""
     checker_schema = CheckerConfig.get_json_schema()
-    deadlines_schema = DeadlinesConfig.get_json_schema()
+    manytask_schema = ManytaskConfig.get_json_schema()
     task_schema = CheckerSubConfig.get_json_schema()
 
     with open(output_folder / "schema-checker.json", "w") as f:
         json.dump(checker_schema, f, indent=2)
-    with open(output_folder / "schema-deadlines.json", "w") as f:
-        json.dump(deadlines_schema, f, indent=2)
+    with open(output_folder / "schema-manytask.json", "w") as f:
+        json.dump(manytask_schema, f, indent=2)
     with open(output_folder / "schema-task.json", "w") as f:
         json.dump(task_schema, f, indent=2)
 
