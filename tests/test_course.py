@@ -41,7 +41,12 @@ TEST_FILE_STRUCTURE = {
 }
 TEST_MANYTASK_CONFIG = ManytaskConfig(
     version=1,
-    settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+    settings={
+        "course_name": "test",
+        "gitlab_base_url": "https://google.com",
+        "public_repo": "public",
+        "students_group": "students",
+    },
     ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
     deadlines={"timezone": TEST_TIMEZONE},
     schedule=[

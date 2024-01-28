@@ -6,4 +6,4 @@ from .checker import (  # noqa: F401
     CheckerTestingConfig,
     PipelineStageConfig,
 )
-from .manytask import ManytaskConfig, ManytaskGroupConfig, ManytaskDeadlinesConfig, ManytaskTaskConfig  # noqa: F401
+from .manytask import ManytaskConfig, ManytaskDeadlinesConfig, ManytaskGroupConfig, ManytaskTaskConfig  # noqa: F401

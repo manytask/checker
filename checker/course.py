@@ -148,7 +148,9 @@ class Course:
         """
         print_info(f"Detecting changes by {detection_type}")
         potential_tasks = self.get_tasks(enabled=True)
-        enabled_groups = self.manytask_config.get_groups(enabled=True)  # 'cause we want to check no-folder groups as well
+        enabled_groups = self.manytask_config.get_groups(
+            enabled=True
+        )  # 'cause we want to check no-folder groups as well
 
         try:
             repo = git.Repo(self.repository_root)

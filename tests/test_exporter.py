@@ -29,7 +29,12 @@ class TestExporterOnSimple:
     def simple_deadlines(self) -> ManytaskConfig:
         return ManytaskConfig(
             version=1,
-            settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+            settings={
+                "course_name": "test",
+                "gitlab_base_url": "https://google.com",
+                "public_repo": "public",
+                "students_group": "students",
+            },
             ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
             deadlines={"timezone": "Europe/Berlin"},
             schedule=[
@@ -505,7 +510,12 @@ class TestExporterOnSimple:
 class _TestExporter:
     SAMPLE_TEST_DEADLINES_CONFIG = ManytaskConfig(
         version=1,
-        settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+        settings={
+            "course_name": "test",
+            "gitlab_base_url": "https://google.com",
+            "public_repo": "public",
+            "students_group": "students",
+        },
         ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
         deadlines={"timezone": "Europe/Berlin"},
         schedule=[
@@ -623,7 +633,12 @@ class _TestExporter:
         course = Course(
             manytask_config=ManytaskConfig(
                 version=1,
-                settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+                settings={
+                    "course_name": "test",
+                    "gitlab_base_url": "https://google.com",
+                    "public_repo": "public",
+                    "students_group": "students",
+                },
                 ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
                 deadlines={"timezone": "Europe/Berlin"},
                 schedule=[
@@ -707,7 +722,12 @@ class _TestExporter:
         course = Course(
             manytask_config=ManytaskConfig(
                 version=1,
-                settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+                settings={
+                    "course_name": "test",
+                    "gitlab_base_url": "https://google.com",
+                    "public_repo": "public",
+                    "students_group": "students",
+                },
                 ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
                 deadlines={"timezone": "Europe/Berlin"},
                 schedule=[
