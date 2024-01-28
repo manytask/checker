@@ -253,14 +253,20 @@ class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
     def get_groups(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskGroupConfig]:
-        return self.deadlines.get_groups(enabled=enabled)
+        return self.deadlines.get_groups(enabled=enabled, started=started, now=now)
 
     def get_tasks(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[ManytaskTaskConfig]:
-        return self.deadlines.get_tasks(enabled=enabled)
+        return self.deadlines.get_tasks(enabled=enabled, started=started, now=now)
 
     @field_validator("version")
     @classmethod

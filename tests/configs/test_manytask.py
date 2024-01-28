@@ -125,6 +125,18 @@ class TestManytaskDeadlinesConfig:
                 schedule=[],
             )
 
+    def test_valid_deadlines(self) -> None:
+        ManytaskDeadlinesConfig(
+            timezone="Europe/Moscow",
+            deadlines="hard",
+            schedule=[],
+        )
+        ManytaskDeadlinesConfig(
+            timezone="Europe/Moscow",
+            deadlines="interpolate",
+            schedule=[],
+        )
+
     @pytest.mark.parametrize(
         "max_submissions",
         [-1, 0, 1.2],

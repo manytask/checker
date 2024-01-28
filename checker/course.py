@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Generator
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -66,8 +67,11 @@ class Course:
     def get_groups(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[FileSystemGroup]:
-        search_deadlines_groups = self.manytask_config.get_groups(enabled=enabled)
+        search_deadlines_groups = self.manytask_config.get_groups(enabled=enabled, started=started, now=now)
 
         return [
             self.potential_groups[deadline_group.name]
@@ -78,8 +82,11 @@ class Course:
     def get_tasks(
         self,
         enabled: bool | None = None,
+        started: bool | None = None,
+        *,
+        now: datetime | None = None,
     ) -> list[FileSystemTask]:
-        search_deadlines_tasks = self.manytask_config.get_tasks(enabled=enabled)
+        search_deadlines_tasks = self.manytask_config.get_tasks(enabled=enabled, started=started, now=now)
 
         return [
             self.potential_tasks[deadline_task.name]
