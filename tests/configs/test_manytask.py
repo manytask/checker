@@ -261,7 +261,7 @@ class TestManytaskDeadlinesConfig:
                         },
                     ],
                 },
-            ]
+            ],
         )
 
     @pytest.mark.parametrize(
