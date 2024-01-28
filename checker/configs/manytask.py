@@ -69,13 +69,19 @@ class ManytaskGroupConfig(CustomBaseModel):
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
     start: datetime
     steps: dict[float, Union[datetime, timedelta]] = Field(default_factory=dict)
-    end: Union[datetime, timedelta, None] = None
+    end: Union[datetime, timedelta]
 
     tasks: list[ManytaskTaskConfig] = Field(default_factory=list)
 
     @property
     def name(self) -> str:
         return self.group
+
+    def get_percents_before_deadline(self) -> dict[float, datetime]:
+        return {
+            percent: date_or_delta if isinstance(date_or_delta, datetime) else self.start + date_or_delta
+            for percent, date_or_delta in zip([1.0, *self.steps.keys()], [*self.steps.values(), self.end])
+        }
 
     def replace_timezone(self, timezone: ZoneInfo) -> None:
         self.start = self.start.replace(tzinfo=timezone)
@@ -236,6 +242,9 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
                 tasks.append(extra_task)
 
         return tasks
+
+    def max_score(self, started: bool | None = True, *, now: datetime | None = None) -> int:
+        return sum(task.score for task in self.get_tasks(enabled=True, started=started, now=now))
 
 
 class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):

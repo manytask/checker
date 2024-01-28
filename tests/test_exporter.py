@@ -43,6 +43,7 @@ class TestExporterOnSimple:
                         "group": "no_folder_group",
                         "enabled": True,
                         "start": "2021-01-01 00:00:00",
+                        "end": "200d",
                         "tasks": [
                             {"task": "task1", "score": 1},
                             {"task": "task2", "score": 1},
@@ -526,6 +527,7 @@ class _TestExporter:
                     "group": "group",
                     "enabled": True,
                     "start": "2021-01-01 00:00:00",
+                    "end": "200d",
                     "tasks": [
                         {"task": "task1", "score": 1},
                         {"task": "task2", "score": 1},
@@ -536,6 +538,7 @@ class _TestExporter:
                     "group": "disabled_group",
                     "enabled": False,
                     "start": "2021-01-01 00:00:00",
+                    "end": "200d",
                     "tasks": [
                         {"task": "task_disabled_1", "score": 1},
                         {"task": "task_disabled_2", "enabled": True, "score": 1},
@@ -545,6 +548,7 @@ class _TestExporter:
                     "group": "no_folder_group",
                     "enabled": True,
                     "start": "2021-01-01 00:00:00",
+                    "end": "200d",
                     "tasks": [{"task": "root_task_1", "score": 1}],
                 },
             ],
@@ -651,6 +655,7 @@ class _TestExporter:
                             "group": "no_folder_group",
                             "enabled": True,
                             "start": "2021-01-01 00:00:00",
+                            "end": "200d",
                             "tasks": [
                                 {"task": "task1", "score": 1},
                             ],
@@ -742,6 +747,7 @@ class _TestExporter:
                             "group": "no_folder_group",
                             "enabled": True,
                             "start": "2021-01-01 00:00:00",
+                            "end": "200d",
                             "tasks": [
                                 {"task": "task1", "score": 1},
                             ],
