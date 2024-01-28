@@ -36,18 +36,20 @@ class TestExporterOnSimple:
                 "students_group": "students",
             },
             ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
-            deadlines={"timezone": "Europe/Berlin"},
-            schedule=[
-                {
-                    "group": "no_folder_group",
-                    "enabled": True,
-                    "start": "2021-01-01 00:00:00",
-                    "tasks": [
-                        {"task": "task1", "score": 1},
-                        {"task": "task2", "score": 1},
-                    ],
-                },
-            ],
+            deadlines={
+                "timezone": "Europe/Berlin",
+                "schedule": [
+                    {
+                        "group": "no_folder_group",
+                        "enabled": True,
+                        "start": "2021-01-01 00:00:00",
+                        "tasks": [
+                            {"task": "task1", "score": 1},
+                            {"task": "task2", "score": 1},
+                        ],
+                    },
+                ],
+            },
         )
 
     @pytest.fixture()
@@ -517,34 +519,36 @@ class _TestExporter:
             "students_group": "students",
         },
         ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
-        deadlines={"timezone": "Europe/Berlin"},
-        schedule=[
-            {
-                "group": "group",
-                "enabled": True,
-                "start": "2021-01-01 00:00:00",
-                "tasks": [
-                    {"task": "task1", "score": 1},
-                    {"task": "task2", "score": 1},
-                    {"task": "task3", "enabled": False, "score": 1},
-                ],
-            },
-            {
-                "group": "disabled_group",
-                "enabled": False,
-                "start": "2021-01-01 00:00:00",
-                "tasks": [
-                    {"task": "task_disabled_1", "score": 1},
-                    {"task": "task_disabled_2", "enabled": True, "score": 1},
-                ],
-            },
-            {
-                "group": "no_folder_group",
-                "enabled": True,
-                "start": "2021-01-01 00:00:00",
-                "tasks": [{"task": "root_task_1", "score": 1}],
-            },
-        ],
+        deadlines={
+            "timezone": "Europe/Berlin",
+            "schedule": [
+                {
+                    "group": "group",
+                    "enabled": True,
+                    "start": "2021-01-01 00:00:00",
+                    "tasks": [
+                        {"task": "task1", "score": 1},
+                        {"task": "task2", "score": 1},
+                        {"task": "task3", "enabled": False, "score": 1},
+                    ],
+                },
+                {
+                    "group": "disabled_group",
+                    "enabled": False,
+                    "start": "2021-01-01 00:00:00",
+                    "tasks": [
+                        {"task": "task_disabled_1", "score": 1},
+                        {"task": "task_disabled_2", "enabled": True, "score": 1},
+                    ],
+                },
+                {
+                    "group": "no_folder_group",
+                    "enabled": True,
+                    "start": "2021-01-01 00:00:00",
+                    "tasks": [{"task": "root_task_1", "score": 1}],
+                },
+            ],
+        },
     )
     SAMPLE_TEST_STRUCTURE_CONFIG = CheckerStructureConfig(
         ignore_patterns=[".ignore_folder"],
@@ -640,17 +644,19 @@ class _TestExporter:
                     "students_group": "students",
                 },
                 ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
-                deadlines={"timezone": "Europe/Berlin"},
-                schedule=[
-                    {
-                        "group": "no_folder_group",
-                        "enabled": True,
-                        "start": "2021-01-01 00:00:00",
-                        "tasks": [
-                            {"task": "task1", "score": 1},
-                        ],
-                    },
-                ],
+                deadlines={
+                    "timezone": "Europe/Berlin",
+                    "schedule": [
+                        {
+                            "group": "no_folder_group",
+                            "enabled": True,
+                            "start": "2021-01-01 00:00:00",
+                            "tasks": [
+                                {"task": "task1", "score": 1},
+                            ],
+                        },
+                    ],
+                },
             ),
             repository_root=simple_private_folder,
         )
@@ -729,17 +735,19 @@ class _TestExporter:
                     "students_group": "students",
                 },
                 ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
-                deadlines={"timezone": "Europe/Berlin"},
-                schedule=[
-                    {
-                        "group": "no_folder_group",
-                        "enabled": True,
-                        "start": "2021-01-01 00:00:00",
-                        "tasks": [
-                            {"task": "task1", "score": 1},
-                        ],
-                    },
-                ],
+                deadlines={
+                    "timezone": "Europe/Berlin",
+                    "schedule": [
+                        {
+                            "group": "no_folder_group",
+                            "enabled": True,
+                            "start": "2021-01-01 00:00:00",
+                            "tasks": [
+                                {"task": "task1", "score": 1},
+                            ],
+                        },
+                    ],
+                },
             ),
             repository_root=simple_private_folder,
         )
