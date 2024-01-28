@@ -83,6 +83,13 @@ class ManytaskGroupConfig(CustomBaseModel):
             for percent, date_or_delta in zip([1.0, *self.steps.keys()], [*self.steps.values(), self.end])
         }
 
+    def get_current_percent_multiplier(self, now: datetime) -> float:
+        percents = self.get_percents_before_deadline()
+        for percent, date in percents.items():
+            if now <= date:
+                return percent
+        return 0.0
+
     def replace_timezone(self, timezone: ZoneInfo) -> None:
         self.start = self.start.replace(tzinfo=timezone)
         self.end = self.end.replace(tzinfo=timezone) if isinstance(self.end, datetime) else self.end
@@ -185,6 +192,13 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
         for group in self.schedule:
             group.replace_timezone(timezone)
         return self
+
+    def find_task(self, task_name: str) -> tuple[ManytaskGroupConfig, ManytaskTaskConfig]:
+        for group in self.schedule:
+            for task in group.tasks:
+                if task.name == task_name:
+                    return group, task
+        raise KeyError(f"Task {task_name} not found")
 
     def get_groups(
         self,

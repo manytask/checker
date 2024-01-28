@@ -14,7 +14,143 @@ else:
 
 from pydantic import ValidationError
 
-from checker.configs.manytask import ManytaskDeadlinesConfig
+from checker.configs.manytask import ManytaskDeadlinesConfig, ManytaskGroupConfig
+
+
+class TestManytaskDeadlinesConfigGroup:
+    def test_minimal_init(self) -> None:
+        ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            end="2021-01-01 00:00",
+            tasks=[],
+        )
+        assert True
+
+    def test_maximal_init(self) -> None:
+        ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            steps={
+                0.5: "2021-01-02 00:00",
+            },
+            end="2021-01-03 00:00",
+            enabled=False,
+            tasks=[
+                {
+                    "task": "task1",
+                    "score": 10,
+                },
+            ],
+        )
+        assert True
+
+    def test_invalid_start(self) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskGroupConfig(
+                group="group1",
+                start="2021-01-99 00:00",
+                end="2021-01-01 00:00",
+                tasks=[],
+            )
+
+    def test_invalid_end(self) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskGroupConfig(
+                group="group1",
+                start="2021-01-01 00:00",
+                end="2021-01-99 00:00",
+                tasks=[],
+            )
+
+    def test_invalid_steps(self) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskGroupConfig(
+                group="group1",
+                start="2021-01-01 00:00",
+                steps={
+                    0.5: "2021-01-99 00:00",
+                },
+                end="2021-01-01 00:00",
+                tasks=[],
+            )
+
+    def test_end_before_start(self) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskGroupConfig(
+                group="group1",
+                start="2021-01-02 00:00",
+                end="2021-01-01 00:00",
+                tasks=[],
+            )
+
+    @pytest.mark.parametrize(
+        "end_date",
+        [
+            "2021-01-01 00:00",
+            "2021-01-01 00:00:00",
+            "2021-01-01 00:00:00.000000",
+            "200d",
+            "20d 09:00",
+            "20d 09:00:30",
+        ],
+    )
+    def test_valid_end(self, end_date: str) -> None:
+        ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            end=end_date,
+            tasks=[],
+        )
+
+    def test_get_percents_before_deadline(self) -> None:
+        group = ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            steps={
+                0.9: "2021-01-02 00:00",
+                0.5: "2021-01-03 00:00",
+                0.2: "2021-01-04 00:00",
+            },
+            end="2021-01-05 00:00",
+            tasks=[],
+        )
+
+        percents_before_deadline = group.get_percents_before_deadline()
+
+        assert percents_before_deadline == {
+            1.0: datetime(2021, 1, 2, 0, 0),
+            0.9: datetime(2021, 1, 3, 0, 0),
+            0.5: datetime(2021, 1, 4, 0, 0),
+            0.2: datetime(2021, 1, 5, 0, 0),
+        }
+
+    @pytest.mark.parametrize(
+        "now, expected_percent",
+        [
+            (datetime(1000, 1, 1, 0, 0), 1.0),
+            (datetime(2021, 1, 1, 0, 0), 1.0),
+            (datetime(2021, 1, 1, 12, 0), 1.0),
+            (datetime(2021, 1, 2, 1, 0), 0.9),
+            (datetime(2021, 1, 4, 1, 0), 0.2),
+            (datetime(2021, 1, 5, 1, 0), 0.0),
+            (datetime(3000, 1, 5, 1, 0), 0.0),
+        ],
+    )
+    def test_get_current_percent_multiplier(self, now: datetime, expected_percent: float) -> None:
+        group = ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            steps={
+                0.9: "2021-01-02 00:00",
+                0.5: "2021-01-03 00:00",
+                0.2: "2021-01-04 00:00",
+            },
+            end="2021-01-05 00:00",
+            tasks=[],
+        )
+
+        assert group.get_current_percent_multiplier(now=now) == expected_percent
 
 
 class TestManytaskDeadlinesConfig:
