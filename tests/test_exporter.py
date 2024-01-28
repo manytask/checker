@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from checker.configs import CheckerExportConfig, CheckerStructureConfig, DeadlinesConfig
+from checker.configs import CheckerExportConfig, CheckerStructureConfig, ManytaskConfig
 from checker.course import Course
 from checker.exceptions import BadStructure
 from checker.exporter import Exporter
@@ -26,10 +26,12 @@ def assert_files_in_folder(folder: Path, expected_files: list[str]) -> None:
 
 class TestExporterOnSimple:
     @pytest.fixture()
-    def simple_deadlines(self) -> DeadlinesConfig:
-        return DeadlinesConfig(
+    def simple_deadlines(self) -> ManytaskConfig:
+        return ManytaskConfig(
             version=1,
-            settings={"timezone": "Europe/Berlin"},
+            settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+            ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
+            deadlines={"timezone": "Europe/Berlin"},
             schedule=[
                 {
                     "group": "no_folder_group",
@@ -104,12 +106,12 @@ class TestExporterOnSimple:
         tmpdir: Path,
         simple_private_folder: Path,
         simple_student_folder: Path,
-        simple_deadlines: DeadlinesConfig,
+        simple_deadlines: ManytaskConfig,
         simple_structure: CheckerStructureConfig,
         simple_export_config: CheckerExportConfig,
     ) -> Exporter:
         course = Course(
-            deadlines=simple_deadlines,
+            manytask_config=simple_deadlines,
             repository_root=simple_student_folder,
             reference_root=simple_private_folder,
         )
@@ -501,9 +503,11 @@ class TestExporterOnSimple:
 
 
 class _TestExporter:
-    SAMPLE_TEST_DEADLINES_CONFIG = DeadlinesConfig(
+    SAMPLE_TEST_DEADLINES_CONFIG = ManytaskConfig(
         version=1,
-        settings={"timezone": "Europe/Berlin"},
+        settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+        ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
+        deadlines={"timezone": "Europe/Berlin"},
         schedule=[
             {
                 "group": "group",
@@ -617,9 +621,11 @@ class _TestExporter:
             root=simple_private_folder,
         )
         course = Course(
-            deadlines=DeadlinesConfig(
+            manytask_config=ManytaskConfig(
                 version=1,
-                settings={"timezone": "Europe/Berlin"},
+                settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+                ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
+                deadlines={"timezone": "Europe/Berlin"},
                 schedule=[
                     {
                         "group": "no_folder_group",
@@ -652,7 +658,7 @@ class _TestExporter:
     ) -> None:
         generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
-            deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
+            manytask_config=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=simple_private_folder,
         )
         exporter = Exporter(
@@ -699,9 +705,11 @@ class _TestExporter:
             root=simple_private_folder,
         )
         course = Course(
-            deadlines=DeadlinesConfig(
+            manytask_config=ManytaskConfig(
                 version=1,
-                settings={"timezone": "Europe/Berlin"},
+                settings={"course_name": "test", "gitlab_base_url": "https://google.com", "public_repo": "public", "students_group": "students"},
+                ui={"task_url_template": "https://example.com/$GROUP_NAME/$TASK_NAME"},
+                deadlines={"timezone": "Europe/Berlin"},
                 schedule=[
                     {
                         "group": "no_folder_group",
@@ -744,7 +752,7 @@ class _TestExporter:
             root=simple_private_folder,
         )
         course = Course(
-            deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
+            manytask_config=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=simple_private_folder,
         )
         exporter = Exporter(
@@ -765,7 +773,7 @@ class _TestExporter:
     ) -> None:
         generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
-            deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
+            manytask_config=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=simple_private_folder,
         )
         exporter = Exporter(
@@ -804,7 +812,7 @@ class _TestExporter:
     ) -> None:
         generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
-            deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
+            manytask_config=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=simple_private_folder,
         )
         exporter = Exporter(
@@ -855,7 +863,7 @@ class _TestExporter:
     ) -> None:
         generate_file_structure(self.SAMPLE_TEST_FILES, root=simple_private_folder)
         course = Course(
-            deadlines=self.SAMPLE_TEST_DEADLINES_CONFIG,
+            manytask_config=self.SAMPLE_TEST_DEADLINES_CONFIG,
             repository_root=simple_private_folder,
         )
         exporter = Exporter(

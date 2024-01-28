@@ -28,11 +28,11 @@ A good starting point is to check out the [course-template](https://github.com/m
 ## Layout
 
 !!! note  
-    tl;dr:  `.checker.yml` and `.deadlines.yml` in the root of the repo, `.task.yml` and `.group.yml` in each tasks and group (can be empty).
+    tl;dr:  `.checker.yml` and `.manytask.yml` in the root of the repo, `.task.yml` and `.group.yml` in each tasks and group (can be empty).
 
 The private repository layout is crucial for the checker to function correctly. 
 Each task should be organized into dedicated folders within group directories. 
-Also, there are 2 config files `.course.yml` and `.deadlines.yml` that are required for checker to work.
+Also, there are 2 config files `.course.yml` and `.manytask.yml` that are required for checker to work.
 
 Each task location detected by `.task.yml` file (can be just empty). Each group, if any, detected by `.group.yml` file (can be empty). 
 
@@ -56,7 +56,7 @@ group_2/
     task_4/
         ...
 .checker.yml  # checker config with default parameters and pipelines
-.deadlines.yml  # deadlines config with task scores to send to manytask
+.manytask.yml  # deadlines config with task scores to send to manytask
 ```
 
 !!! warning  
@@ -148,14 +148,14 @@ You have 2 options:
 
 ## Configuration
 
-The configuration of the checker and Manytask requires setting up 2 main files: `.course.yml` and `.deadlines.yml` and custom `.task.yml` files for each task when needed. 
+The configuration of the checker and Manytask requires setting up 2 main files: `.course.yml` and `.manytask.yml` and custom `.task.yml` files for each task when needed. 
 Here is the short overview of the configuration files:
 
 * **Checker Configuration** (`.checker.yml`):  
     This file specifies the default parameters for the checker script and defines the pipelines for task checking and exporting.
 
 
-* **Deadlines Configuration** (`.deadlines.yml`):
+* **Deadlines Configuration** (`.manytask.yml`):
     This file outlines the deadlines for each group, task max score and etc.  
     In the checker it is used a) to validate deadlines integrity and b) to send scores to manytask.
 

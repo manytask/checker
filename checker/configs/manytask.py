@@ -16,16 +16,30 @@ from pydantic import AnyUrl, Field, field_validator, model_validator
 from .utils import CustomBaseModel, YamlLoaderMixin
 
 
-class DeadlinesType(Enum):
+class ManytaskSettingsConfig(CustomBaseModel):
+    """Manytask settings."""
+
+    course_name: str
+    gitlab_base_url: AnyUrl
+    public_repo: str
+    students_group: str
+
+
+class ManytaskUiConfig(CustomBaseModel):
+    task_url_template: str  # $GROUP_NAME $TASK_NAME vars are available
+    links: dict[str, str] | None = None
+
+
+class ManytaskDeadlinesType(Enum):
     HARD = "hard"
     INTERPOLATE = "interpolate"
 
 
-class DeadlinesSettingsConfig(CustomBaseModel):
+class ManytaskDeadlinesConfig(CustomBaseModel):
     timezone: str
 
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
-    deadlines: DeadlinesType = DeadlinesType.HARD
+    deadlines: ManytaskDeadlinesType = ManytaskDeadlinesType.HARD
     max_submissions: Optional[int] = None
     submission_penalty: float = 0
 
@@ -55,7 +69,7 @@ class DeadlinesSettingsConfig(CustomBaseModel):
         return timezone
 
 
-class DeadlinesTaskConfig(CustomBaseModel):
+class ManytaskTaskConfig(CustomBaseModel):
     task: str
 
     enabled: bool = True
@@ -72,7 +86,7 @@ class DeadlinesTaskConfig(CustomBaseModel):
         return self.task
 
 
-class DeadlinesGroupConfig(CustomBaseModel):
+class ManytaskGroupConfig(CustomBaseModel):
     group: str
 
     enabled: bool = True
@@ -82,14 +96,14 @@ class DeadlinesGroupConfig(CustomBaseModel):
     steps: dict[float, Union[datetime, timedelta]] = Field(default_factory=dict)
     end: Union[datetime, timedelta, None] = None
 
-    tasks: list[DeadlinesTaskConfig] = Field(default_factory=list)
+    tasks: list[ManytaskTaskConfig] = Field(default_factory=list)
 
     @property
     def name(self) -> str:
         return self.group
 
     @model_validator(mode="after")
-    def check_dates(self) -> "DeadlinesGroupConfig":
+    def check_dates(self) -> "ManytaskGroupConfig":
         # check end
         if isinstance(self.end, timedelta) and self.end < timedelta():
             raise ValueError(f"end timedelta <{self.end}> should be positive")
@@ -121,18 +135,20 @@ class DeadlinesGroupConfig(CustomBaseModel):
         return self
 
 
-class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
-    """Deadlines configuration."""
+class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
+    """Manytask configuration."""
 
     version: int  # if config exists, version is always present
 
-    settings: DeadlinesSettingsConfig
-    schedule: list[DeadlinesGroupConfig]
+    settings: ManytaskSettingsConfig
+    ui: ManytaskUiConfig
+    deadlines: ManytaskDeadlinesConfig
+    schedule: list[ManytaskGroupConfig]
 
     def get_groups(
         self,
         enabled: bool | None = None,
-    ) -> list[DeadlinesGroupConfig]:
+    ) -> list[ManytaskGroupConfig]:
         groups = [group for group in self.schedule]
 
         if enabled is not None:
@@ -145,7 +161,7 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
     def get_tasks(
         self,
         enabled: bool | None = None,
-    ) -> list[DeadlinesTaskConfig]:
+    ) -> list[ManytaskTaskConfig]:
         # TODO: refactor
 
         groups = self.get_groups()
@@ -182,7 +198,7 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
 
     @field_validator("schedule")
     @classmethod
-    def check_group_names_unique(cls, data: list[DeadlinesGroupConfig]) -> list[DeadlinesGroupConfig]:
+    def check_group_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
         groups = [group.name for group in data]
         duplicates = [name for name in groups if groups.count(name) > 1]
         if duplicates:
@@ -191,7 +207,7 @@ class DeadlinesConfig(CustomBaseModel, YamlLoaderMixin["DeadlinesConfig"]):
 
     @field_validator("schedule")
     @classmethod
-    def check_task_names_unique(cls, data: list[DeadlinesGroupConfig]) -> list[DeadlinesGroupConfig]:
+    def check_task_names_unique(cls, data: list[ManytaskGroupConfig]) -> list[ManytaskGroupConfig]:
         tasks_names = [task.name for group in data for task in group.tasks]
         duplicates = [name for name in tasks_names if tasks_names.count(name) > 1]
         if duplicates:

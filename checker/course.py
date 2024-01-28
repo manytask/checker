@@ -8,7 +8,7 @@ from typing import Any
 
 import git
 
-from .configs import CheckerSubConfig, CheckerTestingConfig, DeadlinesConfig
+from .configs import CheckerSubConfig, CheckerTestingConfig, ManytaskConfig
 from .exceptions import BadConfig, CheckerException
 from .utils import print_info
 
@@ -39,11 +39,11 @@ class Course:
 
     def __init__(
         self,
-        deadlines: DeadlinesConfig,
+        manytask_config: ManytaskConfig,
         repository_root: Path,
         reference_root: Path | None = None,
     ):
-        self.deadlines = deadlines
+        self.manytask_config = manytask_config
 
         self.repository_root = repository_root
         self.reference_root = reference_root or repository_root
@@ -53,12 +53,12 @@ class Course:
 
     def validate(self) -> None:
         # check all groups and tasks mentioned in deadlines exists
-        deadlines_groups = self.deadlines.get_groups(enabled=True)
+        deadlines_groups = self.manytask_config.get_groups(enabled=True)
         for deadline_group in deadlines_groups:
             if deadline_group.name not in self.potential_groups:
                 warnings.warn(f"Group {deadline_group.name} not found in repository")
 
-        deadlines_tasks = self.deadlines.get_tasks(enabled=True)
+        deadlines_tasks = self.manytask_config.get_tasks(enabled=True)
         for deadlines_task in deadlines_tasks:
             if deadlines_task.name not in self.potential_tasks:
                 raise BadConfig(f"Task {deadlines_task.name} not found in repository")
@@ -67,7 +67,7 @@ class Course:
         self,
         enabled: bool | None = None,
     ) -> list[FileSystemGroup]:
-        search_deadlines_groups = self.deadlines.get_groups(enabled=enabled)
+        search_deadlines_groups = self.manytask_config.get_groups(enabled=enabled)
 
         return [
             self.potential_groups[deadline_group.name]
@@ -79,7 +79,7 @@ class Course:
         self,
         enabled: bool | None = None,
     ) -> list[FileSystemTask]:
-        search_deadlines_tasks = self.deadlines.get_tasks(enabled=enabled)
+        search_deadlines_tasks = self.manytask_config.get_tasks(enabled=enabled)
 
         return [
             self.potential_tasks[deadline_task.name]
@@ -148,7 +148,7 @@ class Course:
         """
         print_info(f"Detecting changes by {detection_type}")
         potential_tasks = self.get_tasks(enabled=True)
-        enabled_groups = self.deadlines.get_groups(enabled=True)  # 'cause we want to check no-folder groups as well
+        enabled_groups = self.manytask_config.get_groups(enabled=True)  # 'cause we want to check no-folder groups as well
 
         try:
             repo = git.Repo(self.repository_root)
