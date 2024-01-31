@@ -211,19 +211,19 @@ class Exporter:
 
         disabled_groups_and_tasks_to_skip = [
             *[
-                str(Path(group.relative_path).relative_to(self.reference_root))
+                group.relative_path
                 for group in self.course.get_groups(enabled=False)
             ],
             *[
-                str(Path(group.relative_path).relative_to(self.reference_root))
+                group.relative_path
                 for group in self.course.get_groups(started=False)
             ],
             *[
-                str(Path(task.relative_path).relative_to(self.reference_root))
+                task.relative_path
                 for task in self.course.get_tasks(enabled=False)
             ],
             *[
-                str(Path(task.relative_path).relative_to(self.reference_root))
+                task.relative_path
                 for task in self.course.get_tasks(started=False)
             ],
         ]
