@@ -179,15 +179,24 @@ class Course:
             # try to get groups first
             changed_enabled_groups = [group for group in enabled_groups if group.name == branch_name]
             if changed_enabled_groups:
-                print_info(f"Changed groups: {changed_enabled_groups} (branch name == group name)", color="grey")
+                print_info(
+                    f"Changed groups: {[g.name for g in changed_enabled_groups]} (branch name == group name)",
+                    color="grey",
+                )
                 changed_enabled_tasks_names = {task.name for group in changed_enabled_groups for task in group.tasks}
                 changed_tasks = [task for task in potential_tasks if task.name in changed_enabled_tasks_names]
-                print_info(f"Changed tasks: {changed_tasks} (branch name == group name)", color="grey")
+                print_info(
+                    f"Changed tasks: {[t.name for t in changed_tasks]} (branch name == group name)",
+                    color="grey",
+                )
                 return changed_tasks
 
             # if no groups found, try to get tasks
             changed_tasks = [task for task in potential_tasks if task.name == branch_name]
-            print_info(f"Changed tasks: {changed_tasks} (branch name == task/group name)", color="grey")
+            print_info(
+                f"Changed tasks: {[t.name for t in changed_tasks]} (branch name == task/group name)",
+                color="grey",
+            )
             if not changed_tasks:
                 print_info(f"No active task/group found for branch {branch_name}", color="yellow")
 
@@ -202,15 +211,24 @@ class Course:
             # try to get groups first
             changed_enabled_groups = [group for group in enabled_groups if group.name in commit_message]
             if changed_enabled_groups:
-                print_info(f"Changed groups: {changed_enabled_groups} (group name in commit message)", color="grey")
+                print_info(
+                    f"Changed groups: {[g.name for g in changed_enabled_groups]} (group name in commit message)",
+                    color="grey",
+                )
                 changed_enabled_tasks_names = {task.name for group in changed_enabled_groups for task in group.tasks}
                 changed_tasks = [task for task in potential_tasks if task.name in changed_enabled_tasks_names]
-                print_info(f"Changed tasks: {changed_tasks} (group name in commit message)", color="grey")
+                print_info(
+                    f"Changed tasks: {[t.name for t in changed_tasks]} (group name in commit message)",
+                    color="grey",
+                )
                 return changed_tasks
 
             # if no groups found, try to get tasks
             changed_tasks = [task for task in potential_tasks if task.name in commit_message]
-            print_info(f"Changed tasks: {changed_tasks} (task name in commit message)", color="grey")
+            print_info(
+                f"Changed tasks: {[t.name for t in changed_tasks]} (task name in commit message)",
+                color="grey",
+            )
             if not changed_tasks:
                 print_info(f"No active tasks/groups found for commit message {commit_message}", color="yellow")
 
@@ -224,7 +242,10 @@ class Course:
             changed_tasks = [
                 task for task in potential_tasks if any(task.relative_path in file for file in changed_files)
             ]
-            print_info(f"Changed tasks: {changed_tasks} (changed files in last commit)", color="grey")
+            print_info(
+                f"Changed tasks: {[t.name for t in changed_tasks]} (changed files in last commit)",
+                color="grey",
+            )
             if not changed_tasks:
                 warnings.warn(f"No active tasks found for last commit changes {changed_files}")
 
