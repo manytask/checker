@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../images/logo-manytask.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f2e4d321.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -836,11 +836,11 @@
 <h2 id="layout">Layout</h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>tl;dr:  <code>.checker.yml</code> and <code>.deadlines.yml</code> in the root of the repo, <code>.task.yml</code> and <code>.group.yml</code> in each tasks and group (can be empty).</p>
+<p>tl;dr:  <code>.checker.yml</code> and <code>.manytask.yml</code> in the root of the repo, <code>.task.yml</code> and <code>.group.yml</code> in each tasks and group (can be empty).</p>
 </div>
 <p>The private repository layout is crucial for the checker to function correctly. 
 Each task should be organized into dedicated folders within group directories. 
-Also, there are 2 config files <code>.course.yml</code> and <code>.deadlines.yml</code> that are required for checker to work.</p>
+Also, there are 2 config files <code>.course.yml</code> and <code>.manytask.yml</code> that are required for checker to work.</p>
 <p>Each task location detected by <code>.task.yml</code> file (can be just empty). Each group, if any, detected by <code>.group.yml</code> file (can be empty). </p>
 <p>Here's a detailed breakdown:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">group_1/</span>
@@ -860,7 +860,7 @@ Also, there are 2 config files <code>.course.yml</code> and <code>.deadlines.yml
 <span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">task_4/</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 <span class="l l-Scalar l-Scalar-Plain">.checker.yml</span><span class="w">  </span><span class="c1"># checker config with default parameters and pipelines</span>
-<span class="l l-Scalar l-Scalar-Plain">.deadlines.yml</span><span class="w">  </span><span class="c1"># deadlines config with task scores to send to manytask</span>
+<span class="l l-Scalar l-Scalar-Plain">.manytask.yml</span><span class="w">  </span><span class="c1"># deadlines config with task scores to send to manytask</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -944,7 +944,7 @@ That's why we have templates. Teachers store the gold solution file the same pla
 </li>
 </ol>
 <h2 id="configuration">Configuration</h2>
-<p>The configuration of the checker and Manytask requires setting up 2 main files: <code>.course.yml</code> and <code>.deadlines.yml</code> and custom <code>.task.yml</code> files for each task when needed. 
+<p>The configuration of the checker and Manytask requires setting up 2 main files: <code>.course.yml</code> and <code>.manytask.yml</code> and custom <code>.task.yml</code> files for each task when needed. 
 Here is the short overview of the configuration files:</p>
 <ul>
 <li>
@@ -952,7 +952,7 @@ Here is the short overview of the configuration files:</p>
     This file specifies the default parameters for the checker script and defines the pipelines for task checking and exporting.</p>
 </li>
 <li>
-<p><strong>Deadlines Configuration</strong> (<code>.deadlines.yml</code>):
+<p><strong>Deadlines Configuration</strong> (<code>.manytask.yml</code>):
     This file outlines the deadlines for each group, task max score and etc.<br />
     In the checker it is used a) to validate deadlines integrity and b) to send scores to manytask.</p>
 </li>
@@ -1154,10 +1154,10 @@ These playbooks provide a stable and tested setup for the self-hosted gitlab ins
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>

@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../images/logo-manytask.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f2e4d321.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -558,7 +558,7 @@
           <li class="md-nav__item">
   <a href="#checker.plugins.base.PluginABC.run" class="md-nav__link">
     <span class="md-ellipsis">
-      run()
+      run
     </span>
   </a>
   
@@ -567,7 +567,7 @@
           <li class="md-nav__item">
   <a href="#checker.plugins.base.PluginABC.validate" class="md-nav__link">
     <span class="md-ellipsis">
-      validate()
+      validate
     </span>
   </a>
   
@@ -847,7 +847,7 @@
           <li class="md-nav__item">
   <a href="#checker.plugins.base.PluginABC.run" class="md-nav__link">
     <span class="md-ellipsis">
-      run()
+      run
     </span>
   </a>
   
@@ -856,7 +856,7 @@
           <li class="md-nav__item">
   <a href="#checker.plugins.base.PluginABC.validate" class="md-nav__link">
     <span class="md-ellipsis">
-      validate()
+      validate
     </span>
   </a>
   
@@ -1161,7 +1161,6 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
 
 
 
-
 <h4 id="checker.plugins.base.PluginABC.Args" class="doc doc-heading">
           <code>Args</code>
 
@@ -1195,12 +1194,12 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
+
 </div>
 
 
 
 <div class="doc doc-object doc-function">
-
 
 
 
@@ -1250,7 +1249,6 @@ You have to subclass this class in your plugin.</p>
 
 
 <div class="doc doc-object doc-function">
-
 
 
 
@@ -1312,6 +1310,7 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
+
 </div></blockquote>
 <p>Note that each plugin should override <code>checker.plugins.PluginABC.Args</code> class to provide arguments validation. Otherwise, empty arguments will be passed to <code>run</code> method.</p>
 <blockquote>
@@ -1347,6 +1346,7 @@ You have to subclass this class in your plugin.</p>
             </details>
 
   </div>
+
 
 </div></blockquote>
 <p>Each plugin output <code>checker.plugins.PluginOutput</code> class when executed successfully. </p>
@@ -1405,6 +1405,7 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
+
 </div></blockquote>
 <p>In case of error, <code>checker.exceptions.PluginExecutionFailed</code> have to be raised.</p>
 <blockquote>
@@ -1457,6 +1458,7 @@ You have to subclass this class in your plugin.</p>
   </div>
 
   </div>
+
 
 </div></blockquote>
 <div class="admonition note">
@@ -1515,6 +1517,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
+
 </div></blockquote>
 </li>
 <li>
@@ -1572,6 +1575,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
+
 </div></blockquote>
 </li>
 <li>
@@ -1619,6 +1623,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
+
 </div></blockquote>
 </li>
 <li>
@@ -1665,6 +1670,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
   </div>
 
   </div>
+
 
 </div></blockquote>
 </li>
@@ -1725,6 +1731,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
+
 </div></blockquote>
 </li>
 <li>
@@ -1776,6 +1783,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
+
 </div></blockquote>
 </li>
 <li>
@@ -1826,6 +1834,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
   </div>
 
   </div>
+
 
 </div></blockquote>
 </li>
@@ -1921,10 +1930,10 @@ If <code>verbose</code> is <code>False</code> the plugin should provide only pub
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>

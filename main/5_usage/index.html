@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../images/logo-manytask.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f2e4d321.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -840,18 +840,6 @@
 </thead>
 <tbody>
 <tr>
-<td><code>--checker-config</code></td>
-<td>path</td>
-<td>Path to the checker config file.</td>
-<td><code>.checker.yml</code></td>
-</tr>
-<tr>
-<td><code>--deadlines-config</code></td>
-<td>path</td>
-<td>Path to the deadlines config file.</td>
-<td><code>.deadlines.yml</code></td>
-</tr>
-<tr>
 <td><code>--version</code></td>
 <td>boolean</td>
 <td>Show the version and exit.</td>
@@ -916,7 +904,7 @@
 <td><code>-n</code>, <code>--num-processes</code></td>
 <td>integer</td>
 <td>Num of processes parallel checking</td>
-<td><code>8</code></td>
+<td><code>4</code></td>
 </tr>
 <tr>
 <td><code>--no-clean</code></td>
@@ -1021,6 +1009,12 @@
 <td>None</td>
 </tr>
 <tr>
+<td><code>--branch</code></td>
+<td>text</td>
+<td>Rewrite branch name for the submission</td>
+<td>None</td>
+</tr>
+<tr>
 <td><code>--no-clean</code></td>
 <td>boolean</td>
 <td>Clean or not check tmp folders</td>
@@ -1051,7 +1045,7 @@
 <ol>
 <li>Validate the configuration files content.</li>
 <li>Validate mentioned plugins.</li>
-<li>Check all tasks are valid and consistent with the deadlines.</li>
+<li>Check all tasks are valid and consistent with the manytask.</li>
 </ol>
 <p><strong>Usage:</strong></p>
 <div class="language-text highlight"><pre><span></span><code>checker validate [OPTIONS] [ROOT]
@@ -1150,10 +1144,10 @@ We have tried to optimize it, but you may want to create your own image from scr
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>

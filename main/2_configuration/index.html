@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../images/logo-manytask.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f2e4d321.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -531,13 +531,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#deadlinesyml" class="md-nav__link">
+  <a href="#manytaskyml" class="md-nav__link">
     <span class="md-ellipsis">
-      .deadlines.yml
+      .manytask.yml
     </span>
   </a>
   
-    <nav class="md-nav" aria-label=".deadlines.yml">
+    <nav class="md-nav" aria-label=".manytask.yml">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -748,13 +748,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#deadlinesyml" class="md-nav__link">
+  <a href="#manytaskyml" class="md-nav__link">
     <span class="md-ellipsis">
-      .deadlines.yml
+      .manytask.yml
     </span>
   </a>
   
-    <nav class="md-nav" aria-label=".deadlines.yml">
+    <nav class="md-nav" aria-label=".manytask.yml">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -814,7 +814,7 @@
 
 
 <h1 id="configuration">Configuration</h1>
-<p>This page describes how to configure checker with <code>.checker.yml</code>, <code>.deadlines.yml</code> and <code>.group.yml</code>/<code>.task.yml</code> files.</p>
+<p>This page describes how to configure checker with <code>.checker.yml</code>, <code>.manytask.yml</code> and <code>.group.yml</code>/<code>.task.yml</code> files.</p>
 <p>You can refer to the <a href="https://github.com/manytask/course-template">course-template</a> repository for examples of configuration files.</p>
 <h2 id="checkeryml"><code>.checker.yml</code></h2>
 <p>This file describes how the checker will operate - how to export files, how to run pipelines and so on.</p>
@@ -847,7 +847,7 @@ No <code>**</code> patterns are allowed.</p>
 <span class="w">  </span><span class="nt">run_testing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">  </span><span class="c1"># in seconds</span>
 
-<span class="c1"># settings for export command, uses .deadlines.yml and `params` and each task params (in .task.yml)</span>
+<span class="c1"># settings for export command, uses .manytask.yml and `params` and each task params (in .task.yml)</span>
 <span class="nt">export</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://gitlab.manytask.org/test/public-test-repo</span>
 
@@ -871,19 +871,19 @@ No <code>**</code> patterns are allowed.</p>
 <p class="admonition-title">Note</p>
 <p><code>changes_detection</code> parameter select how to detect changes in the repo during testing (<code>checker grade</code> command).<br />
 It can be one of the following:
-* <code>branch_name</code> - check if the branch name == task name (select only one task)
-* <code>commit_message</code> - check if the commit message contains task name (can select multiple tasks)
+* <code>branch_name</code> - check if the branch name == task/group name (select only one task/group)
+* <code>commit_message</code> - check if the commit message contains task/group name (can select multiple tasks/groups)
 * <code>last_commit_changes</code> - check if the last commit contains changes in the task folder (can select multiple tasks)
 * <code>files</code> - (NOT IMPLEMENTED) check actual file difference between current state and the previous commit (can select multiple tasks)</p>
 </div>
-<h2 id="deadlinesyml"><code>.deadlines.yml</code></h2>
+<h2 id="manytaskyml"><code>.manytask.yml</code></h2>
 <p>This file describes deadlines for tasks. It is used by <code>checker export</code> command to export only tasks that are started.<br />
 Additionally, it is used by <code>checker validate</code> to ensure integrity of the deadlines and local files.</p>
 <p>No json schema available yet, but you can refer to the checker.configs.deadlines.DeadlinesConfig in <a href="https://github.com/manytask/checker">checker</a> repository.<br />
 Or <a href="https://github.com/manytask/course-template">course-template</a> repository.</p>
 <h3 id="example_1">Example</h3>
-<p>The simple <code>.deadlines.yml</code> file is:
-<div class="language-yaml highlight"><pre><span></span><code><span class="c1"># .deadlines.yml</span>
+<p>The simple <code>.manytask.yml</code> file is:
+<div class="language-yaml highlight"><pre><span></span><code><span class="c1"># .manytask.yml</span>
 <span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 
 <span class="nt">settings</span><span class="p">:</span>
@@ -1015,10 +1015,10 @@ Or <a href="https://github.com/manytask/course-template">course-template</a> rep
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.copy", "content.code.annotation"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>
