@@ -19,35 +19,19 @@ ClickReadableFile = click.Path(exists=True, file_okay=True, readable=True, path_
 ClickReadableDirectory = click.Path(exists=True, file_okay=False, readable=True, path_type=Path)
 ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Path)
 
+CHECKER_CONFIG = ".checker.yml"
+MANYTASK_CONFIG = ".manytask.yml"
 
 @click.group(context_settings={"show_default": True})
-@click.option(
-    "--checker-config",
-    type=ClickReadableFile,
-    default=".checker.yml",
-    help="Path to the checker config file.",
-)
-@click.option(
-    "--manytask-config",
-    type=ClickReadableFile,
-    default=".manytask.yml",
-    help="Path to the manytask config file.",
-)
 @click.version_option(package_name="manytask-checker")
 @click.pass_context
 def cli(
     ctx: click.Context,
-    checker_config: Path,
-    manytask_config: Path,
 ) -> None:
     """Manytask checker - automated tests for students' assignments."""
     print_ascii_tag()  # TODO: print version
 
     ctx.ensure_object(dict)
-    ctx.obj = {
-        "course_config_path": checker_config,
-        "manytask_config_path": manytask_config,
-    }
 
 
 @cli.command()
@@ -65,11 +49,14 @@ def validate(
     2. Validate mentioned plugins.
     3. Check all tasks are valid and consistent with the manytask.
     """
+    # get configs paths
+    course_config_path = root / CHECKER_CONFIG
+    manytask_config_path = root / MANYTASK_CONFIG
 
     print_info("Validating configuration files...")
     try:
-        checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-        manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
+        checker_config = CheckerConfig.from_yaml(course_config_path)
+        manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
     except CheckerValidationError as e:
         print_info("Configuration Failed", color="red")
         print_info(e)
@@ -178,9 +165,13 @@ def check(
     # validate first
     ctx.invoke(validate, root=root, verbose=verbose)  # TODO: check verbose level
 
+    # get configs paths
+    course_config_path = root / CHECKER_CONFIG
+    manytask_config_path = root / MANYTASK_CONFIG
+
     # load configs
-    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
+    checker_config = CheckerConfig.from_yaml(course_config_path)
+    manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
     course = Course(manytask_config, root)
@@ -267,9 +258,13 @@ def grade(
     3. Run pipelines: global, tasks and report.
     4. Cleanup temporary directory.
     """
+    # get configs paths
+    course_config_path = reference_root / CHECKER_CONFIG
+    manytask_config_path = reference_root / MANYTASK_CONFIG
+
     # load configs
-    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
+    checker_config = CheckerConfig.from_yaml(course_config_path)
+    manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
     course = Course(manytask_config, root, reference_root)
@@ -324,9 +319,13 @@ def export(
     dry_run: bool,
 ) -> None:
     """Export tasks from reference to public repository."""
+    # get configs paths
+    course_config_path = reference_root / CHECKER_CONFIG
+    manytask_config_path = reference_root / MANYTASK_CONFIG
+
     # load configs
-    checker_config = CheckerConfig.from_yaml(ctx.obj["course_config_path"])
-    manytask_config = ManytaskConfig.from_yaml(ctx.obj["manytask_config_path"])
+    checker_config = CheckerConfig.from_yaml(course_config_path)
+    manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
     course = Course(manytask_config, reference_root)
