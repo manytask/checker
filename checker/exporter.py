@@ -211,25 +211,13 @@ class Exporter:
         target.mkdir(parents=True, exist_ok=True)
 
         disabled_groups_and_tasks_to_skip = [
-            *[
-                group.relative_path
-                for group in self.course.get_groups(enabled=False)
-            ],
-            *[
-                group.relative_path
-                for group in self.course.get_groups(started=False)
-            ],
-            *[
-                task.relative_path
-                for task in self.course.get_tasks(enabled=False)
-            ],
-            *[
-                task.relative_path
-                for task in self.course.get_tasks(started=False)
-            ],
+            *[group.relative_path for group in self.course.get_groups(enabled=False)],
+            *[group.relative_path for group in self.course.get_groups(started=False)],
+            *[task.relative_path for task in self.course.get_tasks(enabled=False)],
+            *[task.relative_path for task in self.course.get_tasks(started=False)],
         ]
 
-        print_info(f"Copy from {self.reference_root} to {target}", color='grey')
+        print_info(f"Copy from {self.reference_root} to {target}", color="grey")
         self._copy_files_with_config(
             self.reference_root,
             target,
@@ -247,7 +235,7 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
-        print_info(f"Copy from {self.repository_root} to {target}", color='grey')
+        print_info(f"Copy from {self.repository_root} to {target}", color="grey")
         self._copy_files_with_config(
             self.repository_root,
             target,
@@ -258,7 +246,7 @@ class Exporter:
             fill_templates=False,
         )
 
-        print_info(f"Copy from {self.reference_root} to {target}", color='grey')
+        print_info(f"Copy from {self.reference_root} to {target}", color="grey")
         self._copy_files_with_config(
             self.reference_root,
             target,
@@ -275,7 +263,7 @@ class Exporter:
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
 
-        print_info(f"Copy from {self.repository_root} to {target}", color='grey')
+        print_info(f"Copy from {self.repository_root} to {target}", color="grey")
         self._copy_files_with_config(
             self.repository_root,
             target,
@@ -286,7 +274,7 @@ class Exporter:
             fill_templates=False,
         )
 
-        print_info(f"Copy from {self.reference_root} to {target}", color='grey')
+        print_info(f"Copy from {self.reference_root} to {target}", color="grey")
         self._copy_files_with_config(
             self.reference_root,
             target,
@@ -331,13 +319,18 @@ class Exporter:
         global_destination = global_destination or destination
 
         if self.verbose:
-            print_info(f"Copy files from <{root.relative_to(global_root)}> to <{destination.relative_to(global_destination)}>", color='white')
-            print_info(f"  {config=}", color='white')
+            print_info(
+                f"Copy files from <{root.relative_to(global_root)}> to <{destination.relative_to(global_destination)}>",
+                color="white",
+            )
+            print_info(f"  {config=}", color="white")
 
         if extra_ignore_paths is not None:
             if str(root.relative_to(global_root)) in extra_ignore_paths:
                 if self.verbose:
-                    print_info(f"    - Skip <{root.relative_to(global_root)}> because of extra ignore paths", color='grey')
+                    print_info(
+                        f"    - Skip <{root.relative_to(global_root)}> because of extra ignore paths", color="grey"
+                    )
                 return
 
         # select paths to ignore - original to replace or templates to ignore
@@ -373,13 +366,13 @@ class Exporter:
             # if will replace with template - ignore file
             if path.name in exclude_paths:
                 if self.verbose:
-                    print_info(f"    - Skip <{path.relative_to(global_root)}> because of templating", color='grey')
+                    print_info(f"    - Skip <{path.relative_to(global_root)}> because of templating", color="grey")
                 continue
 
             # ignore if match ignore patterns
             if config.ignore_patterns and any(path.match(ignore_pattern) for ignore_pattern in config.ignore_patterns):
                 if self.verbose:
-                    print_info(f"    - Skip <{path.relative_to(global_root)}> because of ignore patterns", color='grey')
+                    print_info(f"    - Skip <{path.relative_to(global_root)}> because of ignore patterns", color="grey")
                 continue
 
             # If matches public patterns AND copy_public is False - skip
@@ -388,7 +381,10 @@ class Exporter:
                 is_public = True
                 if not copy_public:
                     if self.verbose:
-                        print_info(f"    - Skip <{path.relative_to(global_root)}> because of public patterns skip", color='grey')
+                        print_info(
+                            f"    - Skip <{path.relative_to(global_root)}> because of public patterns skip",
+                            color="grey",
+                        )
                     continue
 
             # If matches private patterns AND copy_private is False - skip
@@ -402,7 +398,10 @@ class Exporter:
                 is_private = True
                 if not copy_private:
                     if self.verbose:
-                        print_info(f"    - Skip <{path.relative_to(global_root)}> because of skip private patterns skip", color='grey')
+                        print_info(
+                            f"    - Skip <{path.relative_to(global_root)}> because of skip private patterns skip",
+                            color="grey",
+                        )
                     continue
 
             # if not match public and not match private and copy_other is False - skip
@@ -410,7 +409,10 @@ class Exporter:
             if not is_public and not is_private and not path.is_dir():
                 if not copy_other:
                     if self.verbose:
-                        print_info(f"    - Skip <{path.relative_to(global_root)}> because of copy other files not enabled", color='grey')
+                        print_info(
+                            f"    - Skip <{path.relative_to(global_root)}> because of copy other files not enabled",
+                            color="grey",
+                        )
                     continue
 
             # if file is empty file/folder - just do not copy (delete original file due to exclude_paths)
@@ -420,7 +422,7 @@ class Exporter:
                         print_info(
                             f"    - Skip <{path.relative_to(global_root)}> because it is empty folder and "
                             f"templating is set to {self.export_config.templates}",
-                            color='grey'
+                            color="grey",
                         )
                     continue
                 if path.is_file() and path.stat().st_size == 0:
@@ -428,7 +430,7 @@ class Exporter:
                         print_info(
                             f"    - Skip <{path.relative_to(global_root)}> because it is empty file and "
                             f"templating is set to {self.export_config.templates}",
-                            color='grey'
+                            color="grey",
                         )
                     continue
 
@@ -440,7 +442,7 @@ class Exporter:
                         print_info(
                             f"    - Fully Copy <{path.relative_to(global_root)}> to "
                             f"<{path_destination.relative_to(global_destination)}>",
-                            color='grey'
+                            color="grey",
                         )
                     self._copy_files_with_config(
                         path,
@@ -482,7 +484,7 @@ class Exporter:
                     print_info(
                         f"    -- Recursively copy from <{path.relative_to(global_root)}> to "
                         f"<{path_destination.relative_to(global_destination)}>",
-                        color='grey'
+                        color="grey",
                     )
                 self._copy_files_with_config(
                     path,
@@ -502,7 +504,7 @@ class Exporter:
                     print_info(
                         f"    - Copy <{path.relative_to(global_root)}> to "
                         f"<{path_destination.relative_to(global_destination)}>",
-                        color='grey'
+                        color="grey",
                     )
                 path_destination.parent.mkdir(parents=True, exist_ok=True)
 

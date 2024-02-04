@@ -171,9 +171,9 @@ class Course:
             try:
                 branch_name = repo.active_branch.name
             except TypeError:
+                if self.branch_name is None:
+                    raise CheckerException("Detached HEAD state and no branch name provided")
                 branch_name = self.branch_name
-            if branch_name is None:
-                raise CheckerException("Detached HEAD state and no branch name provided")
             print_info(f"Branch name: {branch_name}", color="grey")
 
             # try to get groups first

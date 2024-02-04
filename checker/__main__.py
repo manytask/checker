@@ -22,6 +22,7 @@ ClickWritableDirectory = click.Path(file_okay=False, writable=True, path_type=Pa
 CHECKER_CONFIG = ".checker.yml"
 MANYTASK_CONFIG = ".manytask.yml"
 
+
 @click.group(context_settings={"show_default": True})
 @click.version_option(package_name="manytask-checker")
 @click.pass_context
@@ -269,7 +270,7 @@ def grade(
     manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
-    course = Course(manytask_config, root, reference_root, branch_name=branch_name)
+    course = Course(manytask_config, root, reference_root, branch_name=branch)
 
     # create exporter and export files for testing
     exporter = Exporter(
