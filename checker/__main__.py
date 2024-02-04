@@ -230,6 +230,7 @@ def check(
 @click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
 @click.option("--timestamp", type=str, default=None, help="Timestamp to use for the submission")
 @click.option("--username", type=str, default=None, help="Username to use for the submission")
+@click.option("--branch", type=str, default=None, help="Rewrite branch name for the submission")
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
 @click.option(
     "-v/-s",
@@ -247,6 +248,7 @@ def grade(
     submit_score: bool,
     timestamp: str | None,
     username: str | None,
+    branch: str | None,
     no_clean: bool,
     verbose: bool,
     dry_run: bool,
@@ -267,7 +269,7 @@ def grade(
     manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
-    course = Course(manytask_config, root, reference_root)
+    course = Course(manytask_config, root, reference_root, branch_name=branch_name)
 
     # create exporter and export files for testing
     exporter = Exporter(
@@ -281,7 +283,12 @@ def grade(
     exporter.export_for_testing(exporter.temporary_dir)
 
     # detect changes to test
-    changed_tasks = course.detect_changes(checker_config.testing.changes_detection)
+    try:
+        changed_tasks = course.detect_changes(checker_config.testing.changes_detection)
+    except Exception as e:
+        print_info("DETECT CHANGES FAILED", color="red")
+        print_info(e)
+        exit(1)
 
     # create tester to... to test =)
     tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)

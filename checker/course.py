@@ -43,6 +43,7 @@ class Course:
         manytask_config: ManytaskConfig,
         repository_root: Path,
         reference_root: Path | None = None,
+        branch_name: str | None = None,
     ):
         self.manytask_config = manytask_config
 
@@ -51,6 +52,8 @@ class Course:
 
         self.potential_groups = {group.name: group for group in self._search_for_groups_by_configs(self.reference_root)}
         self.potential_tasks = {task.name: task for task in self._search_for_tasks_by_configs(self.reference_root)}
+
+        self.branch_name = branch_name
 
     def validate(self) -> None:
         # check all groups and tasks mentioned in deadlines exists
@@ -165,7 +168,12 @@ class Course:
             raise CheckerException(f"Git Repository in {self.repository_root} not found")
 
         if detection_type == CheckerTestingConfig.ChangesDetectionType.BRANCH_NAME:
-            branch_name = repo.active_branch.name
+            try:
+                branch_name = repo.active_branch.name
+            except TypeError:
+                branch_name = self.branch_name
+            if branch_name is None:
+                raise CheckerException("Detached HEAD state and no branch name provided")
             print_info(f"Branch name: {branch_name}", color="grey")
 
             # try to get groups first
