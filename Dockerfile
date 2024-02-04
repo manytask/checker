@@ -51,5 +51,8 @@ COPY --from=builder /usr/local/bin/firejail /usr/local/bin/firejail
 # Copy python dependencies and checker
 COPY --from=builder /opt/checker-venv /opt/checker-venv
 
-ENTRYPOINT [ "/opt/checker-venv/bin/python", "-m", "checker" ]
+# add checker as alias for "/opt/checker-venv/bin/python -m checker"
+RUN ln -s /opt/checker-venv/bin/checker /usr/local/bin/checker
+
+ENTRYPOINT [ "checker" ]
 CMD [ "--help" ]
