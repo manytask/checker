@@ -31,9 +31,14 @@ class RunScriptPlugin(PluginABC):
             for variable in args.env_whitelist:
                 os.environ[variable] = env[variable]
 
+        if isinstance(args.script, list):
+            safe_shell_script = " ".join(args.script)
+        else:
+            safe_shell_script = args.script
+
         try:
             result = subprocess.run(
-                args.script,
+                safe_shell_script,
                 shell=True,
                 cwd=args.origin,
                 timeout=args.timeout,  # kill process after timeout, raise TimeoutExpired

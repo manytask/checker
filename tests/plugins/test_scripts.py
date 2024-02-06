@@ -46,10 +46,13 @@ class TestRunScriptPlugin:
         "script, output, expected_exception",
         [
             ("echo Hello", "Hello", None),
+            (["echo", "Hello"], "Hello", None),
             ("sleep 0.1", "", None),
+            (["sleep", "0.1"], "", None),
             ("true", "", None),
             ("false", "", PluginExecutionFailed),
             ("echo Hello && false", "Hello", PluginExecutionFailed),
+            (["echo", "Hello", "&&", "false"], "Hello", PluginExecutionFailed),
         ],
     )
     def test_simple_cases(self, script: str, output: str, expected_exception: Exception | None) -> None:
