@@ -224,6 +224,23 @@ class TestPipelineRunnerValidation:
         for stage_name in ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]:
             assert stage_name in captured
 
+    def test_not_print_stage_if_not_verbose(
+        self,
+        sample_correct_pipeline: list[PipelineStageConfig],
+        sample_plugins: dict[str, Type[PluginABC]],
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        pipeline_runner = PipelineRunner(
+            pipeline=sample_correct_pipeline,
+            plugins=sample_plugins,
+            verbose=False,
+        )
+        result = pipeline_runner.run({"message": "Hello"})
+        assert not result.failed
+        captured = capsys.readouterr().err
+        assert "stage4" not in captured
+        assert "stage5" not in captured
+
     def test_run_correct_pipeline_not_verbose(
         self,
         sample_correct_pipeline: list[PipelineStageConfig],
@@ -246,7 +263,7 @@ class TestPipelineRunnerValidation:
         # verbose output
         assert "Some secret verbose line" not in captured
         # stages names are printed
-        for stage_name in ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]:
+        for stage_name in ["stage1", "stage2", "stage3"]:
             assert stage_name in captured
 
     def test_dry_run(
@@ -292,7 +309,7 @@ class TestPipelineRunnerValidation:
         assert "Hello" in captured
         assert "second message" not in captured
         # stages names are printed
-        for stage_name in ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]:
+        for stage_name in ["stage1", "stage2", "stage3"]:
             assert stage_name in captured
 
     def test_fail_after_all(
@@ -316,5 +333,5 @@ class TestPipelineRunnerValidation:
         assert "Hello" in captured
         assert "second message" in captured
         # stages names are printed
-        for stage_name in ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]:
+        for stage_name in ["stage1", "stage2", "stage3"]:
             assert stage_name in captured

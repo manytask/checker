@@ -165,15 +165,22 @@ class Tester:
         outputs: dict[str, PipelineStageResult] = {}
 
         # run global pipeline
-        print_header_info("Run global pipeline:", color="pink")
         global_variables = self._get_global_pipeline_parameters(origin, tasks)
-        context = self._get_context(global_variables, None, outputs, self.default_params, None)
-        global_pipeline_result: PipelineResult = self.global_pipeline.run(context, dry_run=self.dry_run)
-        print_separator("-")
-        print_info(str(global_pipeline_result), color="pink")
+        if len(self.global_pipeline) > 0 or self.verbose:
+            print_header_info("Run global pipeline:", color="pink")
+            context = self._get_context(
+                global_variables,
+                None,
+                outputs,
+                self.default_params,
+                None,
+            )
+            global_pipeline_result: PipelineResult = self.global_pipeline.run(context, dry_run=self.dry_run)
+            print_separator("-")
+            print_info(str(global_pipeline_result), color="pink")
 
-        if not global_pipeline_result:
-            raise TestingError("Global pipeline failed")
+            if not global_pipeline_result:
+                raise TestingError("Global pipeline failed")
 
         failed_tasks = []
         for task in tasks:
