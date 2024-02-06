@@ -111,6 +111,9 @@ class PipelineRunner:
 
         self.validate({}, validate_placeholders=False)
 
+    def __len__(self) -> int:
+        return len(self.pipeline)
+
     def validate(
         self,
         context: dict[str, Any],
@@ -167,6 +170,10 @@ class PipelineRunner:
                 if pipeline_stage.run_if is not None
                 else None
             )
+
+            # if not verbose and skipping (student mode) dont print anything
+            if not dry_run and not self.verbose and (skip_the_rest or resolved_run_if is False):
+                continue
 
             print_info(f'--> Running "{pipeline_stage.name}" stage:', color="orange")
             if self.verbose:

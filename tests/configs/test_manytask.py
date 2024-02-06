@@ -125,6 +125,28 @@ class TestManytaskDeadlinesConfigGroup:
             0.2: datetime(2021, 1, 5, 0, 0),
         }
 
+    def test_get_percents_before_deadline_timedelta(self) -> None:
+        group = ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            steps={
+                0.9: "1d 09:00:00",
+                0.5: "2d 09:00:00",
+                0.2: "3d 09:00:00",
+            },
+            end="4d 09:00:00",
+            tasks=[],
+        )
+
+        percents_before_deadline = group.get_percents_before_deadline()
+
+        assert percents_before_deadline == {
+            1.0: datetime(2021, 1, 2, 9, 0),
+            0.9: datetime(2021, 1, 3, 9, 0),
+            0.5: datetime(2021, 1, 4, 9, 0),
+            0.2: datetime(2021, 1, 5, 9, 0),
+        }
+
     @pytest.mark.parametrize(
         "now, expected_percent",
         [
@@ -151,6 +173,25 @@ class TestManytaskDeadlinesConfigGroup:
         )
 
         assert group.get_current_percent_multiplier(now=now) == expected_percent
+
+    def test_get_current_percent_multiplier_timedelta(self) -> None:
+        group = ManytaskGroupConfig(
+            group="group1",
+            start="2021-01-01 00:00",
+            steps={
+                0.5: "1d 09:00:00",
+            },
+            end="2d 09:00:00",
+            tasks=[],
+        )
+
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 1, 0, 0)) == 1.0
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 2, 0, 0)) == 1.0
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 2, 8, 59)) == 1.0
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 2, 9, 1)) == 0.5
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 3, 8, 59)) == 0.5
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 3, 9, 1)) == 0.0
+        assert group.get_current_percent_multiplier(now=datetime(2021, 1, 4, 0, 0)) == 0.0
 
 
 class TestManytaskDeadlinesConfig:
