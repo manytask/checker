@@ -15,7 +15,7 @@ theme:
       toggle:
         icon: material/lightbulb
         name: Switch to dark mode
-      primary: teal
+      primary: pink
       accent: purple
 
     # Palette toggle for dark mode
@@ -24,7 +24,7 @@ theme:
       toggle:
         icon: material/lightbulb
         name: Switch to light mode
-      primary: teal
+      primary: pink
       accent: lime
 
   features:
@@ -46,8 +46,8 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
-  favicon: images/logo-manytask.png
-  logo: images/logo-manytask.png
+  favicon: images/favicon.ico
+  logo: images/manytask-avatar-1024px.png
 
 validation:
   omitted_files: warn
