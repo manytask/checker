@@ -15,6 +15,7 @@ class RunScriptPlugin(PluginABC):
         origin: str
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
+        env_additional: dict[str, str] = dict()
         env_whitelist: Optional[list[str]] = None
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
@@ -23,13 +24,12 @@ class RunScriptPlugin(PluginABC):
         def set_up_env_sandbox() -> None:  # pragma: nocover
             import os
 
-            if args.env_whitelist is None:
-                return
-
-            env = os.environ.copy()
-            os.environ.clear()
-            for variable in args.env_whitelist:
-                os.environ[variable] = env[variable]
+            if args.env_whitelist is not None:
+                env = os.environ.copy()
+                os.environ.clear()
+                for variable in args.env_whitelist:
+                    os.environ[variable] = env.get(variable, "")
+            os.environ.update(args.env_additional)
 
         if isinstance(args.script, list):
             safe_shell_script = " ".join(args.script)
@@ -45,7 +45,7 @@ class RunScriptPlugin(PluginABC):
                 check=True,  # raise CalledProcessError if return code is non-zero
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,  # merge stderr & stdout to single output
-                preexec_fn=set_up_env_sandbox if args.env_whitelist else None,
+                preexec_fn=set_up_env_sandbox,
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             output = e.output or ""

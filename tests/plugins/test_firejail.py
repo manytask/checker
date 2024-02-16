@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import re
+from io import StringIO
 from pathlib import Path
 from random import randrange
 from typing import Any
+from unittest.mock import patch
 
+import dotenv
 import pytest
 from pydantic import ValidationError
 
@@ -213,3 +216,24 @@ class TestSafeRunScriptPlugin:
         assert plugin._run(args).output == file_content
 
         file_path.unlink()
+
+    @pytest.mark.parametrize("env_additional", [{}, {"A": "B"}, {"A": "C"}, {"A": "B", "C": "D"}])
+    @pytest.mark.parametrize("env_whitelist", [[], ["A"], ["A", "C"]])
+    @pytest.mark.parametrize("mocked_env", [{}, {"A": "B"}, {"A": "C"}, {"A": "B", "C": "D"}])
+    def test_run_with_environment_variable(
+        self, env_additional: dict[str, str], env_whitelist: list[str], mocked_env: dict[str, str]
+    ) -> None:
+        plugin = SafeRunScriptPlugin()
+        args = SafeRunScriptPlugin.Args(
+            origin="/tmp", script="env", env_additional=env_additional, env_whitelist=env_whitelist
+        )
+
+        with patch.dict("os.environ", mocked_env, clear=True):
+            result = plugin._run(args)
+
+        env = dotenv.dotenv_values(stream=StringIO(result.output))
+        for e, v in env_additional.items():
+            assert env[e] == v
+
+        diff = set(env) - set(env_additional) - set(env_whitelist)
+        assert not diff
