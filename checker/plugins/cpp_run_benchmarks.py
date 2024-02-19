@@ -28,7 +28,7 @@ class CppRunBenchmarksPlugin(PluginABC):
         file_path = path / CppRunBenchmarksPlugin._REPORT
         if file_path.exists():
             with open(file_path, "r") as f:
-                print(f.read())
+                print_info(f.read())
 
     @staticmethod
     def _parse_xml(tree: ET.ElementTree) -> dict[str, float]:
