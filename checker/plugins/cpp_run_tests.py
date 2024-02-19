@@ -41,7 +41,7 @@ class CppRunTestsPlugin(PluginABC):
         for file in CppRunTestsPlugin._FILES:
             for file_path in path.glob(file + "*"):
                 with open(file_path, "r") as f:
-                    print(f.read())
+                    print_info(f.read())
 
     @staticmethod
     def _run_tests(args: Args, tmp_dir: Path, build_dir: Path, target: str, verbose: bool) -> None:
