@@ -15,23 +15,15 @@ class CopyFilesPlugin(PluginABC):
     class Args(PluginABC.Args):
         source_dir: Path
         target_dir: Path
-        patterns: str | list[str]
-        ignore_patterns: str | list[str]
+        patterns: list[str]
+        ignore_patterns: list[str]
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
-        patterns = args.patterns
-        if isinstance(patterns, str):
-            patterns = [patterns]
-
-        ignore_patterns = args.ignore_patterns
-        if isinstance(ignore_patterns, str):
-            ignore_patterns = [ignore_patterns]
-
         CopyFilesPlugin._copy_files(
             source=args.source_dir,
             target=args.target_dir,
-            patterns=patterns,
-            ignore_patterns=ignore_patterns,
+            patterns=args.patterns,
+            ignore_patterns=args.ignore_patterns,
             verbose=True,
         )
         return PluginOutput(output="Files have been copied")
