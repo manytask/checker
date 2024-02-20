@@ -313,7 +313,7 @@ def grade(
         return
 
     # create tester to... to test =)
-    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
+    tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run, username=username)
 
     # run tests
     # TODO: progressbar on parallelize
