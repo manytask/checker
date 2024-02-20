@@ -22,7 +22,6 @@ class GlobalPipelineVariables:
     temp_dir: str
     task_names: list[str]
     task_sub_paths: list[str]
-    username: str | None
 
 
 @dataclass
@@ -52,7 +51,6 @@ class Tester:
         *,
         verbose: bool = False,
         dry_run: bool = False,
-        username: str | None = None,
     ):
         """
         Init tester in specific public and private dirs.
@@ -80,7 +78,6 @@ class Tester:
 
         self.verbose = verbose
         self.dry_run = dry_run
-        self.username = username
 
     def _get_global_pipeline_parameters(
         self,
@@ -93,7 +90,6 @@ class Tester:
             temp_dir=origin.absolute().as_posix(),
             task_names=[task.name for task in tasks],
             task_sub_paths=[task.relative_path for task in tasks],
-            username=self.username,
         )
 
     def _get_task_pipeline_parameters(
