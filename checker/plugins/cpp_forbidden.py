@@ -15,18 +15,14 @@ class CppForbiddenPlugin(PluginABC):
     class Args(PluginABC.Args):
         reference_root: Path
         task_path: Path
-        allow_change: list[str] | str
+        allow_change: list[str]
         forbidden: list[str] = []
         forbidden_files: list[str] = []
         forbidden_checker: str
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
-        allow_change = args.allow_change
-        if isinstance(allow_change, str):
-            allow_change = [allow_change]
-
         files: list[str] = []
-        for r in allow_change:
+        for r in args.allow_change:
             files += list(map(str, args.task_path.glob(r)))
         files = list(set(files))
 
