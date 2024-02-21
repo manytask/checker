@@ -285,6 +285,31 @@ class Exporter:
             fill_templates=False,
         )
 
+    def export_private(
+        self,
+        target: Path,
+    ) -> None:
+        target.mkdir(parents=True, exist_ok=True)
+
+        disabled_groups_and_tasks_to_skip = [
+            *[group.relative_path for group in self.course.get_groups(enabled=False)],
+            *[group.relative_path for group in self.course.get_groups(started=False)],
+            *[task.relative_path for task in self.course.get_tasks(enabled=False)],
+            *[task.relative_path for task in self.course.get_tasks(started=False)],
+        ]
+
+        print_info(f"Copy from {self.reference_root} to {target}", color="grey")
+        self._copy_files_with_config(
+            self.reference_root,
+            target,
+            self.structure_config,
+            copy_public=True,
+            copy_private=True,
+            copy_other=True,
+            fill_templates=True,
+            extra_ignore_paths=disabled_groups_and_tasks_to_skip,
+        )
+
     def _copy_files_with_config(
         self,
         root: Path,

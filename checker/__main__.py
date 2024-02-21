@@ -175,7 +175,7 @@ def check(
     manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
 
     # read filesystem, check existing tasks
-    course = Course(manytask_config, root)
+    course = Course(manytask_config, root, reference_root)
 
     # create exporter and export files for testing
     exporter = Exporter(
@@ -358,6 +358,41 @@ def export(
     )
     export_root.mkdir(exist_ok=True, parents=True)
     exporter.export_public(export_root, push=commit, commit_message=checker_config.export.commit_message)
+
+
+@cli.command()
+@click.argument("reference_root", type=ClickReadableDirectory, default=".")
+@click.argument("export_root", type=ClickWritableDirectory, default="./export")
+@click.option("--dry-run", is_flag=True, help="Do not execute anything, only log actions")
+@click.pass_context
+def export_private(
+    ctx: click.Context,
+    reference_root: Path,
+    export_root: Path,
+    dry_run: bool,
+) -> None:
+    """Export files to testing directory."""
+    # get configs paths
+    course_config_path = reference_root / CHECKER_CONFIG
+    manytask_config_path = reference_root / MANYTASK_CONFIG
+
+    # load configs
+    checker_config = CheckerConfig.from_yaml(course_config_path)
+    manytask_config = ManytaskConfig.from_yaml(manytask_config_path)
+
+    # read filesystem, check existing tasks
+    course = Course(manytask_config, reference_root)
+
+    # create exporter and export files for public
+    exporter = Exporter(
+        course,
+        checker_config.structure,
+        checker_config.export,
+        verbose=True,
+        dry_run=dry_run,
+    )
+    export_root.mkdir(exist_ok=True, parents=True)
+    exporter.export_private(export_root)
 
 
 @cli.command(hidden=True)
