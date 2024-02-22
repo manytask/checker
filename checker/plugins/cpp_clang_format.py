@@ -26,7 +26,8 @@ class CppClangFormatPlugin(PluginABC):
             raise PluginExecutionFailed("No files")
 
         run_args = RunScriptPlugin.Args(
-            origin=str(args.reference_root), script=["./run-clang-format.py", "--color", "always", "-r", *lint_files]
+            origin=str(args.reference_root),
+            script=["python3", "run-clang-format.py", "--color", "always", "-r", *lint_files],
         )
         output = RunScriptPlugin()._run(run_args, verbose=verbose).output
         print_info(output)
