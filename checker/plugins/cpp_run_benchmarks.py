@@ -18,7 +18,7 @@ class CppRunBenchmarksPlugin(PluginABC):
 
     class Args(PluginABC.Args):
         root: Path
-        benchmark: str
+        benchmark: str | None
         timeout: float
         args: list[str]
         benchmark_values: list[str]
@@ -100,6 +100,8 @@ class CppRunBenchmarksPlugin(PluginABC):
         CppRunBenchmarksPlugin._check_results(args, ET.parse(xml_path))
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
+        if args.benchmark is None:
+            raise RuntimeError("Unexpected benchmark name")
         build_type = "RelWithDebInfo"
         print_info(f"Running {args.benchmark} ({build_type})...", color="orange")
         build_dir = args.root / f"build-{build_type.lower()}"
