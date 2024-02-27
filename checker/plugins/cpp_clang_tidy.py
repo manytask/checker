@@ -27,7 +27,7 @@ class CppClangTidyPlugin(PluginABC):
             raise PluginExecutionFailed("No files")
 
         run_args = RunScriptPlugin.Args(
-            origin=str(args.reference_root / "build-relwithdebinfo"),
+            origin=str(args.reference_root / "build-asan"),
             script=["clang-tidy", "-p", ".", "--use-color", "--quiet", *lint_files],
         )
         output = RunScriptPlugin()._run(run_args, verbose=verbose).output
