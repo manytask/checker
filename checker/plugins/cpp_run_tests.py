@@ -24,6 +24,7 @@ class CppRunTestsPlugin(PluginABC):
         timeout: float
         no_detect_leaks: bool
         args: list[str]
+        paths_whitelist: list[str]
 
     @staticmethod
     def _get_sanitizers_env(args: Args, path: Path) -> dict[str, str]:
@@ -46,6 +47,7 @@ class CppRunTestsPlugin(PluginABC):
     @staticmethod
     def _run_tests(args: Args, tmp_dir: Path, build_dir: Path, target: str, verbose: bool) -> None:
         env = CppRunTestsPlugin._get_sanitizers_env(args, tmp_dir)
+        paths_whitelist = [str(args.root / p) for p in args.paths_whitelist]
         run_args = SafeRunScriptPlugin.Args(
             origin=str(build_dir),
             script=[
@@ -56,6 +58,7 @@ class CppRunTestsPlugin(PluginABC):
             ],
             env_additional=env,
             timeout=args.timeout,
+            paths_whitelist=paths_whitelist,
         )
         try:
             SafeRunScriptPlugin()._run(run_args, verbose=verbose)
