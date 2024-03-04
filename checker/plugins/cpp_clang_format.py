@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from checker.exceptions import PluginExecutionFailed
-from checker.plugins.scripts import RunScriptPlugin
+from checker.plugins.cpp.blacklist import get_cpp_blacklist
+from checker.plugins.firejail import SafeRunScriptPlugin
 from checker.utils import print_info
 
 from .base import PluginABC, PluginOutput
@@ -25,10 +26,11 @@ class CppClangFormatPlugin(PluginABC):
         if not lint_files:
             raise PluginExecutionFailed("No files")
 
-        run_args = RunScriptPlugin.Args(
+        run_args = SafeRunScriptPlugin.Args(
             origin=str(args.reference_root),
             script=["python3", "run-clang-format.py", "--color", "always", "-r", *lint_files],
+            paths_blacklist=get_cpp_blacklist(args.reference_root),
         )
-        output = RunScriptPlugin()._run(run_args, verbose=verbose).output
+        output = SafeRunScriptPlugin()._run(run_args, verbose=verbose).output
         print_info(output)
         return PluginOutput(output="[No issues]")
