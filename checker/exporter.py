@@ -549,6 +549,7 @@ class Exporter:
                         path,
                         path_destination,
                     )
+                    shutil.copymode(path, path_destination)
 
     def __del__(self) -> None:
         if self.__dict__.get("cleanup") and self._temporary_dir_manager:

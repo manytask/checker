@@ -31,6 +31,7 @@ class SafeRunScriptPlugin(PluginABC):
         paths_whitelist: list[str] = list()
         lock_network: bool = True
         allow_fallback: bool = False
+        paths_blacklist: list[str] = list()
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         import subprocess
@@ -77,26 +78,29 @@ class SafeRunScriptPlugin(PluginABC):
             # allow access to origin dir
             command.append(f"--whitelist={full_path}")
 
+        for path in args.paths_blacklist:
+            full_path = path if not path.startswith("~") else HOME_PATH + path[1:]
+            command.append(f"--blacklist={full_path}")
+
         # Hide all environment variables except allowed
-        command.append("env -i")
+        command += ["env", "-i"]
         env: dict[str, str] = {}
         for e in args.env_whitelist:
             env[e] = os.environ.get(e, "")
         env.update(args.env_additional)
         for e, v in env.items():
-            command.append(f'{e}="{v}"')
+            command.append(f"{e}={v}")
 
         # create actual command
-        run_command: str | list[str]
         if isinstance(args.script, str):
-            run_command = " ".join(command) + " " + args.script
+            command.append(args.script)
         elif isinstance(args.script, list):
-            run_command = command + args.script
+            command += args.script
         else:
             assert False, "Now Reachable"
 
         # Will use RunScriptPlugin to run Firejail+command
         run_args = RunScriptPlugin.Args(
-            origin=args.origin, script=run_command, timeout=args.timeout, env_additional={}, env_whitelist=None
+            origin=args.origin, script=command, timeout=args.timeout, env_additional={}, env_whitelist=None
         )
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
