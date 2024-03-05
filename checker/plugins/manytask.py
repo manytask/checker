@@ -19,7 +19,7 @@ class ManytaskPlugin(PluginABC):
     """Given score report it to the manytask.
     Datetime format in args should be: '%Y-%m-%dT%H:%M:%S.%f%z'"""
 
-    DEFAULT_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
+    DEFAULT_TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
     name = "report_score_manytask"
 
