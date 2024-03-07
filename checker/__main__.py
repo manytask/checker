@@ -191,14 +191,24 @@ def check(
     # validate tasks and groups if passed
     filesystem_tasks: dict[str, FileSystemTask] = dict()
     if task:
+        task_dict = dict.fromkeys(task)
         for filesystem_task in course.get_tasks(enabled=True):
-            if filesystem_task.name in task:
+            if filesystem_task.name in task_dict:
                 filesystem_tasks[filesystem_task.name] = filesystem_task
+                del task_dict[filesystem_task.name]
+        if task_dict:
+            print_info(f"Can't find the tasks: {list(task_dict.keys())}", color="red")
+            exit(1)
     if group:
+        group_dict = dict.fromkeys(group)
         for filesystem_group in course.get_groups(enabled=True):
-            if filesystem_group.name in group:
+            if filesystem_group.name in group_dict:
                 for filesystem_task in filesystem_group.tasks:
                     filesystem_tasks[filesystem_task.name] = filesystem_task
+                del group_dict[filesystem_group.name]
+        if group_dict:
+            print_info(f"Can't find the groups: {list(group_dict.keys())}", color="red")
+            exit(1)
     if filesystem_tasks:
         print_info(f"Checking tasks: {', '.join(filesystem_tasks.keys())}")
 
@@ -290,6 +300,10 @@ def grade(
         print_info("DETECT CHANGES FAILED", color="red")
         print_info(e)
         exit(1)
+
+    if not changed_tasks:
+        print_info("No tasks to test", color="orange")
+        return
 
     # create tester to... to test =)
     tester = Tester(course, checker_config, verbose=verbose, dry_run=dry_run)
