@@ -58,7 +58,7 @@ class SafeRunScriptPlugin(PluginABC):
                 raise PluginExecutionFailed("Firejail is not installed", output=result.stderr.decode("utf-8"))
 
         # Construct firejail command
-        command: list[str] = ["firejail", "--quiet", "--noprofile"]
+        command: list[str] = ["firejail", "--quiet", "--noprofile", "--deterministic-exit-code"]
 
         # lock network access
         if args.lock_network:
