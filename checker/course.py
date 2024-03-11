@@ -142,6 +142,10 @@ class Course:
                 tasks=group_tasks,
             )
 
+    @staticmethod
+    def _is_parent(path: Path, files: list[Any]) -> bool:
+        return any(Path(file).is_relative_to(path) for file in files)
+
     def detect_changes(
         self,
         detection_type: CheckerTestingConfig.ChangesDetectionType,
