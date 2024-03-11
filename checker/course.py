@@ -142,6 +142,10 @@ class Course:
                 tasks=group_tasks,
             )
 
+    @staticmethod
+    def _is_parent(path: Path, files: list[Any]) -> bool:
+        return any(Path(file).is_relative_to(path) for file in files)
+
     def detect_changes(
         self,
         detection_type: CheckerTestingConfig.ChangesDetectionType,
@@ -240,7 +244,7 @@ class Course:
             print_info(f"Last commit changes: {changed_files}", color="grey")
 
             changed_tasks = [
-                task for task in potential_tasks if any(task.relative_path in file for file in changed_files)
+                task for task in potential_tasks if Course._is_parent(Path(task.relative_path), changed_files)
             ]
             print_info(
                 f"Changed tasks: {[t.name for t in changed_tasks]} (changed files in last commit)",
