@@ -17,6 +17,7 @@ class CppForbiddenPlugin(PluginABC):
         reference_root: Path
         task_path: Path
         allow_change: list[str]
+        white_list: list[str]
         forbidden: list[str] = []
         forbidden_files: list[str] = []
         forbidden_checker: str
@@ -24,6 +25,8 @@ class CppForbiddenPlugin(PluginABC):
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         files: list[str] = []
         for r in args.allow_change:
+            if r in args.white_list:
+                continue
             files += list(map(str, args.task_path.glob(r)))
         files = list(set(files))
 
