@@ -25,6 +25,7 @@ class CppRunTestsPlugin(PluginABC):
         no_detect_leaks: bool
         args: list[str]
         paths_whitelist: list[str]
+        lock_network: bool = True
 
     @staticmethod
     def _get_sanitizers_env(args: Args, path: Path) -> dict[str, str]:
@@ -59,6 +60,7 @@ class CppRunTestsPlugin(PluginABC):
             env_additional=env,
             timeout=args.timeout,
             paths_whitelist=paths_whitelist,
+            lock_network=args.lock_network,
         )
         try:
             SafeRunScriptPlugin()._run(run_args, verbose=verbose)
