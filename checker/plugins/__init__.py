@@ -7,6 +7,8 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from checker.utils import print_info
+
 from .base import PluginABC, PluginOutput  # noqa: F401
 
 
@@ -38,12 +40,12 @@ def load_plugins(
     ]  # add local plugins first
 
     # force load plugins
-    print("Loading plugins...")
+    print_info("Loading plugins...")
     for module_info in pkgutil.iter_modules([str(path) for path in search_directories]):
         if module_info.name == "__init__":
             continue
         if verbose:
-            print(f"- {module_info.name} from {module_info.module_finder.path}")  # type: ignore[union-attr]
+            print_info(f"- {module_info.name} from {module_info.module_finder.path}")  # type: ignore[union-attr]
 
         spec = module_info.module_finder.find_spec(fullname=module_info.name)  # type: ignore[call-arg]
         if spec is None:
@@ -60,5 +62,5 @@ def load_plugins(
     for subclass in get_all_subclasses(PluginABC):  # type: ignore[type-abstract]
         plugins[subclass.name] = subclass
     if verbose:
-        print(f"Loaded: {', '.join(plugins.keys())}")
+        print_info(f"Loaded: {', '.join(plugins.keys())}")
     return plugins

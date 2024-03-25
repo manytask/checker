@@ -125,15 +125,15 @@ class Tester:
         outputs: dict[str, PipelineStageResult] = {}
 
         # validate global pipeline (only default params and variables available)
-        print("- global pipeline...")
+        print_info("- global pipeline...")
         global_variables = self._get_global_pipeline_parameters(Path(), tasks)
         context = self._get_context(global_variables, None, outputs, self.default_params, None)
         self.global_pipeline.validate(context, validate_placeholders=True)
-        print("  ok")
+        print_info("  ok")
 
         for task in tasks:
             # validate task with global + task-specific params
-            print(f"- task {task.name} pipeline...")
+            print_info(f"- task {task.name} pipeline...")
 
             # create task context
             task_variables = self._get_task_pipeline_parameters(task)
@@ -150,7 +150,7 @@ class Tester:
             self.task_pipeline.validate(context, validate_placeholders=True)
             self.report_pipeline.validate(context, validate_placeholders=True)
 
-            print("  ok")
+            print_info("  ok")
 
     def run(
         self,
