@@ -303,10 +303,21 @@ class Exporter:
             self.reference_root,
             target,
             self.structure_config,
-            copy_public=True,
-            copy_private=True,
+            copy_public=False,
+            copy_private=False,
             copy_other=True,
             fill_templates=True,
+            extra_ignore_paths=disabled_groups_and_tasks_to_skip,
+        )
+
+        self._copy_files_with_config(
+            self.reference_root,
+            target,
+            self.structure_config,
+            copy_public=True,
+            copy_private=True,
+            copy_other=False,
+            fill_templates=False,
             extra_ignore_paths=disabled_groups_and_tasks_to_skip,
         )
 
