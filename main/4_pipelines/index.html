@@ -960,14 +960,14 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
 
 <a id="checker.tester.GlobalPipelineVariables"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
       <p>Base variables passed in pipeline stages.</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/tester.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/tester.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span>
@@ -985,9 +985,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <span class="n">task_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">task_sub_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1003,8 +1003,7 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1018,14 +1017,14 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
 
 <a id="checker.tester.TaskPipelineVariables"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
       <p>Variables passed in pipeline stages for each task.</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/tester.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/tester.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
 <span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span>
@@ -1037,9 +1036,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <span class="n">task_name</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">task_sub_path</span><span class="p">:</span> <span class="nb">str</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1055,8 +1054,7 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1070,14 +1068,14 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
 
 <a id="checker.configs.checker.CheckerParametersConfig"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><span title="pydantic.RootModel">RootModel</span>[dict[str, <span title="checker.configs.checker.TParamType">TParamType</span>]]</code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.RootModel">RootModel</span>[dict[str, <span title="checker.configs.checker.TParamType">TParamType</span>]]</code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/configs/checker.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/configs/checker.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
 <span class="normal">27</span>
@@ -1109,9 +1107,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <span class="k">def</span> <span class="nf">__dict__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TParamType</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">value</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1127,8 +1125,7 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1145,9 +1142,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
 
 <a id="checker.pipeline.PipelineStageResult"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
       <p>Result of a single pipeline stage.
 :param name: name of the stage
 :param failed: if True, stage failed
@@ -1156,9 +1153,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 :param elapsed_time: optional elapsed time in seconds
 :param output: output of the stage</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/pipeline.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/pipeline.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
@@ -1204,9 +1201,9 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
             <span class="sa">f</span><span class="s2">&quot;skipped=</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skipped</span><span class="p">)</span><span class="si">}</span><span class="s2">, percentage=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">percentage</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mf">1.0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, name=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
         <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1222,8 +1219,7 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1240,9 +1236,9 @@ e.g. register percentage of passed tests to be used in the next stage to report 
 
 
 <a id="checker.pipeline.PipelineStageResult"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
       <p>Result of a single pipeline stage.
 :param name: name of the stage
 :param failed: if True, stage failed
@@ -1251,9 +1247,9 @@ e.g. register percentage of passed tests to be used in the next stage to report 
 :param elapsed_time: optional elapsed time in seconds
 :param output: output of the stage</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/pipeline.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/pipeline.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
@@ -1299,9 +1295,9 @@ e.g. register percentage of passed tests to be used in the next stage to report 
             <span class="sa">f</span><span class="s2">&quot;skipped=</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skipped</span><span class="p">)</span><span class="si">}</span><span class="s2">, percentage=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">percentage</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="mf">1.0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, name=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
         <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1317,8 +1313,7 @@ e.g. register percentage of passed tests to be used in the next stage to report 
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 <p>And can be accessed in the next pipeline stages using templating syntax <code>${{ outputs.&lt;registered-name&gt;.&lt;result-field&gt; }}</code></p>

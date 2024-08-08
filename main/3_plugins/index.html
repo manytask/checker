@@ -1033,17 +1033,17 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
 
 
 <a id="checker.plugins.base.PluginABC"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><span title="abc.ABC">ABC</span></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
-  
+
       <p>Abstract base class for plugins.
 :ivar name: str plugin name, searchable by this name</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/base.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/base.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
 <span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
@@ -1147,9 +1147,9 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1165,23 +1165,23 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
 
 
 <h4 id="checker.plugins.base.PluginABC.Args" class="doc doc-heading">
-          <code>Args</code>
+            <code>Args</code>
 
 
 </h4>
 
 
-  <div class="doc doc-contents ">
-          <p class="doc doc-class-bases">
-            Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
 
-  
+
       <p>Base class for plugin arguments.
 You have to subclass this class in your plugin.</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/base.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/base.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
@@ -1193,27 +1193,24 @@ You have to subclass this class in your plugin.</p>
 
     <span class="k">pass</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  </div>
-
+    </div>
 
 </div>
-
 
 
 <div class="doc doc-object doc-function">
 
 
-
 <h4 id="checker.plugins.base.PluginABC.run" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 </h4>
 
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Run the plugin.
 :param args: dict plugin arguments to pass to subclass Args
 :param verbose: if True should print teachers debug info, if False student mode
@@ -1221,9 +1218,9 @@ You have to subclass this class in your plugin.</p>
 :raises ExecutionFailedError: if plugin failed
 :return: PluginOutput with stdout/stderr and percentage</p>
 
-          <details class="quote">
-            <summary>Source code in <code>checker/plugins/base.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
 <span class="normal">38</span>
 <span class="normal">39</span>
 <span class="normal">40</span>
@@ -1245,19 +1242,17 @@ You have to subclass this class in your plugin.</p>
 
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">args_obj</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
-
 
 <div class="doc doc-object doc-function">
 
 
-
 <h4 id="checker.plugins.base.PluginABC.validate" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></code>
-  
+            <code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></code>
+
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
@@ -1265,16 +1260,16 @@ You have to subclass this class in your plugin.</p>
 </h4>
 
 
-  <div class="doc doc-contents ">
-  
+    <div class="doc doc-contents ">
+
       <p>Validate the plugin arguments.
 :param args: dict plugin arguments to pass to subclass Args
 :raises BadConfig: if plugin arguments are invalid
 :raises BadStructure: if _run method is not implemented</p>
 
-          <details class="quote">
-            <summary>Source code in <code>checker/plugins/base.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
+            <details class="quote">
+              <summary>Source code in <code>checker/plugins/base.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
 <span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span>
@@ -1302,8 +1297,8 @@ You have to subclass this class in your plugin.</p>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;_run&quot;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">BadStructure</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> does not implement _run method&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-          </details>
-  </div>
+            </details>
+    </div>
 
 </div>
 
@@ -1311,8 +1306,7 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 <p>Note that each plugin should override <code>checker.plugins.PluginABC.Args</code> class to provide arguments validation. Otherwise, empty arguments will be passed to <code>run</code> method.</p>
@@ -1324,17 +1318,17 @@ You have to subclass this class in your plugin.</p>
 
 
 <a id="checker.plugins.base.PluginABC.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
 
-  
+
       <p>Base class for plugin arguments.
 You have to subclass this class in your plugin.</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/base.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/base.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
@@ -1346,10 +1340,9 @@ You have to subclass this class in your plugin.</p>
 
     <span class="k">pass</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 <p>Each plugin output <code>checker.plugins.PluginOutput</code> class when executed successfully. </p>
@@ -1361,16 +1354,16 @@ You have to subclass this class in your plugin.</p>
 
 
 <a id="checker.plugins.base.PluginOutput"></a>
-  <div class="doc doc-contents first">
+    <div class="doc doc-contents first">
 
-  
+
       <p>Plugin output dataclass.
 :ivar output: str plugin output
 :ivar percentage: float plugin percentage</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/base.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/base.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
@@ -1388,9 +1381,9 @@ You have to subclass this class in your plugin.</p>
     <span class="n">output</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">percentage</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1406,8 +1399,7 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 <p>In case of error, <code>checker.exceptions.PluginExecutionFailed</code> have to be raised.</p>
@@ -1419,16 +1411,16 @@ You have to subclass this class in your plugin.</p>
 
 
 <a id="checker.exceptions.PluginExecutionFailed"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><span title="checker.exceptions.TestingError">TestingError</span></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="checker.exceptions.TestingError">TestingError</span></code></p>
 
-  
+
       <p>Exception raised when plugin execution failed</p>
 
-            <details class="quote">
-              <summary>Source code in <code>checker/exceptions.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">43</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/exceptions.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">43</span>
 <span class="normal">44</span>
 <span class="normal">45</span>
 <span class="normal">46</span>
@@ -1442,9 +1434,9 @@ You have to subclass this class in your plugin.</p>
     <span class="n">output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">percentage</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1460,8 +1452,7 @@ You have to subclass this class in your plugin.</p>
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 <div class="admonition note">
@@ -1483,14 +1474,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.scripts.RunScriptPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/scripts.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/scripts.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
 <span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
@@ -1500,9 +1491,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">timeout</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
     <span class="n">env_whitelist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1518,8 +1509,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1533,14 +1523,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.firejail.SafeRunScriptPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.scripts.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.scripts.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/firejail.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/firejail.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
 <span class="normal">27</span>
@@ -1558,9 +1548,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">lock_network</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">allow_fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1576,8 +1566,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1591,14 +1580,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.regex.CheckRegexpsPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/regex.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/regex.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
@@ -1606,9 +1595,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="n">regexps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1624,8 +1613,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1639,14 +1627,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.aggregate.AggregatePlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/aggregate.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/aggregate.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
 <span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="n">PluginABC</span><span class="o">.</span><span class="n">Args</span><span class="p">):</span>
@@ -1654,9 +1642,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">weights</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># as pydantic does not support | in older python versions</span>
     <span class="n">strategy</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;product&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1672,8 +1660,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1687,14 +1674,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.manytask.ManytaskPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/manytask.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/manytask.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
 <span class="normal">27</span>
 <span class="normal">28</span>
 <span class="normal">29</span>
@@ -1714,9 +1701,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">check_deadline</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">send_time</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">astimezone</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1732,8 +1719,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1747,14 +1733,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
 <span class="normal">16</span>
@@ -1766,9 +1752,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">requre_approval</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">search_for_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1784,8 +1770,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
@@ -1799,14 +1784,14 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
 
 <a id="checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args"></a>
-  <div class="doc doc-contents first">
-          <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
 
 
-            <details class="quote">
-              <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
+              <details class="quote">
+                <summary>Source code in <code>checker/plugins/gitlab.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">34</span>
 <span class="normal">35</span>
 <span class="normal">36</span>
 <span class="normal">37</span>
@@ -1818,9 +1803,9 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
     <span class="n">requre_approval</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">search_for_score</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div></td></tr></table></div>
-            </details>
+              </details>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1836,8 +1821,7 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 
   </div>
 
-  </div>
-
+    </div>
 
 </div></blockquote>
 </li>
