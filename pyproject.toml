@@ -60,7 +60,7 @@ test = [
 docs = [
     "mike >=1.1.0,<3.0.0",
     "mkdocs >=1.4.0,<2.0.0",
-    "mkdocs-autorefs ==1.0.1",
+    "mkdocs-autorefs ==1.1.0",
     "mkdocs-click >=0.8.0",
     "mkdocs-include-markdown-plugin >=4.0.0,<7.0.0",
     "mkdocs-material >=9.0.0,<10.0.0",
