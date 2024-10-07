@@ -55,7 +55,7 @@ test = [
     "types-requests >=2.20.0,<3.0.0",
     "types-PyYAML >=6.0.0,<7.0.0",
     "wheel >=0.40.0",
-    "pre-commit >=3.0.0,<4.0.0",
+    "pre-commit >=3.0.0,<5.0.0",
 ]
 docs = [
     "mike >=1.1.0,<3.0.0",
