@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from ..exceptions import PluginExecutionFailed
 from .base import PluginOutput
@@ -25,6 +25,7 @@ class SafeRunScriptPlugin(PluginABC):
         origin: str
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
+        input: Optional[Path] = None
 
         env_additional: dict[str, str] = dict()
         env_whitelist: list[str] = list()
@@ -101,6 +102,11 @@ class SafeRunScriptPlugin(PluginABC):
 
         # Will use RunScriptPlugin to run Firejail+command
         run_args = RunScriptPlugin.Args(
-            origin=args.origin, script=command, timeout=args.timeout, env_additional={}, env_whitelist=None
+            origin=args.origin,
+            script=command,
+            timeout=args.timeout,
+            env_additional={},
+            env_whitelist=None,
+            input=args.input,
         )
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
