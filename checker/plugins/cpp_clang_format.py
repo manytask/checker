@@ -28,7 +28,16 @@ class CppClangFormatPlugin(PluginABC):
 
         run_args = SafeRunScriptPlugin.Args(
             origin=str(args.reference_root),
-            script=["python3", "run-clang-format.py", "--color", "always", "-r", *lint_files],
+            script=[
+                "python3",
+                "run-clang-format.py",
+                "--clang-format-executable",
+                "clang-format-16",
+                "--color",
+                "always",
+                "-r",
+                *lint_files,
+            ],
             paths_blacklist=get_cpp_blacklist(args.reference_root),
         )
         output = SafeRunScriptPlugin()._run(run_args, verbose=verbose).output
