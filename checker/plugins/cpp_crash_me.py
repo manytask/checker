@@ -19,6 +19,8 @@ class CppCrashMePlugin(PluginABC):
         task_path: Path
         binary_name: str
         script: list[str]
+        paths_whitelist: list[str]
+        exec_args: list[str]
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         if not args.binary_name:
@@ -33,6 +35,7 @@ class CppCrashMePlugin(PluginABC):
             origin=str(args.task_path),
             script=script,
             env_whitelist=["PATH"],
+            paths_whitelist=[str(args.reference_root / p) for p in args.paths_whitelist],
             paths_blacklist=get_cpp_blacklist(args.reference_root),
         )
         output = SafeRunScriptPlugin()._run(run_args, verbose=verbose).output
@@ -42,21 +45,27 @@ class CppCrashMePlugin(PluginABC):
         input = args.task_path / "input.txt"
         run_args = SafeRunScriptPlugin.Args(
             origin=str(args.task_path),
-            script=["./" + args.binary_name],
+            script=["./" + args.binary_name] + args.exec_args,
             input=input,
             env_whitelist=[str(input)],
             paths_blacklist=get_cpp_blacklist(args.reference_root),
         )
-        print_info(f"./{args.binary_name} < input.txt")
+        print_args = " {redacted}" if args.exec_args else ""
+        print_info(f"./{args.binary_name}{print_args} < input.txt")
 
         crashed = False
         crash_message = ""
+        output = ""
         try:
-            SafeRunScriptPlugin()._run(run_args, verbose=verbose)
+            output = SafeRunScriptPlugin()._run(run_args, verbose=verbose).output
         except PluginExecutionFailed as e:
             if type(e.__context__) is subprocess.CalledProcessError:
                 crashed = True
                 crash_message = e.message
+                output = "" if e.output is None else e.output
+
+        if output:
+            print_info(output)
 
         run_args = SafeRunScriptPlugin.Args(
             origin=str(args.task_path),
