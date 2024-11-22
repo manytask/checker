@@ -12,7 +12,7 @@ class CppFlag(PluginABC):
 
     class Args(PluginABC.Args):
         task_path: Path
-        flag: str | None
+        flag: str | int | None
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         if args.flag is None:
@@ -25,7 +25,7 @@ class CppFlag(PluginABC):
         except FileNotFoundError:
             raise PluginExecutionFailed(output="flag.txt not found")
 
-        if flag != args.flag:
+        if flag != str(args.flag):
             raise PluginExecutionFailed(output="Wrong flag")
 
         return PluginOutput(output="Correct flag")
