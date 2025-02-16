@@ -3,7 +3,14 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import sys
+from datetime import datetime
 from pathlib import Path
+
+if sys.version_info < (3, 8):
+    from pytz import timezone as ZoneInfo
+else:
+    from zoneinfo import ZoneInfo
 
 import click
 
@@ -239,7 +246,7 @@ def check(
 @click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
 @click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
-@click.option("--timestamp", type=str, default=None, help="Timestamp to use for the submission")
+@click.option("--timestamp", type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S"]), default=datetime.now(tz=ZoneInfo('Europe/Moscow')), help="Timestamp to use for the submission")
 @click.option("--username", type=str, default=None, help="Username to use for the submission")
 @click.option("--branch", type=str, default=None, help="Rewrite branch name for the submission")
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")
@@ -257,7 +264,7 @@ def grade(
     root: Path,
     reference_root: Path,
     submit_score: bool,
-    timestamp: str | None,
+    timestamp: datetime | None,
     username: str | None,
     branch: str | None,
     no_clean: bool,
@@ -315,6 +322,7 @@ def grade(
             exporter.temporary_dir,
             changed_tasks,
             report=True,
+            timestamp=timestamp,
         )
     except TestingError as e:
         print_info("TESTING FAILED", color="red")
