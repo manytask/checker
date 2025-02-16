@@ -521,3 +521,57 @@ class TestManytaskDeadlinesConfig:
 
         assert len([i.name for i in groups]) == len(expected_groups), "Number of groups is not correct"
         assert len([i.name for i in tasks]) == len(expected_tasks), "Number of tasks is not correct"
+
+    @pytest.mark.parametrize(
+        "window, deadline",
+        [
+            (7, "hard"),
+            (0, "interpolate"),
+            (-5, "interpolate"),
+            (-5, "hard"),
+            (100, "interpolate"),  # too large (start + window > step.date)
+        ],
+    )
+    def test_not_valid_window(self, window, deadline) -> None:
+        with pytest.raises(ValidationError):
+            ManytaskDeadlinesConfig(
+                timezone="Europe/Moscow",
+                deadlines=deadline,
+                window=window,
+                schedule=[
+                    {
+                        "group": "group",
+                        "start": "2020-01-01 00:00",
+                        "end": "2020-05-01 00:00",
+                        "steps": {
+                            0.5: "2020-03-01 00:00",
+                        },
+                    },
+                ],
+            )
+    
+    @pytest.mark.parametrize(
+        "window, deadline",
+        [
+            (None, "hard"),
+            (7, "interpolate"),
+        ],
+    )
+    def test_valid_window(self, window, deadline) -> None:
+        config = ManytaskDeadlinesConfig(
+            timezone="Europe/Moscow",
+            deadlines=deadline,
+            window=window,
+            schedule=[
+                {
+                    "group": "group",
+                    "start": "2020-01-01 00:00",
+                    "end": "2020-05-01 00:00",
+                    "steps": {
+                        0.5: "2020-03-01 00:00",
+                    },
+                },
+            ],
+        )
+        assert config.deadlines.value == deadline
+        assert config.window == window
