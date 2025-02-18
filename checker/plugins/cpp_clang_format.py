@@ -32,7 +32,7 @@ class CppClangFormatPlugin(PluginABC):
                 "python3",
                 "run-clang-format.py",
                 "--clang-format-executable",
-                "clang-format-18",
+                "clang-format-19",
                 "--color",
                 "always",
                 "-r",
