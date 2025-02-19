@@ -91,7 +91,7 @@ class Tester:
         group_with_percents = [(group, group.get_percents_before_deadline()) for group in course.manytask_config.deadlines.get_groups()]
         self.task_to_percents = {task.name: percs for group, percs in group_with_percents for task in group.tasks}
         self.deadlines_type = course.manytask_config.deadlines.deadlines
-        self.interpolation_window = course.manytask_config.deadlines.window * 3600 * 24  # in seconds
+        self.interpolation_window = (course.manytask_config.deadlines.window or 0) * 3600 * 24  # in seconds
     
 
     def _calc_interpolated_percent(
