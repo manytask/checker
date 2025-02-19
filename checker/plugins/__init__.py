@@ -38,7 +38,6 @@ def load_plugins(
         Path(__file__).parent,
         *search_directories,
     ]  # add local plugins first
-
     # force load plugins
     print_info("Loading plugins...")
     for module_info in pkgutil.iter_modules([str(path) for path in search_directories]):

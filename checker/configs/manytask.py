@@ -135,6 +135,7 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
 
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
     deadlines: ManytaskDeadlinesType = ManytaskDeadlinesType.HARD
+    window: Optional[int] = None  # interpolation window (in days) used for ManytaskDeadlinesType.INTERPOLATE
     max_submissions: Optional[int] = None
     submission_penalty: float = 0
 
@@ -164,6 +165,8 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
             ZoneInfo(timezone)
         except ZoneInfoNotFoundError as e:
             raise ValueError(str(e))
+        except IsADirectoryError as e:
+            raise ValueError(str(e))
         return timezone
 
     @field_validator("schedule")
@@ -187,12 +190,33 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
         # and group.name == group.tasks[0].name)]
 
         return data
+    
+    @field_validator("window")
+    @classmethod
+    def check_valid_window(cls, window: int | None) -> int | None:
+        if window is not None and window <= 0:
+            raise ValueError("window should be positive")
+        return window
 
     @model_validator(mode="after")
     def set_timezone(self) -> "ManytaskDeadlinesConfig":
         timezone = ZoneInfo(self.timezone)
         for group in self.schedule:
             group.replace_timezone(timezone)
+        return self
+    
+    @model_validator(mode="after")
+    def check_valid_deadline(self) -> "ManytaskDeadlinesConfig":
+        if self.window is not None and self.deadlines != ManytaskDeadlinesType.INTERPOLATE:
+            raise ValueError("window can be applied only with interpolate deadline type")
+        if self.deadlines == ManytaskDeadlinesType.INTERPOLATE:
+            for group in self.schedule:
+                steps = group.get_percents_before_deadline()
+                left_bound = list(steps.values())[:-1]
+                right_bound = list(steps.values())[1:]
+                for left, right in zip(left_bound, right_bound):
+                    if left + timedelta(days=self.window or 0) > right:
+                        raise ValueError("window is too large")
         return self
 
     def find_task(self, task_name: str) -> tuple[ManytaskGroupConfig, ManytaskTaskConfig]:
