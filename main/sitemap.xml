@@ -2,57 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://manytask.github.io/checker/latest/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/0_concepts/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/1_getting_started/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/2_configuration/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/3_plugins/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/4_pipelines/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/5_usage/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/6_development/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/7_changelog/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/ignore_me__production/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
     <url>
          <loc>https://manytask.github.io/checker/latest/ignore_me__system_setup/</loc>
-         <lastmod>2024-08-08</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-06-02</lastmod>
     </url>
 </urlset>
