@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from io import StringIO
 from typing import Any
 from unittest.mock import patch
 
+import dotenv
 import pytest
 from pydantic import ValidationError
 
@@ -87,21 +89,28 @@ class TestRunScriptPlugin:
         else:
             plugin._run(args)
 
-    @pytest.mark.parametrize(
-        "script, env_whitelist, mocked_env",
-        [
-            ("env", ["CUSTOM_VAR"], {"FILTERED_ONE": "1", "CUSTOM_VAR": "test_value"}),
-            # TODO: expand this test
-        ],
-    )
+    @pytest.mark.parametrize("env_additional", [{}, {"A": "B"}, {"A": "C"}, {"A": "B", "C": "D"}])
+    @pytest.mark.parametrize("env_whitelist", [None, [], ["A"], ["A", "C"]])
+    @pytest.mark.parametrize("mocked_env", [{}, {"A": "B"}, {"A": "C"}, {"A": "B", "C": "D"}])
     def test_run_with_environment_variable(
-        self, script: str, env_whitelist: list[str], mocked_env: dict[str, str]
+        self, env_additional: dict[str, str], env_whitelist: list[str] | None, mocked_env: dict[str, str]
     ) -> None:
         plugin = RunScriptPlugin()
-        args = RunScriptPlugin.Args(origin="/tmp", script=script, env_whitelist=env_whitelist)
+        args = RunScriptPlugin.Args(
+            origin="/tmp", script="env", env_additional=env_additional, env_whitelist=env_whitelist
+        )
 
         with patch.dict("os.environ", mocked_env, clear=True):
             result = plugin._run(args)
-        assert "CUSTOM_VAR" in result.output
-        assert mocked_env["CUSTOM_VAR"] in result.output
-        assert "FILTERED_ONE" not in result.output
+
+        env = dotenv.dotenv_values(stream=StringIO(result.output))
+        for e, v in env_additional.items():
+            assert env[e] == v
+
+        env.pop("PWD")
+        if env_whitelist is None:
+            mocked_env.update(env_additional)
+            assert env == mocked_env
+        else:
+            diff = set(env) - set(env_additional) - set(env_whitelist)
+            assert not diff
