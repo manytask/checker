@@ -26,6 +26,7 @@ class SafeRunScriptPlugin(PluginABC):
         script: Union[str, list[str]]  # as pydantic does not support | in older python versions
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
 
+        env_additional: dict[str, str] = dict()
         env_whitelist: list[str] = list()
         paths_whitelist: list[str] = list()
         lock_network: bool = True
@@ -41,7 +42,11 @@ class SafeRunScriptPlugin(PluginABC):
             if args.allow_fallback:
                 # fallback to RunScriptPlugin
                 run_args = RunScriptPlugin.Args(
-                    origin=args.origin, script=args.script, timeout=args.timeout, env_whitelist=args.env_whitelist
+                    origin=args.origin,
+                    script=args.script,
+                    timeout=args.timeout,
+                    env_additional=args.env_additional,
+                    env_whitelist=args.env_whitelist,
                 )
                 output = RunScriptPlugin()._run(args=run_args, verbose=verbose)
                 if verbose:
@@ -74,8 +79,12 @@ class SafeRunScriptPlugin(PluginABC):
 
         # Hide all environment variables except allowed
         command.append("env -i")
-        for env in args.env_whitelist:
-            command.append(f'{env}="{os.environ.get(env, "")}"')
+        env: dict[str, str] = {}
+        for e in args.env_whitelist:
+            env[e] = os.environ.get(e, "")
+        env.update(args.env_additional)
+        for e, v in env.items():
+            command.append(f'{e}="{v}"')
 
         # create actual command
         run_command: str | list[str]
@@ -88,6 +97,6 @@ class SafeRunScriptPlugin(PluginABC):
 
         # Will use RunScriptPlugin to run Firejail+command
         run_args = RunScriptPlugin.Args(
-            origin=args.origin, script=run_command, timeout=args.timeout, env_whitelist=None
+            origin=args.origin, script=run_command, timeout=args.timeout, env_additional={}, env_whitelist=None
         )
         return RunScriptPlugin()._run(args=run_args, verbose=verbose)
