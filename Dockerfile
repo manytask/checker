@@ -1,7 +1,7 @@
 ARG PYTHON_VERSION=3.12
 
 # Stage 1: Python dependencies
-FROM python:${PYTHON_VERSION}-alpine as builder
+FROM python:${PYTHON_VERSION}-slim as builder
 
 # Install build tools for cpp and rust
 RUN apk update && apk add --no-cache \
