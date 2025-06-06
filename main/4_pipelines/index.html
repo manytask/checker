@@ -1000,7 +1000,13 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <div class="doc doc-contents first">
 
 
-      <p>Base variables passed in pipeline stages.</p>
+        <p>Base variables passed in pipeline stages.</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/tester.py</code></summary>
@@ -1057,7 +1063,13 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <div class="doc doc-contents first">
 
 
-      <p>Variables passed in pipeline stages for each task.</p>
+        <p>Variables passed in pipeline stages for each task.</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/tester.py</code></summary>
@@ -1107,7 +1119,13 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
 <a id="checker.configs.checker.CheckerParametersConfig"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.RootModel">RootModel</span>[dict[str, <span title="checker.configs.checker.TParamType">TParamType</span>]]</code></p>
+              Bases: <code><span title="pydantic.RootModel">RootModel</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="checker.configs.checker.TParamType">TParamType</span>]]</code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1182,13 +1200,19 @@ They can be used with <code>${{ ... }}</code> syntax, expression within this bra
     <div class="doc doc-contents first">
 
 
-      <p>Result of a single pipeline stage.
+        <p>Result of a single pipeline stage.
 :param name: name of the stage
 :param failed: if True, stage failed
 :param skipped: if True, stage was skipped
 :param percentage: optional percentage of points earned
 :param elapsed_time: optional elapsed time in seconds
 :param output: output of the stage</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/pipeline.py</code></summary>
@@ -1276,13 +1300,19 @@ e.g. register percentage of passed tests to be used in the next stage to report 
     <div class="doc doc-contents first">
 
 
-      <p>Result of a single pipeline stage.
+        <p>Result of a single pipeline stage.
 :param name: name of the stage
 :param failed: if True, stage failed
 :param skipped: if True, stage was skipped
 :param percentage: optional percentage of points earned
 :param elapsed_time: optional elapsed time in seconds
 :param output: output of the stage</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/pipeline.py</code></summary>

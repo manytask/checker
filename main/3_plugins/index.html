@@ -1075,8 +1075,14 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
               Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
-      <p>Abstract base class for plugins.
+        <p>Abstract base class for plugins.
 :ivar name: str plugin name, searchable by this name</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1213,8 +1219,14 @@ In a nutshell, it is a Python class overriding abstract class <code>checker.plug
               Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
 
 
-      <p>Base class for plugin arguments.
+        <p>Base class for plugin arguments.
 You have to subclass this class in your plugin.</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1248,12 +1260,13 @@ You have to subclass this class in your plugin.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Run the plugin.
+        <p>Run the plugin.
 :param args: dict plugin arguments to pass to subclass Args
 :param verbose: if True should print teachers debug info, if False student mode
 :raises BadConfig: if plugin arguments are invalid
 :raises ExecutionFailedError: if plugin failed
 :return: PluginOutput with stdout/stderr and percentage</p>
+
 
             <details class="quote">
               <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1299,10 +1312,11 @@ You have to subclass this class in your plugin.</p>
 
     <div class="doc doc-contents ">
 
-      <p>Validate the plugin arguments.
+        <p>Validate the plugin arguments.
 :param args: dict plugin arguments to pass to subclass Args
 :raises BadConfig: if plugin arguments are invalid
 :raises BadStructure: if _run method is not implemented</p>
+
 
             <details class="quote">
               <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1360,8 +1374,14 @@ You have to subclass this class in your plugin.</p>
               Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
 
 
-      <p>Base class for plugin arguments.
+        <p>Base class for plugin arguments.
 You have to subclass this class in your plugin.</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1394,9 +1414,15 @@ You have to subclass this class in your plugin.</p>
     <div class="doc doc-contents first">
 
 
-      <p>Plugin output dataclass.
+        <p>Plugin output dataclass.
 :ivar output: str plugin output
 :ivar percentage: float plugin percentage</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/plugins/base.py</code></summary>
@@ -1453,7 +1479,13 @@ You have to subclass this class in your plugin.</p>
               Bases: <code><span title="checker.exceptions.TestingError">TestingError</span></code></p>
 
 
-      <p>Exception raised when plugin execution failed</p>
+        <p>Exception raised when plugin execution failed</p>
+
+
+
+
+
+
 
               <details class="quote">
                 <summary>Source code in <code>checker/exceptions.py</code></summary>
@@ -1513,7 +1545,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.scripts.RunScriptPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1564,7 +1602,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.firejail.SafeRunScriptPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.scripts.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.scripts.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1623,7 +1667,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.regex.CheckRegexpsPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1670,7 +1720,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.aggregate.AggregatePlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1717,7 +1773,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.manytask.ManytaskPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1776,7 +1838,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.gitlab.CheckGitlabMergeRequestPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
@@ -1827,7 +1895,13 @@ So try to move all arguments validation to <code>Args</code> class in <code>pyda
 <a id="checker.plugins.gitlab.CollectScoreGitlabMergeRequestPlugin.Args"></a>
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="checker.plugins.base.PluginABC.Args" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Args (checker.plugins.base.PluginABC.Args)" href="#checker.plugins.base.PluginABC.Args">Args</a></code></p>
+
+
+
+
+
+
 
 
               <details class="quote">
