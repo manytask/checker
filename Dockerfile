@@ -1,7 +1,7 @@
 ARG PYTHON_VERSION=3.12
 
 # Stage 1: Python dependencies
-FROM python:${PYTHON_VERSION}-slim as builder
+FROM python:${PYTHON_VERSION}-slim AS builder
 
 # Install build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
