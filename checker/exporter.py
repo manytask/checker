@@ -466,15 +466,21 @@ class Exporter:
                 if path.relative_to(global_root) in self.sub_config_files:
                     declared_sub_config = self.sub_config_files[path.relative_to(global_root)]
                     sub_config = CheckerStructureConfig(
-                        ignore_patterns=declared_sub_config.ignore_patterns
-                        if declared_sub_config.ignore_patterns is not None
-                        else config.ignore_patterns,
-                        private_patterns=declared_sub_config.private_patterns
-                        if declared_sub_config.private_patterns is not None
-                        else config.private_patterns,
-                        public_patterns=declared_sub_config.public_patterns
-                        if declared_sub_config.public_patterns is not None
-                        else config.public_patterns,
+                        ignore_patterns=(
+                            declared_sub_config.ignore_patterns
+                            if declared_sub_config.ignore_patterns is not None
+                            else config.ignore_patterns
+                        ),
+                        private_patterns=(
+                            declared_sub_config.private_patterns
+                            if declared_sub_config.private_patterns is not None
+                            else config.private_patterns
+                        ),
+                        public_patterns=(
+                            declared_sub_config.public_patterns
+                            if declared_sub_config.public_patterns is not None
+                            else config.public_patterns
+                        ),
                     )
                 else:
                     sub_config = config

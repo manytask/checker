@@ -238,7 +238,7 @@ class PipelineRunner:
                 result = plugin.run(resolved_args, verbose=self.verbose)
                 _end_time = time.perf_counter()
                 print_info(result.output or "[empty output]")
-                print_info(f"> elapsed time: {_end_time-_start_time:.2f}s", color="grey")
+                print_info(f"> elapsed time: {_end_time - _start_time:.2f}s", color="grey")
                 print_info("ok!", color="green")
                 pipeline_stage_results.append(
                     PipelineStageResult(
@@ -253,7 +253,7 @@ class PipelineRunner:
             except PluginExecutionFailed as e:
                 _end_time = time.perf_counter()
                 print_info(e.output or "[empty output]")
-                print_info(f"> elapsed time: {_end_time-_start_time:.2f}s", color="grey")
+                print_info(f"> elapsed time: {_end_time - _start_time:.2f}s", color="grey")
                 pipeline_stage_results.append(
                     PipelineStageResult(
                         name=pipeline_stage.name,
