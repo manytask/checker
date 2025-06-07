@@ -3,12 +3,14 @@ ARG PYTHON_VERSION=3.12
 # Stage 1: Python dependencies
 FROM python:${PYTHON_VERSION}-slim as builder
 
-# Install build tools
+# Install build tools for cpp and rust
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    gcc \
-    g++ \
-    make \
+    gawk \
+    build-essential \
+    libssl-dev \
+    cargo \
+    rustc \
     && rm -rf /var/lib/apt/lists/*
 
 # Build firejail from source
@@ -30,10 +32,10 @@ FROM python:${PYTHON_VERSION}-slim
 
 WORKDIR /usr/src/app
 
-# Install firejail runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libseccomp2 \
-    && rm -rf /var/lib/apt/lists/*
+# Install additional tools
+RUN apt-get update  \
+    && apt-get install -y --no-install-recommends \
+        git
 
 # Copy firejail and python environment
 COPY --from=builder /usr/local/bin/firejail /usr/local/bin/firejail
