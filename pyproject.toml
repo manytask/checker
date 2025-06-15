@@ -114,7 +114,7 @@ exclude = [
 [tool.pytest.ini_options]
 minversion = "6.0"
 python_files = "test_*.py"
-addopts = "--cov=checker/ --cov-report=term-missing --cov-report=xml tests/"
+addopts = "--skip-firejail --cov=checker/ --cov-report=term-missing --cov-report=xml tests/"
 testpaths = [
     "tests",
     ".tmp"
