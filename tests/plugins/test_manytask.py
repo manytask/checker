@@ -22,7 +22,7 @@ class TestManytaskPlugin:
     TEST_ORIGIN = "./"
     TEST_PATTERNS = ["*"]
     TEST_NOW_DATETIME = datetime(2023, 12, 21, 0, 52, 36, 166028).astimezone()
-    TEST_NOW_DATETIME_STR = "2023-12-21T00:52:36.166028+0600"
+    TEST_NOW_DATETIME_STR = "2023-12-21 00:52:36+0600"
     TEST_CHECK_DEADLINE = True
 
     @staticmethod
