@@ -13,11 +13,6 @@ RUN apk update && apk add --no-cache \
     rust \
     && rm -rf /var/cache/apk/*
 
-# Build firejail from source
-RUN git clone --depth 1 --branch 0.9.72 https://github.com/netblue30/firejail.git
-WORKDIR /firejail
-RUN ./configure && make && make install-strip && firejail --version
-
 # Install python dependencies
 WORKDIR /usr/src/app
 
@@ -44,9 +39,6 @@ WORKDIR /usr/src/app
 RUN apk update  \
     && apk add --no-cache \
         git
-
-# Copy firejail
-COPY --from=builder /usr/local/bin/firejail /usr/local/bin/firejail
 
 # Copy python dependencies and checker
 COPY --from=builder /opt/checker-venv /opt/checker-venv
