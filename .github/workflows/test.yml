@@ -51,7 +51,7 @@ jobs:
       - name: Run all tests
         run: make test OPTIONS=--skip-firejail # firejail doesn't work in docker
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # required
           files: coverage.xml
