@@ -54,6 +54,7 @@ class TestRunScriptPlugin:
             ("true", "", None),
             ("false", "", PluginExecutionFailed),
             ("echo Hello && false", "Hello", PluginExecutionFailed),
+            (["echo", "Hello", "&&", "false"], "Hello", PluginExecutionFailed),
         ],
     )
     def test_simple_cases(self, script: str, output: str, expected_exception: Exception | None) -> None:
