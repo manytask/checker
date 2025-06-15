@@ -39,7 +39,7 @@ test-docstests:
 .PHONY: test
 test:
 	@echo "[make] Running unit and integration tests..."
-	pytest
+	pytest $(OPTIONS)
 
 # Lint and typecheck the code
 .PHONY: lint
