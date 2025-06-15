@@ -47,7 +47,6 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          sudo apt-get install -y firejail
           python -m pip install -e .[test]
       - name: Run all tests
         run: make test
