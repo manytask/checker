@@ -246,7 +246,12 @@ def check(
 @click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
 @click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
-@click.option("--timestamp", type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S"]), default=datetime.now(tz=ZoneInfo('Europe/Moscow')), help="Timestamp to use for the submission")
+@click.option(
+    "--timestamp",
+    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S"]),
+    default=datetime.now(tz=ZoneInfo("Europe/Moscow")),
+    help="Timestamp to use for the submission",
+)
 @click.option("--username", type=str, default=None, help="Username to use for the submission")
 @click.option("--branch", type=str, default=None, help="Rewrite branch name for the submission")
 @click.option("--no-clean", is_flag=True, help="Clean or not check tmp folders")

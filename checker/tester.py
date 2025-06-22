@@ -88,25 +88,21 @@ class Tester:
         self.verbose = verbose
         self.dry_run = dry_run
 
-        group_with_percents = [(group, group.get_percents_before_deadline()) for group in course.manytask_config.deadlines.get_groups()]
+        group_with_percents = [
+            (group, group.get_percents_before_deadline()) for group in course.manytask_config.deadlines.get_groups()
+        ]
         self.task_to_percents = {task.name: percs for group, percs in group_with_percents for task in group.tasks}
         self.deadlines_type = course.manytask_config.deadlines.deadlines
         self.interpolation_window = (course.manytask_config.deadlines.window or 0) * 3600 * 24  # in seconds
-    
 
     def _calc_interpolated_percent(
-            self,
-            percent: float,
-            timestamp: datetime,
-            prev_percent: float,
-            prev_timestamp: datetime
-        ):
+        self, percent: float, timestamp: datetime, prev_percent: float, prev_timestamp: datetime
+    ):
         frac: float = (timestamp - prev_timestamp).total_seconds() / self.interpolation_window
-        return percent if frac >= 1 else prev_percent - frac * (prev_percent - percent) 
-
+        return percent if frac >= 1 else prev_percent - frac * (prev_percent - percent)
 
     def _get_task_score_percent(self, task: str, timestamp: datetime | None = None):
-        timestamp = timestamp or datetime.now(tz=ZoneInfo('Europe/Moscow'))
+        timestamp = timestamp or datetime.now(tz=ZoneInfo("Europe/Moscow"))
         steps: dict[float, datetime] = self.task_to_percents[task]
         prev_percent: float = 1
         prev_timestamp: datetime = timestamp
@@ -117,7 +113,6 @@ class Tester:
                 return self._calc_interpolated_percent(percent, timestamp, prev_percent, prev_timestamp)
             prev_percent, prev_timestamp = percent, ts
         return 0.0
-
 
     def _get_global_pipeline_parameters(
         self,
@@ -138,9 +133,7 @@ class Tester:
         score_percent: float,
     ) -> TaskPipelineVariables:
         return TaskPipelineVariables(
-            task_name=task.name,
-            task_sub_path=task.relative_path,
-            task_score_percent=score_percent
+            task_name=task.name, task_sub_path=task.relative_path, task_score_percent=score_percent
         )
 
     def _get_context(

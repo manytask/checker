@@ -54,7 +54,6 @@ class TestRunScriptPlugin:
             ("true", "", None),
             ("false", "", PluginExecutionFailed),
             ("echo Hello && false", "Hello", PluginExecutionFailed),
-            (["echo", "Hello", "&&", "false"], "Hello", PluginExecutionFailed),
         ],
     )
     def test_simple_cases(self, script: str, output: str, expected_exception: Exception | None) -> None:
@@ -72,10 +71,10 @@ class TestRunScriptPlugin:
     @pytest.mark.parametrize(
         "script, timeout, expected_exception",
         [
-            ("echo Hello", 10, None),
-            ("sleep 0.5", 1, None),
-            ("sleep 0.5", None, None),
-            ("sleep 1", 0.5, PluginExecutionFailed),
+            (["echo", "Hello"], 10, None),
+            (["sleep", "0.5"], 1, None),
+            (["sleep", "0.5"], None, None),
+            (["sleep", "1"], 0.5, PluginExecutionFailed),
         ],
     )
     def test_timeout(self, script: str, timeout: float, expected_exception: Exception | None) -> None:

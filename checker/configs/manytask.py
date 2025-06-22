@@ -190,7 +190,7 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
         # and group.name == group.tasks[0].name)]
 
         return data
-    
+
     @field_validator("window")
     @classmethod
     def check_valid_window(cls, window: int | None) -> int | None:
@@ -204,7 +204,7 @@ class ManytaskDeadlinesConfig(CustomBaseModel):
         for group in self.schedule:
             group.replace_timezone(timezone)
         return self
-    
+
     @model_validator(mode="after")
     def check_valid_deadline(self) -> "ManytaskDeadlinesConfig":
         if self.window is not None and self.deadlines != ManytaskDeadlinesType.INTERPOLATE:

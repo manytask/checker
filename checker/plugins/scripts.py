@@ -38,7 +38,7 @@ class RunScriptPlugin(PluginABC):
         try:
             result = subprocess.run(
                 args.script,
-                shell=False,
+                shell=isinstance(args.script, str),
                 cwd=args.origin,
                 timeout=args.timeout,  # kill process after timeout, raise TimeoutExpired
                 check=True,  # raise CalledProcessError if return code is non-zero
