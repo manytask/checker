@@ -31,7 +31,7 @@ class CppRunBenchmarksPlugin(PluginABC):
                 print_info(f.read())
 
     @staticmethod
-    def _parse_xml(tree: ET.ElementTree) -> dict[str, float]:
+    def _parse_xml(tree: ET.ElementTree[ET.Element[str]]) -> dict[str, float]:
         bench_results: dict[str, float] = {}
         for results in tree.iter("BenchmarkResults"):
             name = results.get("name")
@@ -59,7 +59,7 @@ class CppRunBenchmarksPlugin(PluginABC):
         return result
 
     @staticmethod
-    def _check_results(args: Args, tree: ET.ElementTree) -> None:
+    def _check_results(args: Args, tree: ET.ElementTree[ET.Element[str]]) -> None:
         results = CppRunBenchmarksPlugin._parse_xml(tree)
         targets = CppRunBenchmarksPlugin._parse_benchmark_values(args)
         if results.keys() != targets.keys():

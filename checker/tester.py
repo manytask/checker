@@ -93,11 +93,11 @@ class Tester:
 
     def _calc_interpolated_percent(
         self, percent: float, timestamp: datetime, prev_percent: float, prev_timestamp: datetime
-    ):
+    ) -> float:
         frac: float = (timestamp - prev_timestamp).total_seconds() / self.interpolation_window
         return percent if frac >= 1 else prev_percent - frac * (prev_percent - percent)
 
-    def _get_task_score_percent(self, task: str, timestamp: datetime | None = None):
+    def _get_task_score_percent(self, task: str, timestamp: datetime | None = None) -> float:
         timestamp = timestamp or datetime.now(tz=ZoneInfo("Europe/Moscow"))
         steps: dict[float, datetime] = self.task_to_percents[task]
         prev_percent: float = 1
