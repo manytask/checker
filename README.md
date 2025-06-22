@@ -18,7 +18,7 @@ Checker is a Python cli script to test students' solutions with built-in [manyta
 * **secure** - sandbox execution of students' code
 * **fast** - lightweight script with testing parallelization
 
-`Requires Python 3.9+`
+`Requires Python 3.10+`
 
 ---
 

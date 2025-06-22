@@ -3,14 +3,10 @@ from __future__ import annotations
 import json
 import os
 import shutil
-import sys
 from datetime import datetime
 from pathlib import Path
 
-if sys.version_info < (3, 8):
-    from pytz import timezone as ZoneInfo
-else:
-    from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import click
 

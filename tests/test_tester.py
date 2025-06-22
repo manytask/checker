@@ -1,4 +1,3 @@
-import sys
 import typing
 from datetime import datetime
 
@@ -6,10 +5,7 @@ from checker.tester import Tester
 from checker.configs import ManytaskConfig
 from checker.configs.checker import CheckerTestingConfig
 
-if sys.version_info < (3, 8):
-    from pytz import timezone as ZoneInfo
-else:
-    from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 
 TEST_MANYTASK_CONFIG = ManytaskConfig(
@@ -43,6 +39,7 @@ TEST_MANYTASK_CONFIG = ManytaskConfig(
     },
 )
 
+
 class PipelineRunnerMock:
     def __init__(self, *args, **kwargs):
         pass
@@ -50,30 +47,31 @@ class PipelineRunnerMock:
 
 class CourseMock:
     def __init__(self):
-        self.repository_root = ''
-        self.reference_root = ''
+        self.repository_root = ""
+        self.reference_root = ""
         self.manytask_config = TEST_MANYTASK_CONFIG
 
 
 class CheckerConfigMock:
     def __init__(self):
         pass
-    
+
     @property
     def structure(self):
         return {}
-    
+
     @property
     def default_parameters(self):
         return {}
-    
+
     @property
     def testing(self):
         return CheckerTestingConfig()
 
 
 def _get_timestamp(ts: str) -> datetime:
-        return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo('Europe/Moscow'))
+    return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo("Europe/Moscow"))
+
 
 class TestTester:
     @typing.no_type_check
@@ -81,17 +79,23 @@ class TestTester:
         mock_load_plugins = mocker.patch("pkgutil.iter_modules")  # disable load_plugins typecheck
         mock_load_plugins.return_value = []
         tester = Tester(CourseMock(), CheckerConfigMock())
-        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-16 00:00:00"))     # start
-        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-20 00:00:00"))     # before 1st step
-        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:00:00"))     # 1st step
-        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:01:00"))     # don't count 1 minute
+        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-16 00:00:00"))  # start
+        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-20 00:00:00"))  # before 1st step
+        assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:00:00"))  # 1st step
+        score_str = tester._get_task_score_percent(
+            "task1_1", _get_timestamp("2025-03-01 00:01:00")
+        )  # don't count 1 minute
         assert 100 == round(float(score_str) * 100)
         assert 0.75 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-04 12:00:00"))  # linear
-        assert 0.5 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-08 00:00:00"))   # before 2nd step
-        assert 0.5 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:00:00"))   # 2nd step step
-        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:01:00"))     # don't count 1 minute
+        assert 0.5 == tester._get_task_score_percent(
+            "task1_1", _get_timestamp("2025-03-08 00:00:00")
+        )  # before 2nd step
+        assert 0.5 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:00:00"))  # 2nd step step
+        score_str = tester._get_task_score_percent(
+            "task1_1", _get_timestamp("2025-03-16 00:01:00")
+        )  # don't count 1 minute
         assert 50 == round(float(score_str) * 100)
-        assert 0.4 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-19 12:00:00"))   # linear
+        assert 0.4 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-19 12:00:00"))  # linear
         assert 0.3 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-24 00:00:00"))
         assert 0.3 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-04-01 00:00:00"))
         assert 0 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-04-01 00:01:00"))

@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import sys
 from datetime import datetime, timedelta
 from typing import Any
 
 import pytest
 
 
-if sys.version_info < (3, 8):
-    from pytz import timezone as ZoneInfo
-else:
-    from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
@@ -549,7 +545,7 @@ class TestManytaskDeadlinesConfig:
                     },
                 ],
             )
-    
+
     @pytest.mark.parametrize(
         "window, deadline",
         [

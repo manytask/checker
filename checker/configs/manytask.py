@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import sys
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Union
 
 
-if sys.version_info < (3, 8):
-    from pytz import ZoneInfoNotFoundError as ZoneInfoNotFoundError, timezone as ZoneInfo
-else:
-    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
 

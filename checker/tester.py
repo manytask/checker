@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 import os
-import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-if sys.version_info < (3, 8):
-    from pytz import timezone as ZoneInfo
-else:
-    from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from .configs.checker import CheckerConfig, CheckerParametersConfig
 from .configs.manytask import ManytaskDeadlinesType
