@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
 from zoneinfo import ZoneInfo
 
 from .configs.checker import CheckerConfig, CheckerParametersConfig

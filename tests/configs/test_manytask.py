@@ -2,12 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from typing import Any
-
-import pytest
-
-
 from zoneinfo import ZoneInfo
 
+import pytest
 from pydantic import ValidationError
 
 from checker.configs.manytask import ManytaskDeadlinesConfig, ManytaskGroupConfig

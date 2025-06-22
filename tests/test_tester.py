@@ -1,11 +1,10 @@
 import typing
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from checker.tester import Tester
 from checker.configs import ManytaskConfig
 from checker.configs.checker import CheckerTestingConfig
-
-from zoneinfo import ZoneInfo
+from checker.tester import Tester
 
 
 TEST_MANYTASK_CONFIG = ManytaskConfig(
