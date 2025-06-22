@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional, Union
 
 from ..exceptions import PluginExecutionFailed
@@ -17,6 +18,7 @@ class RunScriptPlugin(PluginABC):
         timeout: Union[float, None] = None  # as pydantic does not support | in older python versions
         env_additional: dict[str, str] = dict()
         env_whitelist: Optional[list[str]] = None
+        input: Optional[Path] = None
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:  # type: ignore[override]
         import subprocess
@@ -31,18 +33,16 @@ class RunScriptPlugin(PluginABC):
                     os.environ[variable] = env.get(variable, "")
             os.environ.update(args.env_additional)
 
-        if isinstance(args.script, list):
-            safe_shell_script = " ".join(args.script)
-        else:
-            safe_shell_script = args.script
+        stdin = open(args.input, "r") if args.input else None
 
         try:
             result = subprocess.run(
-                safe_shell_script,
-                shell=True,
+                args.script,
+                shell=isinstance(args.script, str),
                 cwd=args.origin,
                 timeout=args.timeout,  # kill process after timeout, raise TimeoutExpired
                 check=True,  # raise CalledProcessError if return code is non-zero
+                stdin=stdin,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,  # merge stderr & stdout to single output
                 preexec_fn=set_up_env_sandbox,
@@ -61,6 +61,9 @@ class RunScriptPlugin(PluginABC):
                     f"Script failed with exit code {e.returncode}",
                     output=output,
                 ) from e
+        finally:
+            if stdin is not None:
+                stdin.close()
 
         return PluginOutput(
             output=result.stdout.decode("utf-8"),

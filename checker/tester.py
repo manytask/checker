@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from .configs.checker import CheckerConfig, CheckerParametersConfig
+from .configs.manytask import ManytaskDeadlinesType
 from .course import Course, FileSystemTask
 from .exceptions import TestingError
 from .pipeline import PipelineResult, PipelineRunner, PipelineStageResult
@@ -30,6 +33,7 @@ class TaskPipelineVariables:
 
     task_name: str
     task_sub_path: str
+    task_score_percent: float
 
 
 class Tester:
@@ -79,6 +83,32 @@ class Tester:
         self.verbose = verbose
         self.dry_run = dry_run
 
+        group_with_percents = [
+            (group, group.get_percents_before_deadline()) for group in course.manytask_config.deadlines.get_groups()
+        ]
+        self.task_to_percents = {task.name: percs for group, percs in group_with_percents for task in group.tasks}
+        self.deadlines_type = course.manytask_config.deadlines.deadlines
+        self.interpolation_window = (course.manytask_config.deadlines.window or 0) * 3600 * 24  # in seconds
+
+    def _calc_interpolated_percent(
+        self, percent: float, timestamp: datetime, prev_percent: float, prev_timestamp: datetime
+    ) -> float:
+        frac: float = (timestamp - prev_timestamp).total_seconds() / self.interpolation_window
+        return percent if frac >= 1 else prev_percent - frac * (prev_percent - percent)
+
+    def _get_task_score_percent(self, task: str, timestamp: datetime | None = None) -> float:
+        timestamp = timestamp or datetime.now(tz=ZoneInfo("Europe/Moscow"))
+        steps: dict[float, datetime] = self.task_to_percents[task]
+        prev_percent: float = 1
+        prev_timestamp: datetime = timestamp
+        for percent, ts in steps.items():
+            if timestamp <= ts:
+                if self.deadlines_type == ManytaskDeadlinesType.HARD:
+                    return percent
+                return self._calc_interpolated_percent(percent, timestamp, prev_percent, prev_timestamp)
+            prev_percent, prev_timestamp = percent, ts
+        return 0.0
+
     def _get_global_pipeline_parameters(
         self,
         origin: Path,
@@ -95,10 +125,10 @@ class Tester:
     def _get_task_pipeline_parameters(
         self,
         task: FileSystemTask,
+        score_percent: float,
     ) -> TaskPipelineVariables:
         return TaskPipelineVariables(
-            task_name=task.name,
-            task_sub_path=task.relative_path,
+            task_name=task.name, task_sub_path=task.relative_path, task_score_percent=score_percent
         )
 
     def _get_context(
@@ -136,7 +166,8 @@ class Tester:
             print_info(f"- task {task.name} pipeline...")
 
             # create task context
-            task_variables = self._get_task_pipeline_parameters(task)
+            task_score = self._get_task_score_percent(task.name)
+            task_variables = self._get_task_pipeline_parameters(task, task_score)
             context = self._get_context(
                 global_variables,
                 task_variables,
@@ -157,6 +188,7 @@ class Tester:
         origin: Path,
         tasks: list[FileSystemTask] | None = None,
         report: bool = True,
+        timestamp: datetime | None = None,
     ) -> None:
         # get all tasks
         tasks = tasks or self.course.get_tasks(enabled=True)
@@ -188,7 +220,8 @@ class Tester:
             print_header_info(f"Run <{task.name}> task pipeline:", color="pink")
 
             # create task context
-            task_variables = self._get_task_pipeline_parameters(task)
+            task_score = self._get_task_score_percent(task.name, timestamp)
+            task_variables = self._get_task_pipeline_parameters(task, task_score)
             context = self._get_context(
                 global_variables,
                 task_variables,

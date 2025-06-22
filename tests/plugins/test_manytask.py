@@ -22,7 +22,7 @@ class TestManytaskPlugin:
     TEST_ORIGIN = "./"
     TEST_PATTERNS = ["*"]
     TEST_NOW_DATETIME = datetime(2023, 12, 21, 0, 52, 36, 166028).astimezone()
-    TEST_NOW_DATETIME_STR = "2023-12-21T00:52:36.166028+0600"
+    TEST_NOW_DATETIME_STR = "2023-12-21 00:52:36+0600"
     TEST_CHECK_DEADLINE = True
 
     @staticmethod
@@ -223,9 +223,7 @@ class TestManytaskPlugin:
         mocker.patch.object(ManytaskPlugin, "_collect_files_to_send")
         ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, "_post_with_retries")
-        ManytaskPlugin._post_with_retries.return_value.json.return_value = {
-            "score": result_score
-        }  # type: ignore[attr-defined]
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {"score": result_score}  # type: ignore[attr-defined]
         result = ManytaskPlugin().run(args_dict)
 
         assert result.output == (
@@ -233,9 +231,7 @@ class TestManytaskPlugin:
             f"requested score: {self.TEST_SCORE}, result score: {result_score}"
         )
 
-        ManytaskPlugin._post_with_retries.assert_called_once_with(
-            self.BASE_URL, expected_data, expected_files
-        )  # type: ignore[attr-defined]
+        ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)  # type: ignore[attr-defined]
 
     def test_verbose(self, mocker: MockFixture) -> None:
         args_dict = self.get_default_full_args_dict()
@@ -245,9 +241,7 @@ class TestManytaskPlugin:
         mocker.patch.object(ManytaskPlugin, "_collect_files_to_send")
         ManytaskPlugin._collect_files_to_send.return_value = expected_files  # type: ignore[attr-defined]
         mocker.patch.object(ManytaskPlugin, "_post_with_retries")
-        ManytaskPlugin._post_with_retries.return_value.json.return_value = {
-            "score": result_score
-        }  # type: ignore[attr-defined]
+        ManytaskPlugin._post_with_retries.return_value.json.return_value = {"score": result_score}  # type: ignore[attr-defined]
         result = ManytaskPlugin().run(args_dict, verbose=True)
 
         assert str(expected_files) in result.output
