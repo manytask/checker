@@ -84,14 +84,14 @@ class TestTester:
         assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-16 00:00:00"))     # start
         assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-02-20 00:00:00"))     # before 1st step
         assert 1 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:00:00"))     # 1st step
-        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:00:01"))     # don't count 1 minute
+        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-01 00:01:00"))     # don't count 1 minute
         assert 100 == round(float(score_str) * 100)
         assert 0.75 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-04 12:00:00"))  # linear
         assert 0.5 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-08 00:00:00"))   # before 2nd step
         assert 0.5 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:00:00"))   # 2nd step step
-        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:00:01"))     # don't count 1 minute
+        score_str = tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-16 00:01:00"))     # don't count 1 minute
         assert 50 == round(float(score_str) * 100)
         assert 0.4 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-19 12:00:00"))   # linear
         assert 0.3 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-03-24 00:00:00"))
         assert 0.3 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-04-01 00:00:00"))
-        assert 0 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-04-01 00:00:01"))
+        assert 0 == tester._get_task_score_percent("task1_1", _get_timestamp("2025-04-01 00:01:00"))
