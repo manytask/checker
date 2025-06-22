@@ -643,6 +643,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#checker-export-private" class="md-nav__link">
+    <span class="md-ellipsis">
+      export-private
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#checker-grade" class="md-nav__link">
     <span class="md-ellipsis">
       grade
@@ -804,6 +813,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#checker-export-private" class="md-nav__link">
+    <span class="md-ellipsis">
+      export-private
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#checker-grade" class="md-nav__link">
     <span class="md-ellipsis">
       grade
@@ -897,6 +915,7 @@
 <ul>
 <li><em><a href="#checker-check">check</a></em>: Check private repository: run tests, lint etc. First forces validation.</li>
 <li><em><a href="#checker-export">export</a></em>: Export tasks from reference to public repository.</li>
+<li><em><a href="#checker-export-private">export-private</a></em>: Export files to testing directory.</li>
 <li><em><a href="#checker-grade">grade</a></em>: Process the configuration file and grade the tasks.</li>
 <li><em><a href="#checker-validate">validate</a></em>: Validate the configuration files, plugins and tasks.</li>
 </ul>
@@ -1008,6 +1027,36 @@
 </tr>
 </tbody>
 </table>
+<h4 id="checker-export-private">checker export-private</h4>
+<p>Export files to testing directory.</p>
+<p><strong>Usage:</strong></p>
+<div class="language-text highlight"><pre><span></span><code>checker export-private [OPTIONS] [REFERENCE_ROOT] [EXPORT_ROOT]
+</code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--dry-run</code></td>
+<td>boolean</td>
+<td>Do not execute anything, only log actions</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
 <h4 id="checker-grade">checker grade</h4>
 <p>Process the configuration file and grade the tasks.</p>
 <ol>
@@ -1038,9 +1087,9 @@
 </tr>
 <tr>
 <td><code>--timestamp</code></td>
-<td>text</td>
+<td>datetime (<code>%Y-%m-%dT%H:%M:%S</code>)</td>
 <td>Timestamp to use for the submission</td>
-<td>None</td>
+<td><code>2025-06-22 22:12:09.597332+03:00</code></td>
 </tr>
 <tr>
 <td><code>--username</code></td>
