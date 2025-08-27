@@ -14,7 +14,7 @@ from checker.plugins.manytask import ManytaskPlugin, PluginExecutionFailed
 
 
 class TestManytaskPlugin:
-    BASE_URL = HttpUrl("https://test.manytask.org")
+    REPORT_URL = HttpUrl("https://app.manytask.org/api/test/report")
     REPORT_TOKEN = "report_token"
     TEST_TASK_NAME = "some_task"
     TEST_USERNAME = "username"
@@ -31,7 +31,7 @@ class TestManytaskPlugin:
             "username": TestManytaskPlugin.TEST_USERNAME,
             "task_name": TestManytaskPlugin.TEST_TASK_NAME,
             "score": TestManytaskPlugin.TEST_SCORE,
-            "report_url": TestManytaskPlugin.BASE_URL,
+            "report_url": TestManytaskPlugin.REPORT_URL,
             "report_token": TestManytaskPlugin.REPORT_TOKEN,
             "check_deadline": TestManytaskPlugin.TEST_CHECK_DEADLINE,
         }
@@ -122,7 +122,7 @@ class TestManytaskPlugin:
         args["send_time"] = self.TEST_NOW_DATETIME.replace(tzinfo=None)
 
         with Mocker() as mocker:
-            mocker.post(f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}')
+            mocker.post(f"{self.REPORT_URL}", status_code=200, text='{"score": 1.0}')
 
             output = plugin.run(args)
 
@@ -134,7 +134,7 @@ class TestManytaskPlugin:
         args["send_time"] = self.TEST_NOW_DATETIME.astimezone()
 
         with Mocker() as mocker:
-            mocker.post(f"{self.BASE_URL}api/report", status_code=200, text='{"score": 1.0}')
+            mocker.post(f"{self.REPORT_URL}", status_code=200, text='{"score": 1.0}')
 
             output = plugin.run(args)
 
@@ -192,18 +192,18 @@ class TestManytaskPlugin:
     ) -> None:
         with Mocker() as mocker:
             mocker.post(
-                f"{self.BASE_URL}api/report",
+                f"{self.REPORT_URL}",
                 status_code=response_status_code,
                 text=response_text,
             )
 
             if expected_exception:
                 with pytest.raises(expected_exception) as exc:
-                    ManytaskPlugin._post_with_retries(self.BASE_URL, {"key": "value"}, None)
+                    ManytaskPlugin._post_with_retries(self.REPORT_URL, {"key": "value"}, None)
                 assert str(response_status_code) in str(exc.value), "Status code wasn't provided in exception message"
                 assert response_text in str(exc.value), "Error text wasn't provided in exception message"
             else:
-                result = ManytaskPlugin._post_with_retries(self.BASE_URL, {"key": "value"}, None)
+                result = ManytaskPlugin._post_with_retries(self.REPORT_URL, {"key": "value"}, None)
                 assert result.status_code == 200
                 assert result.text == "Success"
 
@@ -231,7 +231,7 @@ class TestManytaskPlugin:
             f"requested score: {self.TEST_SCORE}, result score: {result_score}"
         )
 
-        ManytaskPlugin._post_with_retries.assert_called_once_with(self.BASE_URL, expected_data, expected_files)  # type: ignore[attr-defined]
+        ManytaskPlugin._post_with_retries.assert_called_once_with(self.REPORT_URL, expected_data, expected_files)  # type: ignore[attr-defined]
 
     def test_verbose(self, mocker: MockFixture) -> None:
         args_dict = self.get_default_full_args_dict()
