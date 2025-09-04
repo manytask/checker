@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
@@ -300,6 +300,7 @@ class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
     settings: ManytaskSettingsConfig
     ui: ManytaskUiConfig
     deadlines: ManytaskDeadlinesConfig
+    grades: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
 
     def get_groups(
         self,
