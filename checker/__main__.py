@@ -242,16 +242,15 @@ def _parse_timestamp(
     ctx: click.Context,
     param: click.Parameter,
     value: Optional[str],
-    ) -> datetime:
+) -> datetime:
     if value is None:
         # runtime default
         return datetime.now(tz=ZoneInfo("Europe/Moscow"))
     try:
         return datetime.fromisoformat(value)
     except ValueError as e:
-        raise click.BadParameter(
-        "Use ISO 8601, e.g. 2025-09-08T13:39:13 or 2025-09-08T13:39:13Z"
-    ) from e
+        raise click.BadParameter("Use ISO 8601, e.g. 2025-09-08T13:39:13 or 2025-09-08T13:39:13Z") from e
+
 
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
