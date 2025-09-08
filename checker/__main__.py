@@ -237,7 +237,7 @@ def check(
     print_info("TESTING PASSED", color="green")
 
 
-def _parse_timestamp(ctx, param, value):
+def _parse_timestamp(ctx, param, value) -> datetime:
     if value is None:
         # runtime default
         return datetime.now(tz=ZoneInfo("Europe/Moscow"))
