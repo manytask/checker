@@ -237,7 +237,11 @@ def check(
     print_info("TESTING PASSED", color="green")
 
 
-def _parse_timestamp(ctx, param, value) -> datetime:
+def _parse_timestamp(
+    ctx: click.Context,
+    param: click.Parameter,
+    value: Optional[str],
+    ) -> datetime:
     if value is None:
         # runtime default
         return datetime.now(tz=ZoneInfo("Europe/Moscow"))
