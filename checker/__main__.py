@@ -246,8 +246,6 @@ def _parse_timestamp(
     if value is None:
         # runtime default
         return datetime.now(tz=ZoneInfo("Europe/Moscow"))
-    if isinstance(value, datetime):
-        return value
     try:
         return datetime.fromisoformat(value)
     except ValueError as e:
