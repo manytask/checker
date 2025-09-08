@@ -237,14 +237,29 @@ def check(
     print_info("TESTING PASSED", color="green")
 
 
+def _parse_timestamp(ctx, param, value):
+    if value is None:
+        # runtime default
+        return datetime.now(tz=ZoneInfo("Europe/Moscow"))
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError as e:
+        raise click.BadParameter(
+        "Use ISO 8601, e.g. 2025-09-08T13:39:13 or 2025-09-08T13:39:13Z"
+    ) from e
+
 @cli.command()
 @click.argument("root", type=ClickReadableDirectory, default=".")
 @click.argument("reference_root", type=ClickReadableDirectory, default=".")
 @click.option("--submit-score", is_flag=True, help="Submit score to the Manytask server")
 @click.option(
     "--timestamp",
-    type=click.DateTime(formats=["%Y-%m-%dT%H:%M:%S"]),
-    default=datetime.now(tz=ZoneInfo("Europe/Moscow")),
+    type=str,
+    callback=_parse_timestamp,
+    default=None,
+    show_default="current time in Europe/Moscow",
     help="Timestamp to use for the submission",
 )
 @click.option("--username", type=str, default=None, help="Username to use for the submission")
