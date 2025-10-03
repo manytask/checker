@@ -246,7 +246,7 @@ class Course:
             changed_tasks = [
                 task
                 for task in potential_tasks
-                if any(file is not None and task.relative_path in file for file in changed_files)
+                if any(file is not None and Path(file).is_relative_to(task.relative_path) for file in changed_files)
             ]
             print_info(
                 f"Changed tasks: {[t.name for t in changed_tasks]} (changed files in last commit)",
