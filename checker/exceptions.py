@@ -44,6 +44,5 @@ class TestingError(CheckerException):
 class PluginExecutionFailed(TestingError):
     """Exception raised when plugin execution failed"""
 
-    message: str = ""
     output: str | None = None
     percentage: float = 0.0
