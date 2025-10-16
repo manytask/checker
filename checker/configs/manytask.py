@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import AnyUrl, Field, field_validator, model_validator
@@ -44,9 +44,12 @@ class ManytaskTaskConfig(CustomBaseModel):
     enabled: bool = True
 
     score: int
+    # Minimum (threshold) score to consider large task completed
+    min_score: int = 0
     special: int = 0
 
     is_bonus: bool = False
+    is_large: bool = False
     is_special: bool = False
 
     # Note: use Optional/Union[...] instead of ... | None as pydantic does not support | in older python versions
@@ -297,6 +300,7 @@ class ManytaskConfig(CustomBaseModel, YamlLoaderMixin["ManytaskConfig"]):
     settings: ManytaskSettingsConfig
     ui: ManytaskUiConfig
     deadlines: ManytaskDeadlinesConfig
+    grades: Optional[Dict[str, Any]] = Field(default=None, exclude=True)
 
     def get_groups(
         self,
