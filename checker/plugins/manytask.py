@@ -39,7 +39,10 @@ class ManytaskPlugin(PluginABC):
 
         if not args.send_time.tzinfo:
             output.append("Warning: No timezone provided for send_time, possible time miscalculations")
-        send_time_formatted = args.send_time.strftime(self.DEFAULT_TIME_FORMAT)
+        try:
+            send_time_formatted = args.send_time.strftime(self.DEFAULT_TIME_FORMAT)
+        except ValueError as e:
+            raise PluginExecutionFailed(e)
 
         # Do not expose token in logs.
         data = {
