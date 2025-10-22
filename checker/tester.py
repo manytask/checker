@@ -74,8 +74,6 @@ class Tester:
         self.plugins = load_plugins(self.testing_config.search_plugins, verbose=verbose)
 
         self.global_pipeline = PipelineRunner(self.testing_config.global_pipeline, self.plugins, verbose=verbose)
-        self.task_pipeline = PipelineRunner(self.testing_config.tasks_pipeline, self.plugins, verbose=verbose)
-        self.report_pipeline = PipelineRunner(self.testing_config.report_pipeline, self.plugins, verbose=verbose)
 
         self.repository_dir = self.course.repository_root
         self.reference_dir = self.course.reference_root
@@ -147,6 +145,18 @@ class Tester:
             "env": os.environ.__dict__,
         }
 
+    def _get_task_pipeline_runner(self, task: FileSystemTask) -> PipelineRunner:
+        pipeline_conf = task.config.task_pipeline
+        if pipeline_conf is None:
+            pipeline_conf = self.testing_config.tasks_pipeline
+        return PipelineRunner(pipeline_conf, self.plugins, verbose=self.verbose)
+
+    def _get_task_report_pipeline_runner(self, task: FileSystemTask) -> PipelineRunner:
+        pipeline_conf = task.config.report_pipeline
+        if pipeline_conf is None:
+            pipeline_conf = self.testing_config.report_pipeline
+        return PipelineRunner(pipeline_conf, self.plugins, verbose=self.verbose)
+
     def validate(self) -> None:
         # get all tasks
         tasks = self.course.get_tasks(enabled=True)
@@ -177,9 +187,8 @@ class Tester:
             )
 
             # check task parameter are
-            # TODO: read pipeline from task config if any
-            self.task_pipeline.validate(context, validate_placeholders=True)
-            self.report_pipeline.validate(context, validate_placeholders=True)
+            self._get_task_pipeline_runner(task).validate(context, validate_placeholders=True)
+            self._get_task_report_pipeline_runner(task).validate(context, validate_placeholders=True)
 
             print_info("  ok")
 
@@ -230,8 +239,9 @@ class Tester:
                 task.config.parameters if task.config else None,
             )
 
-            # TODO: read pipeline from task config if any
-            task_pipeline_result: PipelineResult = self.task_pipeline.run(context, dry_run=self.dry_run)
+            task_pipeline_result: PipelineResult = self._get_task_pipeline_runner(task).run(
+                context, dry_run=self.dry_run
+            )
             print_separator("-")
 
             print_info(str(task_pipeline_result), color="pink")
@@ -239,15 +249,16 @@ class Tester:
 
             # Report score if task pipeline succeeded
             if task_pipeline_result:
+                report_pipeline = self._get_task_report_pipeline_runner(task)
                 print_info(f"Reporting <{task.name}> task tests:", color="pink")
                 if report:
-                    task_report_result: PipelineResult = self.report_pipeline.run(context, dry_run=self.dry_run)
+                    task_report_result: PipelineResult = report_pipeline.run(context, dry_run=self.dry_run)
                     if task_report_result:
                         print_info("->Reporting succeeded")
                     else:
                         print_info("->Reporting failed")
                 else:
-                    _: PipelineResult = self.report_pipeline.run(context, dry_run=True)
+                    _: PipelineResult = report_pipeline.run(context, dry_run=True)
                     print_info("->Reporting disabled (dry-run)")
                 print_separator("-")
             else:
