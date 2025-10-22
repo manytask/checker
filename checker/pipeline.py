@@ -253,6 +253,8 @@ class PipelineRunner:
             except PluginExecutionFailed as e:
                 _end_time = time.perf_counter()
                 print_info(e.output or "[empty output]")
+                if self.verbose:
+                    print_info(e.message)
                 print_info(f"> elapsed time: {_end_time - _start_time:.2f}s", color="grey")
                 pipeline_stage_results.append(
                     PipelineStageResult(
