@@ -254,11 +254,11 @@ class PipelineRunner:
                 _end_time = time.perf_counter()
                 print_info(e.output or "[empty output]")
                 print_info(f"> elapsed time: {_end_time - _start_time:.2f}s", color="grey")
-                
+
                 allow_partial = bool(resolved_args.get("partially_scored", False))
                 if allow_partial:
                     print_info("error! (ignored due to partially_scored)", color="yellow")
-                
+
                 pipeline_stage_results.append(
                     PipelineStageResult(
                         name=pipeline_stage.name,
@@ -269,7 +269,7 @@ class PipelineRunner:
                         elapsed_time=_end_time - _start_time,
                     )
                 )
-                
+
                 if not allow_partial:  # only apply failure handling when not partial
                     if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
                         print_info("error! (now as fail=fast)", color="red")
