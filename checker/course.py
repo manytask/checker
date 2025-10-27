@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import git
+import os
 
 from .configs import CheckerSubConfig, CheckerTestingConfig, ManytaskConfig
 from .exceptions import BadConfig, CheckerException
@@ -246,7 +247,7 @@ class Course:
             changed_tasks = [
                 task
                 for task in potential_tasks
-                if any(file is not None and Path(file).is_relative_to(task.relative_path) for file in changed_files)
+                if any(file is not None and Path(file).is_relative_to(task.relative_path + os.path.sep) for file in changed_files)
             ]
             print_info(
                 f"Changed tasks: {[t.name for t in changed_tasks]} (changed files in last commit)",
