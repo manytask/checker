@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+<<<<<<< Updated upstream
 from pydantic import Field
 from pathlib import Path
 import re
@@ -7,6 +8,16 @@ import re
 from checker.plugins import PluginABC, PluginOutput
 from checker.exceptions import PluginExecutionFailed
 from checker.plugins.scripts import RunScriptPlugin
+=======
+import json
+import tempfile
+from pathlib import Path
+
+from checker.exceptions import PluginExecutionFailed
+from checker.plugins import PluginABC, PluginOutput
+from checker.plugins.scripts import RunScriptPlugin
+from pydantic import Field
+>>>>>>> Stashed changes
 
 
 class RunPytestPlugin(RunScriptPlugin):
@@ -40,6 +51,7 @@ class RunPytestPlugin(RunScriptPlugin):
         else:
             tests_cmd += ['-p', 'no:cov']
 
+<<<<<<< Updated upstream
         script_cmd = ' '.join(tests_cmd + [args.target])
         # For VM task, ensure pytest exit code doesn't raise; we'll parse output ourselves
         if is_vm_task:
@@ -69,3 +81,63 @@ class RunPytestPlugin(RunScriptPlugin):
                 result.percentage = 0
                 
         return result
+=======
+        json_report_fd, json_report_path = tempfile.mkstemp(suffix='.json', prefix='pytest_report_')
+        json_report_file = Path(json_report_path)
+
+        try:
+            tests_cmd += ['--json-report', '--json-report-file', str(json_report_file)]
+
+            script_cmd = ' '.join(tests_cmd + [args.target])
+
+            if is_vm_task:
+                script_cmd = f"{script_cmd} || true"
+
+            run_script_args = RunScriptPlugin.Args(
+                origin=args.origin,
+                script=script_cmd,
+                timeout=args.timeout,
+                isolate=args.isolate,
+                env_whitelist=args.env_whitelist,
+            )
+            result = super()._run(run_script_args, verbose=verbose)
+
+            if is_vm_task and json_report_file.exists():
+                try:
+                    report_data = json.loads(json_report_file.read_text(encoding='utf-8'))
+
+                    summary = report_data.get('summary', {})
+
+                    tests = report_data.get('tests', [])
+
+                    score_val = 0.0
+                    full_score = 0.0
+
+                    for test in tests:
+                        outcome = test.get('outcome')
+
+                        call = test.get('call', {})
+
+                        pass
+
+                    passed = summary.get('passed', 0)
+                    total = summary.get('total', 0)
+
+                    if total > 0:
+                        result.percentage = passed / total
+                    else:
+                        result.percentage = 0
+
+                except (json.JSONDecodeError, KeyError, ValueError) as e:
+
+                    result.percentage = 0
+
+            return result
+
+        finally:
+
+            if json_report_file.exists():
+                json_report_file.unlink()
+            import os
+            os.close(json_report_fd)
+>>>>>>> Stashed changes
