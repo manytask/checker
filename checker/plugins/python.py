@@ -1,23 +1,16 @@
 from __future__ import annotations
 
-<<<<<<< Updated upstream
-from pydantic import Field
-from pathlib import Path
-import re
-
-from checker.plugins import PluginABC, PluginOutput
-from checker.exceptions import PluginExecutionFailed
-from checker.plugins.scripts import RunScriptPlugin
-=======
 import json
+import os
 import tempfile
+import threading
 from pathlib import Path
 
-from checker.exceptions import PluginExecutionFailed
-from checker.plugins import PluginABC, PluginOutput
-from checker.plugins.scripts import RunScriptPlugin
 from pydantic import Field
->>>>>>> Stashed changes
+
+from checker.plugins import PluginABC, PluginOutput
+from checker.exceptions import PluginExecutionFailed
+from checker.plugins.scripts import RunScriptPlugin
 
 
 class RunPytestPlugin(RunScriptPlugin):
@@ -34,10 +27,13 @@ class RunPytestPlugin(RunScriptPlugin):
 
         coverage: bool | int | None = None
         allow_failures: bool = False
+        report_percentage: bool = True
+
 
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
-        tests_cmd = ['python', '-m', 'pytest']
-        is_vm_task = args.target == "04.3.HW1/tasks/vm"
+        # Use -I (isolated mode) to prevent sitecustomize.py and user site-packages
+        # This blocks early monkey-patching attempts
+        tests_cmd = ['python', '-I', '-m', 'pytest']
 
         if not verbose:
             tests_cmd += ['--no-header']
@@ -51,46 +47,39 @@ class RunPytestPlugin(RunScriptPlugin):
         else:
             tests_cmd += ['-p', 'no:cov']
 
-<<<<<<< Updated upstream
-        script_cmd = ' '.join(tests_cmd + [args.target])
-        # For VM task, ensure pytest exit code doesn't raise; we'll parse output ourselves
-        if is_vm_task:
-            script_cmd = f"{script_cmd} || true"
-
-        run_script_args = RunScriptPlugin.Args(
-            origin=args.origin,
-            script=script_cmd,
-            timeout=args.timeout,
-            isolate=args.isolate,
-            env_whitelist=args.env_whitelist,
-        )
-        result = super()._run(run_script_args, verbose=verbose)
-        # Parse score from stdout when VM task (no exception path due to '|| true')
-        if is_vm_task:
-            m = re.search(r"Summary score is:\s*([0-9]+(?:\.[0-9]+)?)", result.output or "")
-            if m:
-                score_val = float(m.group(1))
-                scorer_path = Path(args.origin) / args.target / 'vm_scorer.py'
-                text_sc = scorer_path.read_text(encoding='utf-8')
-                m_full = re.search(r"FULL_SCORE\s*=\s*([0-9]+(?:\.[0-9]+)?)", text_sc)
-                if m_full:
-                    full = float(m_full.group(1))
-                    if full > 0:
-                        result.percentage = score_val / full
-            else:
-                result.percentage = 0
-                
-        return result
-=======
-        json_report_fd, json_report_path = tempfile.mkstemp(suffix='.json', prefix='pytest_report_')
-        json_report_file = Path(json_report_path)
-
+        # Use FIFO pipe for secure IPC to get test results as percentage
+        # Only used when report_percentage=True (weighted test scoring)
+        pipe_path = None
+        report_data_holder = {'data': None, 'error': None}
+        reader_thread = None
+        
         try:
-            tests_cmd += ['--json-report', '--json-report-file', str(json_report_file)]
+            if args.report_percentage:
+                # Create a named pipe (FIFO) in temp directory
+                # Use random name to make it harder to find (though still not perfect)
+                temp_dir = Path(tempfile.gettempdir())
+                pipe_path = temp_dir / f'checker_pipe_{os.getpid()}_{id(self)}'
+                
+                # Create FIFO pipe
+                # Only owner can read/write
+                os.mkfifo(str(pipe_path), mode=0o600)
+                
+                # Start reader thread BEFORE pytest starts
+                reader_thread = threading.Thread(
+                    target=self._read_pipe_data,
+                    args=(pipe_path, report_data_holder),
+                    daemon=True
+                )
+                reader_thread.start()
+
+                # Use our secure plugin with pipe mode
+                tests_cmd += ['-p', 'checker.plugins.checker_reporter']
+                tests_cmd += ['--checker-report', str(pipe_path)]
+                tests_cmd += ['--checker-use-pipe']
 
             script_cmd = ' '.join(tests_cmd + [args.target])
 
-            if is_vm_task:
+            if args.report_percentage:
                 script_cmd = f"{script_cmd} || true"
 
             run_script_args = RunScriptPlugin.Args(
@@ -102,42 +91,80 @@ class RunPytestPlugin(RunScriptPlugin):
             )
             result = super()._run(run_script_args, verbose=verbose)
 
-            if is_vm_task and json_report_file.exists():
+            if reader_thread:
+                reader_thread.join(timeout=5.0)
+            
+            if args.report_percentage:
+                report_data = report_data_holder.get('data')
+                if report_data_holder.get('error'):
+                    raise PluginExecutionFailed(
+                        f"Failed to read report from pipe: {report_data_holder['error']}"
+                    )
+                elif not report_data:
+                    raise PluginExecutionFailed(
+                        "No report data received from pytest plugin"
+                    )
+                elif not isinstance(report_data, dict):
+                    raise PluginExecutionFailed(
+                        f"Invalid report data type: expected dict, got {type(report_data).__name__}"
+                    )
+                
                 try:
-                    report_data = json.loads(json_report_file.read_text(encoding='utf-8'))
-
                     summary = report_data.get('summary', {})
-
-                    tests = report_data.get('tests', [])
-
-                    score_val = 0.0
-                    full_score = 0.0
-
-                    for test in tests:
-                        outcome = test.get('outcome')
-
-                        call = test.get('call', {})
-
-                        pass
-
+                    if not isinstance(summary, dict):
+                        raise PluginExecutionFailed(
+                            f"Invalid summary type: expected dict, got {type(summary).__name__}"
+                        )
+                    
                     passed = summary.get('passed', 0)
                     total = summary.get('total', 0)
-
+                    
+                    if not isinstance(passed, (int, float)) or not isinstance(total, (int, float)):
+                        raise PluginExecutionFailed(
+                            f"Invalid test counts: passed={passed!r}, total={total!r}"
+                        )
+                    
                     if total > 0:
                         result.percentage = passed / total
                     else:
                         result.percentage = 0
-
-                except (json.JSONDecodeError, KeyError, ValueError) as e:
-
-                    result.percentage = 0
+                        
+                except KeyError as e:
+                    raise PluginExecutionFailed(
+                        f"Missing required field in report: {e}"
+                    ) from e
 
             return result
 
         finally:
-
-            if json_report_file.exists():
-                json_report_file.unlink()
-            import os
-            os.close(json_report_fd)
->>>>>>> Stashed changes
+            # Clean up pipe file if it was created
+            if pipe_path is not None and pipe_path.exists():
+                try:
+                    pipe_path.unlink()
+                except OSError:
+                    pass
+    
+    @staticmethod
+    def _read_pipe_data(pipe_path: Path, result_holder: dict) -> None:
+        """
+        Read JSON data from pipe in a separate thread.
+        Stores the last valid JSON line in result_holder['data'].
+        Stores any error in result_holder['error'].
+        """
+        try:
+            # Open pipe for reading (blocks until writer connects)
+            with open(pipe_path, 'r', encoding='utf-8') as pipe:
+                last_valid_data = None
+                # Read all lines - last one wins (incremental updates)
+                for line in pipe:
+                    line = line.strip()
+                    if line:
+                        try:
+                            last_valid_data = json.loads(line)
+                        except json.JSONDecodeError:
+                            # Skip malformed lines, keep previous valid data
+                            pass
+                
+                result_holder['data'] = last_valid_data
+        except Exception as e:
+            result_holder['error'] = str(e)
