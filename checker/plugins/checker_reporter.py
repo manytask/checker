@@ -7,8 +7,12 @@ Security model:
 - Python -I flag (in python.py) blocks sitecustomize.py
 - Security relies on: 1) pipe IPC, 2) python -I flag
 """
+
+from __future__ import annotations
+
 import json
 import time
+from typing import Any
 
 import pytest
 
@@ -27,17 +31,17 @@ class CheckerReporterPlugin:
         self.report_path = report_path
         self.use_pipe = use_pipe
         self.start_time = time.time()
-        self.collected_items = []
-        self.test_results = []
+        self.collected_items: list[Any] = []
+        self.test_results: list[dict[str, Any]] = []
         self.summary = {
-            'passed': 0,
-            'failed': 0,
-            'skipped': 0,
-            'error': 0,
-            'xfailed': 0,
-            'xpassed': 0,
-            'total': 0,
-            'collected': 0
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "error": 0,
+            "xfailed": 0,
+            "xpassed": 0,
+            "total": 0,
+            "collected": 0,
         }
         self.pipe_fd = None
 
@@ -47,9 +51,11 @@ class CheckerReporterPlugin:
             try:
                 # Open pipe in non-blocking mode initially to avoid hanging
                 import os
+
                 self.pipe_fd = os.open(self.report_path, os.O_WRONLY | os.O_NONBLOCK)
                 # Switch to blocking mode after successful open
                 import fcntl
+
                 flags = fcntl.fcntl(self.pipe_fd, fcntl.F_GETFL)
                 fcntl.fcntl(self.pipe_fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
             except (OSError, IOError):
@@ -57,44 +63,44 @@ class CheckerReporterPlugin:
                 self.use_pipe = False
                 self.pipe_fd = None
 
-    def pytest_collection_finish(self, session):
+    def pytest_collection_finish(self, session: pytest.Session) -> None:
         """Called after test collection is complete."""
         self.collected_items = session.items
-        self.summary['collected'] = len(session.items)
+        self.summary["collected"] = len(session.items)
 
-    def pytest_runtest_logreport(self, report):
+    def pytest_runtest_logreport(self, report: pytest.TestReport) -> None:
         """Called for each test phase (setup, call, teardown)."""
         # Only count the 'call' phase to avoid double-counting
-        if report.when != 'call':
+        if report.when != "call":
             return
 
         outcome = report.outcome
         test_info = {
-            'nodeid': report.nodeid,
-            'outcome': outcome,
-            'duration': report.duration,
+            "nodeid": report.nodeid,
+            "outcome": outcome,
+            "duration": report.duration,
         }
 
-        if hasattr(report, 'longrepr') and report.longrepr:
-            test_info['longrepr'] = str(report.longrepr)
+        if hasattr(report, "longrepr") and report.longrepr:
+            test_info["longrepr"] = str(report.longrepr)
 
         self.test_results.append(test_info)
 
         # Update summary
-        if outcome == 'passed':
-            self.summary['passed'] += 1
-        elif outcome == 'failed':
-            self.summary['failed'] += 1
-        elif outcome == 'skipped':
-            self.summary['skipped'] += 1
-        else:
-            self.summary['error'] += 1
+        if outcome == "passed":
+            self.summary["passed"] += 1
+        elif outcome == "failed":
+            self.summary["failed"] += 1
+        elif outcome == "skipped":
+            self.summary["skipped"] += 1
+        elif outcome in ("error", "xfailed", "xpassed"):  # type: ignore[unreachable]
+            self.summary["error"] += 1
 
         # CRITICAL: Write JSON after EACH test (incremental write)
         # This protects against sys.exit() in student's code
         self._write_report()
 
-    def _write_report(self):
+    def _write_report(self) -> None:
         """
         Write JSON report using PROTECTED json.dump/dumps.
         Called after each test AND at session finish.
@@ -102,13 +108,13 @@ class CheckerReporterPlugin:
         In pipe mode: writes each update as a JSON line
         In file mode: overwrites the file with complete report
         """
-        self.summary['total'] = len(self.test_results)
+        self.summary["total"] = len(self.test_results)
 
         report_data = {
-            'created': self.start_time,
-            'duration': time.time() - self.start_time,
-            'summary': self.summary,
-            'tests': self.test_results
+            "created": self.start_time,
+            "duration": time.time() - self.start_time,
+            "summary": self.summary,
+            "tests": self.test_results,
         }
 
         # Write report data as JSON
@@ -118,26 +124,29 @@ class CheckerReporterPlugin:
                 # Pipe mode: write JSON as a single line (newline-delimited JSON)
                 # Each write overwrites the previous state
                 import os
+
                 json_str = json.dumps(report_data, ensure_ascii=False)
                 # Write with newline separator for line-based reading
-                data = (json_str + '\n').encode('utf-8')
+                data = (json_str + "\n").encode("utf-8")
                 os.write(self.pipe_fd, data)
             else:
                 # File mode: overwrite file with complete report
-                with open(self.report_path, 'w', encoding='utf-8') as f:
+                with open(self.report_path, "w", encoding="utf-8") as f:
                     json.dump(report_data, f, indent=2, ensure_ascii=False)
         except (OSError, IOError) as e:
             # Log I/O errors to stderr for debugging
             # Don't crash pytest, but make the error visible
             import sys
+
             print(f"WARNING: Failed to write checker report: {e}", file=sys.stderr)
         except Exception as e:
             # Log unexpected errors
             import sys
+
             print(f"ERROR: Unexpected error in checker reporter: {type(e).__name__}: {e}", file=sys.stderr)
 
     @pytest.hookimpl(tryfirst=True)
-    def pytest_sessionfinish(self, session, exitstatus):
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:
         """
         Called after all tests are finished.
         Final write and cleanup.
@@ -151,6 +160,7 @@ class CheckerReporterPlugin:
         if self.pipe_fd is not None:
             try:
                 import os
+
                 os.close(self.pipe_fd)
             except (OSError, IOError):
                 pass
@@ -158,29 +168,23 @@ class CheckerReporterPlugin:
                 self.pipe_fd = None
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """
     Hook called by pytest to register our plugin.
     This is called EARLY, before conftest.py is loaded.
     """
-    report_path = config.getoption('--checker-report', default=None)
+    report_path = config.getoption("--checker-report", default=None)
     if report_path:
-        use_pipe = config.getoption('--checker-use-pipe', default=False)
+        use_pipe = config.getoption("--checker-use-pipe", default=False)
         plugin = CheckerReporterPlugin(report_path, use_pipe=use_pipe)
-        config.pluginmanager.register(plugin, 'checker_reporter')
+        config.pluginmanager.register(plugin, "checker_reporter")
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add custom command line options for our plugin."""
     parser.addoption(
-        '--checker-report',
-        action='store',
-        default=None,
-        help='Path to write secure JSON report (file or FIFO pipe)'
+        "--checker-report", action="store", default=None, help="Path to write secure JSON report (file or FIFO pipe)"
     )
     parser.addoption(
-        '--checker-use-pipe',
-        action='store_true',
-        default=False,
-        help='Use pipe mode for secure IPC instead of file'
+        "--checker-use-pipe", action="store_true", default=False, help="Use pipe mode for secure IPC instead of file"
     )
