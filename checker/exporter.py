@@ -230,7 +230,6 @@ class Exporter:
             extra_ignore_paths=disabled_groups_and_tasks_to_skip,
         )
 
-        # Commit and push changes if requested
         if commit:
             self._commit_and_push_repo(target, commit_message)
 
@@ -604,7 +603,7 @@ class Exporter:
 
         print_info("* committing...")
         r = subprocess.run(
-            f'git commit --all -m "{message}"',
+            ["git", "commit", "--all", "-m", message],
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

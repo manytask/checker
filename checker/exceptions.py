@@ -6,13 +6,13 @@ from dataclasses import dataclass
 class CheckerException(Exception):
     """Base exception for Checker package"""
 
-    __test__ : bool = False
-    ab = 1
+    __test__ = False  # to disable pytest detecting it as Test class
     pass
+
 
 class CheckerValidationError(CheckerException):
     """Base validation error of configs, project structure, etc."""
-    ab = 1
+
     pass
 
 

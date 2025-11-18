@@ -396,7 +396,7 @@ def export(
         dry_run=dry_run,
     )
     export_root.mkdir(exist_ok=True, parents=True)
-    exporter.export_public(export_root, push=commit, commit_message=checker_config.export.commit_message)
+    exporter.export_public(export_root, commit=commit, commit_message=checker_config.export.commit_message)
 
 
 @cli.command()
