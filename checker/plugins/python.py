@@ -29,7 +29,6 @@ class RunPytestPlugin(RunScriptPlugin):
         allow_failures: bool = False
         report_percentage: bool = True
 
-
     def _run(self, args: Args, *, verbose: bool = False) -> PluginOutput:
         # Use -I (isolated mode) to prevent sitecustomize.py and user site-packages
         # This blocks early monkey-patching attempts
@@ -52,18 +51,18 @@ class RunPytestPlugin(RunScriptPlugin):
         pipe_path = None
         report_data_holder = {'data': None, 'error': None}
         reader_thread = None
-        
+
         try:
             if args.report_percentage:
                 # Create a named pipe (FIFO) in temp directory
                 # Use random name to make it harder to find (though still not perfect)
                 temp_dir = Path(tempfile.gettempdir())
                 pipe_path = temp_dir / f'checker_pipe_{os.getpid()}_{id(self)}'
-                
+
                 # Create FIFO pipe
                 # Only owner can read/write
                 os.mkfifo(str(pipe_path), mode=0o600)
-                
+
                 # Start reader thread BEFORE pytest starts
                 reader_thread = threading.Thread(
                     target=self._read_pipe_data,
@@ -93,7 +92,7 @@ class RunPytestPlugin(RunScriptPlugin):
 
             if reader_thread:
                 reader_thread.join(timeout=5.0)
-            
+
             if args.report_percentage:
                 report_data = report_data_holder.get('data')
                 if report_data_holder.get('error'):
@@ -108,27 +107,27 @@ class RunPytestPlugin(RunScriptPlugin):
                     raise PluginExecutionFailed(
                         f"Invalid report data type: expected dict, got {type(report_data).__name__}"
                     )
-                
+
                 try:
                     summary = report_data.get('summary', {})
                     if not isinstance(summary, dict):
                         raise PluginExecutionFailed(
                             f"Invalid summary type: expected dict, got {type(summary).__name__}"
                         )
-                    
+
                     passed = summary.get('passed', 0)
                     total = summary.get('total', 0)
-                    
+
                     if not isinstance(passed, (int, float)) or not isinstance(total, (int, float)):
                         raise PluginExecutionFailed(
                             f"Invalid test counts: passed={passed!r}, total={total!r}"
                         )
-                    
+
                     if total > 0:
                         result.percentage = passed / total
                     else:
                         result.percentage = 0
-                        
+
                 except KeyError as e:
                     raise PluginExecutionFailed(
                         f"Missing required field in report: {e}"
@@ -143,7 +142,7 @@ class RunPytestPlugin(RunScriptPlugin):
                     pipe_path.unlink()
                 except OSError:
                     pass
-    
+
     @staticmethod
     def _read_pipe_data(pipe_path: Path, result_holder: dict) -> None:
         """
@@ -164,7 +163,7 @@ class RunPytestPlugin(RunScriptPlugin):
                         except json.JSONDecodeError:
                             # Skip malformed lines, keep previous valid data
                             pass
-                
+
                 result_holder['data'] = last_valid_data
         except Exception as e:
             result_holder['error'] = str(e)
