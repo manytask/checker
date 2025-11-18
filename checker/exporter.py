@@ -572,7 +572,7 @@ class Exporter:
                     )
                     shutil.copymode(path, path_destination)
 
-    def _commit_and_push_repo(
+    def _commit_and_push_repo(  # pragma: no cover
         self,
         repo_dir: Path,
         message: str = "Export public files",
