@@ -657,7 +657,7 @@ class Exporter:
 
         print_info("* git pushing...")
         r = subprocess.run(
-            "git push -o ci.skip origin",
+            "git push -u -o ci.skip origin",
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
