@@ -614,10 +614,8 @@ class Exporter:
         print_info(r.stdout, color="grey")
 
         print_info("* committing...")
-        cmd = ["git", "commit", "-m", message]
-        print("Command:", " ".join(cmd)) 
         r = subprocess.run(
-            cmd,
+            'git commit -m "Export public files"',
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
