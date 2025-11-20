@@ -613,6 +613,24 @@ class Exporter:
         )
         print_info(r.stdout, color="grey")
 
+        print_info("* set git credentials..")
+        r = subprocess.run(
+            'git config --global user.email "bot@manytask.org"',
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            cwd=repo_dir,
+        )
+        r = subprocess.run(
+            'git config --global user.name "Manytask Bot"',
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            cwd=repo_dir,
+        )
+
         print_info("* committing...")
         r = subprocess.run(
             'git commit -m "Export public files"',
