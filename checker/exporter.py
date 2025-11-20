@@ -592,7 +592,7 @@ class Exporter:
 
         print_info("* adding files...")
         r = subprocess.run(
-            "git add .",
+            "git add --all .",
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -603,7 +603,7 @@ class Exporter:
 
         print_info("* committing...")
         r = subprocess.run(
-            ["git", "commit", "--all", "-m", message],
+            ["git", "commit", "-m", message],
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
