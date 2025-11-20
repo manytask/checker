@@ -601,6 +601,18 @@ class Exporter:
         )
         print_info(r.stdout, color="grey")
 
+        print_info("* git status...")
+        r = subprocess.run(
+            "git status",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            check=True,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+
         print_info("* committing...")
         cmd = ["git", "commit", "-m", message]
         print("Command:", " ".join(cmd)) 
