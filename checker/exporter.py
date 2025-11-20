@@ -590,6 +590,19 @@ class Exporter:
         )
         print_info(r.stdout, color="grey")
 
+        """Commit and push all changes in the repository."""
+        print_info("* set branch to main...")
+        r = subprocess.run(
+            "git checkout -b main",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            check=True,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+
         print_info("* adding files...")
         r = subprocess.run(
             "git add --all .",
