@@ -646,7 +646,7 @@ class Exporter:
 
         print_info("* committing...")
         r = subprocess.run(
-            'git commit -m "Export public files"',
+            ["git", "commit", "-m", message],
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
