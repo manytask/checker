@@ -256,28 +256,34 @@ class PipelineRunner:
                 if self.verbose:
                     print_info(e.message)
                 print_info(f"> elapsed time: {_end_time - _start_time:.2f}s", color="grey")
+
+                allow_partial = bool(resolved_args.get("partially_scored", False))
+                if allow_partial:
+                    print_info("error! (ignored due to partially_scored)", color="yellow")
+
                 pipeline_stage_results.append(
                     PipelineStageResult(
                         name=pipeline_stage.name,
-                        failed=True,
+                        failed=not allow_partial,  # flip the flag based on partial scoring
                         skipped=False,
                         output=e.output or "",
                         percentage=e.percentage,
                         elapsed_time=_end_time - _start_time,
                     )
                 )
-                if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
-                    print_info("error! (now as fail=fast)", color="red")
-                    skip_the_rest = True
-                    pipeline_passed = False
-                elif pipeline_stage.fail == PipelineStageConfig.FailType.AFTER_ALL:
-                    print_info("error! (later as fail=after_all)", color="red")
-                    pipeline_passed = False
-                elif pipeline_stage.fail == PipelineStageConfig.FailType.NEVER:
-                    print_info("error! (ignored as fail=never)", color="red")
-                    pass
-                else:
-                    assert False, f"Unknown fail type {pipeline_stage.fail}"  # pragma: no cover
+
+                if not allow_partial:  # only apply failure handling when not partial
+                    if pipeline_stage.fail == PipelineStageConfig.FailType.FAST:
+                        print_info("error! (now as fail=fast)", color="red")
+                        skip_the_rest = True
+                        pipeline_passed = False
+                    elif pipeline_stage.fail == PipelineStageConfig.FailType.AFTER_ALL:
+                        print_info("error! (later as fail=after_all)", color="red")
+                        pipeline_passed = False
+                    elif pipeline_stage.fail == PipelineStageConfig.FailType.NEVER:
+                        print_info("error! (ignored as fail=never)", color="red")
+                    else:
+                        assert False, f"Unknown fail type {pipeline_stage.fail}"
 
             # register output if required
             if pipeline_stage.register_output:
