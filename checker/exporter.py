@@ -578,95 +578,36 @@ class Exporter:
         message: str = "Export public files",
     ) -> None:
         """Commit and push all changes in the repository."""
-        print_info("* git status...")
-        r = subprocess.run(
-            "git status",
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            check=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
+        # Collect all commands in an array
+        commands = [
+            ("* git status...", "git status", True),
+            ("* set branch to main...", "git checkout -b main", True),
+            ("* adding files...", "git add --all .", False),
+            ("* git status...", "git status", True),
+            ("* set git credentials..", 'git config --global user.email "bot@manytask.org"', False),
+            ("* set git credentials..", 'git config --global user.name "Manytask Bot"', False),
+            ("* committing...", ["git", "commit", "-m", message], False),
+            ("* git pushing...", "git push -u -o ci.skip origin", False),
+        ]
 
-        """Commit and push all changes in the repository."""
-        print_info("* set branch to main...")
-        r = subprocess.run(
-            "git checkout -b main",
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            check=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
-
-        print_info("* adding files...")
-        r = subprocess.run(
-            "git add --all .",
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
-
-        print_info("* git status...")
-        r = subprocess.run(
-            "git status",
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            check=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
-
-        print_info("* set git credentials..")
-        r = subprocess.run(
-            'git config --global user.email "bot@manytask.org"',
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            cwd=repo_dir,
-        )
-        r = subprocess.run(
-            'git config --global user.name "Manytask Bot"',
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            cwd=repo_dir,
-        )
-
-        print_info("* committing...")
-        r = subprocess.run(
-            ["git", "commit", "-m", message],
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
-
-        print_info("* git pushing...")
-        r = subprocess.run(
-            "git push -u -o ci.skip origin",
-            encoding="utf-8",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            cwd=repo_dir,
-        )
-        print_info(r.stdout, color="grey")
-        if r.returncode != 0:
-            raise Exception("Can not push files to public repo")
+        # Execute commands in a loop
+        for print_message, command, check_success in commands:
+            print_info(print_message)
+            r = subprocess.run(
+                command,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=not isinstance(command, list),
+                check=check_success,
+                cwd=repo_dir,
+            )
+            print_info(r.stdout, color="grey")
+            
+            # Check for specific commands that need error handling
+            if print_message == "* git pushing...":
+                if r.returncode != 0:
+                    raise Exception("Can not push files to public repo")
 
         print_info("Done.")
 
