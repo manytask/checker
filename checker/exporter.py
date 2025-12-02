@@ -607,10 +607,12 @@ class Exporter:
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            shell=True,
             cwd=repo_dir,
         )
         print_info(r.stdout, color="grey")
+        # Return code 1 means nothing to commit, which is OK
+        if r.returncode not in (0, 1):
+            raise Exception(f"Git commit failed with code {r.returncode}: {r.stdout}")
 
         print_info("* git pushing...")
         r = subprocess.run(
