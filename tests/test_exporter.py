@@ -432,7 +432,7 @@ class TestExporterOnSimple:
     def test_export_public(
         self, tmpdir: Path, simple_exporter: Exporter, simple_private_folder: Path, simple_export_folder: Path
     ) -> None:
-        simple_exporter.export_public(simple_export_folder)
+        simple_exporter.export_public(simple_export_folder, commit=False)
 
         assert_files_in_folder(
             simple_export_folder.resolve(),
@@ -817,7 +817,7 @@ class _TestExporter:
             simple_private_folder,
         )
 
-        exporter.export_public(simple_export_folder)
+        exporter.export_public(simple_export_folder, commit=False)
 
         assert_files_in_folder(
             simple_export_folder.resolve(),
