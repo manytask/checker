@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -205,7 +206,7 @@ class Exporter:
     def export_public(
         self,
         target: Path,
-        push: bool = False,
+        commit: bool = True,
         commit_message: str = "chore(auto): Update public files [skip-ci]",
     ) -> None:
         target.mkdir(parents=True, exist_ok=True)
@@ -228,6 +229,9 @@ class Exporter:
             fill_templates=True,
             extra_ignore_paths=disabled_groups_and_tasks_to_skip,
         )
+
+        if commit:
+            self._commit_and_push_repo(target, commit_message)
 
     def export_for_testing(
         self,
@@ -567,6 +571,63 @@ class Exporter:
                         path_destination,
                     )
                     shutil.copymode(path, path_destination)
+
+    def _commit_and_push_repo(  # pragma: no cover
+        self,
+        repo_dir: Path,
+        message: str = "Export public files",
+    ) -> None:
+        """Commit and push all changes in the repository."""
+        print_info("* git status...")
+        r = subprocess.run(
+            "git status",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            check=True,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+
+        print_info("* adding files...")
+        r = subprocess.run(
+            "git add .",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+
+        print_info("* committing...")
+        r = subprocess.run(
+            ["git", "commit", "--all", "-m", message],
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+        # Return code 1 means nothing to commit, which is OK
+        if r.returncode not in (0, 1):
+            raise Exception(f"Git commit failed with code {r.returncode}: {r.stdout}")
+
+        print_info("* git pushing...")
+        r = subprocess.run(
+            "git push -o ci.skip origin",
+            encoding="utf-8",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            cwd=repo_dir,
+        )
+        print_info(r.stdout, color="grey")
+        if r.returncode != 0:
+            raise Exception("Can not push files to public repo")
+
+        print_info("Done.")
 
     def __del__(self) -> None:
         if self.__dict__.get("cleanup") and self._temporary_dir_manager:
