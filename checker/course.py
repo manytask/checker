@@ -244,9 +244,7 @@ class Course:
             print_info(f"Last commit changes: {changed_files}", color="grey")
 
             changed_tasks = [
-                task
-                for task in potential_tasks
-                if Course._is_parent(Path(task.relative_path), changed_files)
+                task for task in potential_tasks if Course._is_parent(Path(task.relative_path), changed_files)
             ]
             print_info(
                 f"Changed tasks: {[t.name for t in changed_tasks]} (changed files in last commit)",
